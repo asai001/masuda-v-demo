@@ -50,6 +50,12 @@ const App = () => {
   const [orderSearchQuery, setOrderSearchQuery] = useState("");
   const [orderFilterStatus, setOrderFilterStatus] = useState("all");
 
+  // 換算レート設定
+  const [exchangeRates, setExchangeRates] = useState({
+    jpy: 150,
+    vnd: 25000,
+  });
+
   const translations = {
     ja: {
       dashboard: "ダッシュボード",
@@ -59,7 +65,12 @@ const App = () => {
       payments: "支払管理",
       reports: "レポート",
       settings: "設定",
+      systemSettings: "各種設定",
       logout: "ログアウト",
+      exchangeRateSettings: "換算レート設定",
+      jpyRate: "JPY → USD レート",
+      vndRate: "VND → USD レート",
+      rateDescription: "1 USD あたりの金額を入力してください",
       welcome: "おかえりなさい",
       todayTasks: "本日のタスク",
       recentActivity: "最近のアクティビティ",
@@ -70,8 +81,8 @@ const App = () => {
       newOrders: "新規発注",
       totalSales: "今月の売上",
       totalPurchase: "今月の仕入",
-      pendingInvoices: "未払請求書",
-      activeSuppliers: "アクティブ取引先",
+      monthlyOrderCount: "今月の発注件数",
+      pendingDeliveries: "今月の未納入件数",
       viewAll: "すべて表示",
       createNew: "新規作成",
       approve: "承認する",
@@ -149,7 +160,12 @@ const App = () => {
       payments: "Thanh toán",
       reports: "Báo cáo",
       settings: "Cài đặt",
+      systemSettings: "Cài đặt hệ thống",
       logout: "Đăng xuất",
+      exchangeRateSettings: "Cài đặt tỷ giá",
+      jpyRate: "Tỷ giá JPY → USD",
+      vndRate: "Tỷ giá VND → USD",
+      rateDescription: "Nhập số tiền tương đương với 1 USD",
       welcome: "Chào mừng trở lại",
       todayTasks: "Nhiệm vụ hôm nay",
       recentActivity: "Hoạt động gần đây",
@@ -160,8 +176,8 @@ const App = () => {
       newOrders: "Đơn hàng mới",
       totalSales: "Doanh thu tháng",
       totalPurchase: "Mua hàng tháng",
-      pendingInvoices: "Hóa đơn chưa thanh toán",
-      activeSuppliers: "Nhà cung cấp hoạt động",
+      monthlyOrderCount: "Số đơn hàng tháng",
+      pendingDeliveries: "Chưa giao hàng",
       viewAll: "Xem tất cả",
       createNew: "Tạo mới",
       approve: "Phê duyệt",
@@ -485,6 +501,7 @@ const App = () => {
     { icon: TrendingUp, label: t.sales, page: "sales" },
     { icon: DollarSign, label: t.payments, page: "payments" },
     { icon: FileText, label: t.reports, page: "reports" },
+    { icon: Settings, label: t.systemSettings, page: "systemSettings" },
   ];
 
   const quickActions = [
@@ -809,15 +826,17 @@ const App = () => {
 
   // ダッシュボード用の計算（ordersが変更されるたびに再計算）
   const calculateMonthlyPurchase = () => {
-    // 現在は2024年11月として計算（実際の日付に関わらず）
-    const targetMonth = 10; // 10 = 11月（0始まり）
-    const targetYear = 2024;
+    // 現在の年月を取得
+    const now = new Date();
+    const targetMonth = now.getMonth();
+    const targetYear = now.getFullYear();
 
     console.log("=== 今月の仕入計算 ===");
     console.log("全発注データ:", orders);
+    console.log(`対象年月: ${targetYear}年${targetMonth + 1}月`);
 
-    // 11月のデータでフィルター（発注済みまたは納品済み）
-    const novemberOrders = orders.filter((order) => {
+    // 今月のデータでフィルター（発注済みまたは納品済み）
+    const currentMonthOrders = orders.filter((order) => {
       if (!order.orderDate) {
         console.log("発注日なし:", order);
         return false;
@@ -829,23 +848,23 @@ const App = () => {
 
       console.log(`発注ID ${order.id}: 日付=${order.orderDate}, 月=${orderMonth}, 年=${orderYear}, ステータス=${order.status}`);
 
-      const isNovember2024 = orderMonth === targetMonth && orderYear === targetYear;
+      const isCurrentMonth = orderMonth === targetMonth && orderYear === targetYear;
       const isValidStatus = order.status === "ordered" || order.status === "delivered";
 
-      const result = isNovember2024 && isValidStatus;
-      console.log(`  → 11月判定=${isNovember2024}, ステータス判定=${isValidStatus}, 結果=${result}`);
+      const result = isCurrentMonth && isValidStatus;
+      console.log(`  → 今月判定=${isCurrentMonth}, ステータス判定=${isValidStatus}, 結果=${result}`);
 
       return result;
     });
 
-    console.log("11月の対象発注:", novemberOrders);
+    console.log("今月の対象発注:", currentMonthOrders);
 
     // 通貨別に合計を計算
     let totalUSD = 0;
     let totalJPY = 0;
     let totalVND = 0;
 
-    novemberOrders.forEach((order) => {
+    currentMonthOrders.forEach((order) => {
       const quantity = Number(order.quantity) || 0;
       const unitPrice = Number(order.unitPrice) || 0;
       const amount = quantity * unitPrice;
@@ -861,16 +880,23 @@ const App = () => {
       }
     });
 
-    // USDに換算（簡易的なレート）
-    const usdEquivalent = totalUSD + totalJPY / 150 + totalVND / 25000;
+    // USDに換算（設定された換算レートを使用）
+    const usdEquivalent = totalUSD + totalJPY / exchangeRates.jpy + totalVND / exchangeRates.vnd;
 
     console.log(`合計: USD=${totalUSD}, JPY=${totalJPY}, VND=${totalVND}`);
     console.log(`USD換算: ${usdEquivalent}`);
     console.log("==================");
 
+    // 今月の発注件数
+    const orderCount = currentMonthOrders.length;
+
+    // 今月の未納入件数（発注済みのみカウント）
+    const pendingCount = currentMonthOrders.filter((order) => order.status === "ordered").length;
+
     return {
       total: usdEquivalent,
-      byOrder: novemberOrders.length,
+      orderCount: orderCount,
+      pendingCount: pendingCount,
       usd: totalUSD,
       jpy: totalJPY,
       vnd: totalVND,
@@ -888,8 +914,8 @@ const App = () => {
         translations={{
           totalSales: t.totalSales,
           totalPurchase: t.totalPurchase,
-          pendingInvoices: t.pendingInvoices,
-          activeSuppliers: t.activeSuppliers,
+          monthlyOrderCount: t.monthlyOrderCount,
+          pendingDeliveries: t.pendingDeliveries,
         }}
         monthlyPurchase={calculateMonthlyPurchase()}
       />
@@ -1235,6 +1261,65 @@ const App = () => {
     </div>
   );
 
+  const renderSystemSettings = () => (
+    <div className="space-y-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 className="text-xl font-bold text-gray-800 mb-6">{t.exchangeRateSettings}</h3>
+        <p className="text-sm text-gray-600 mb-6">{t.rateDescription}</p>
+
+        <div className="space-y-6 max-w-2xl">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t.jpyRate}
+            </label>
+            <div className="flex items-center gap-3">
+              <span className="text-gray-600">1 USD =</span>
+              <input
+                type="number"
+                value={exchangeRates.jpy}
+                onChange={(e) => setExchangeRates({ ...exchangeRates, jpy: Number(e.target.value) })}
+                className="w-32 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                min="1"
+                step="1"
+              />
+              <span className="text-gray-600">JPY</span>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t.vndRate}
+            </label>
+            <div className="flex items-center gap-3">
+              <span className="text-gray-600">1 USD =</span>
+              <input
+                type="number"
+                value={exchangeRates.vnd}
+                onChange={(e) => setExchangeRates({ ...exchangeRates, vnd: Number(e.target.value) })}
+                className="w-32 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                min="1"
+                step="100"
+              />
+              <span className="text-gray-600">VND</span>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-gray-200">
+            <button
+              onClick={() => {
+                alert(lang === "ja" ? "設定を保存しました" : "Đã lưu cài đặt");
+              }}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium"
+            >
+              <Save size={18} />
+              {t.save}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="flex h-screen bg-gray-50">
       {/* サイドバー */}
@@ -1291,6 +1376,7 @@ const App = () => {
                 {currentPage === "sales" && t.sales}
                 {currentPage === "payments" && t.payments}
                 {currentPage === "reports" && t.reports}
+                {currentPage === "systemSettings" && t.systemSettings}
               </h2>
               <p className="text-sm text-gray-500">
                 {currentPage === "suppliers" ? t.supplierList : currentPage === "orders" ? t.orderList : "2024年11月20日 (水)"}
@@ -1355,6 +1441,7 @@ const App = () => {
               <p className="text-gray-600">レポート画面（準備中）</p>
             </div>
           )}
+          {currentPage === "systemSettings" && renderSystemSettings()}
         </div>
       </main>
 
