@@ -223,6 +223,8 @@ const App = () => {
       totalPayments: "支払件数",
       paidPayments: "支払済み",
       pendingPayments: "未払い",
+      paymentStatusPaid: "支払済み",
+      paymentStatusPending: "未払い",
       totalPaymentMasters: "マスタ件数",
     },
     vi: {
@@ -363,6 +365,8 @@ const App = () => {
       totalPayments: "Tổng thanh toán",
       paidPayments: "Đã thanh toán",
       pendingPayments: "Chưa thanh toán",
+      paymentStatusPaid: "Đã thanh toán",
+      paymentStatusPending: "Chưa thanh toán",
       totalPaymentMasters: "Tổng master",
     },
   };
@@ -2416,16 +2420,10 @@ const App = () => {
                         className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
                           payment.status === "paid"
                             ? "bg-green-50 text-green-700"
-                            : payment.status === "pending"
-                            ? "bg-orange-50 text-orange-700"
-                            : "bg-gray-50 text-gray-700"
+                            : "bg-orange-50 text-orange-700"
                         }`}
                       >
-                        {payment.status === "paid"
-                          ? t.paid
-                          : payment.status === "pending"
-                          ? t.pending
-                          : t.cancelled}
+                        {payment.status === "paid" ? t.paymentStatusPaid : t.paymentStatusPending}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -3488,8 +3486,8 @@ const App = () => {
                   onChange={(e) => setPaymentFormData({ ...paymentFormData, status: e.target.value as "pending" | "paid" })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="pending">{t.pending}</option>
-                  <option value="paid">{t.paid}</option>
+                  <option value="pending">{t.paymentStatusPending}</option>
+                  <option value="paid">{t.paymentStatusPaid}</option>
                 </select>
               </div>
 
