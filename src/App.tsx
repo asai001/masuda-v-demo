@@ -59,6 +59,22 @@ const App = () => {
   const [saleSearchQuery, setSaleSearchQuery] = useState("");
   const [saleFilterStatus, setSaleFilterStatus] = useState("all");
 
+  // 品目マスタ関連のstate（実装中のため一時的にコメントアウト）
+  // const [showProductMasterModal, setShowProductMasterModal] = useState(false);
+  // const [editingProductMaster, setEditingProductMaster] = useState<ProductMaster | null>(null);
+  // const [showProductMasterDeleteConfirm, setShowProductMasterDeleteConfirm] = useState(false);
+  // const [deleteProductMasterTargetId, setDeleteProductMasterTargetId] = useState<string>("");
+  // const [productMasterValidationError, setProductMasterValidationError] = useState("");
+  // const [productMasterSearchQuery, setProductMasterSearchQuery] = useState("");
+  // const [productMasterFormData, setProductMasterFormData] = useState<ProductMasterFormData>({
+  //   productCode: "",
+  //   productName: "",
+  //   unitPrice: 0,
+  //   currency: "USD",
+  //   description: "",
+  //   remarks: "",
+  // });
+
   // 支払いマスタ関連のstate
   const [showPaymentMasterModal, setShowPaymentMasterModal] = useState(false);
   const [editingPaymentMaster, setEditingPaymentMaster] = useState<PaymentMaster | null>(null);
@@ -195,6 +211,14 @@ const App = () => {
       usa: "米国",
       deleteConfirmTitle: "削除の確認",
       deleteConfirmMessage: "本当に削除しますか？この操作は取り消せません。",
+      productMasterMenu: "品目マスタ",
+      productMasterTitle: "品目マスタ管理",
+      productMasterList: "品目マスタ一覧",
+      addProductMaster: "新規品目登録",
+      editProductMaster: "品目編集",
+      productCode: "品番",
+      productName: "品目名",
+      totalProductMasters: "品目件数",
       paymentMasterMenu: "支払マスタ",
       paymentMasterTitle: "支払マスタ管理",
       paymentMasterList: "支払マスタ一覧",
@@ -338,6 +362,14 @@ const App = () => {
       usa: "Mỹ",
       deleteConfirmTitle: "Xác nhận xóa",
       deleteConfirmMessage: "Bạn có chắc muốn xóa? Thao tác này không thể hoàn tác.",
+      productMasterMenu: "Master sản phẩm",
+      productMasterTitle: "Quản lý master sản phẩm",
+      productMasterList: "Danh sách master sản phẩm",
+      addProductMaster: "Thêm sản phẩm mới",
+      editProductMaster: "Chỉnh sửa sản phẩm",
+      productCode: "Mã sản phẩm",
+      productName: "Tên sản phẩm",
+      totalProductMasters: "Tổng số sản phẩm",
       paymentMasterMenu: "Master thanh toán",
       paymentMasterTitle: "Quản lý master thanh toán",
       paymentMasterList: "Danh sách master",
@@ -626,6 +658,40 @@ const App = () => {
     remarks: "",
   });
 
+  // 品目マスタデータ（実装中のため一時的にコメントアウト）
+  // const [productMasters, setProductMasters] = useState<ProductMaster[]>([
+  //   {
+  //     id: "prod-001",
+  //     incrementalId: 1,
+  //     productCode: "P-001",
+  //     productName: "電子部品A",
+  //     unitPrice: 150,
+  //     currency: "USD",
+  //     description: "高品質電子部品",
+  //     remarks: "",
+  //   },
+  //   {
+  //     id: "prod-002",
+  //     incrementalId: 2,
+  //     productCode: "P-002",
+  //     productName: "プラスチック部品B",
+  //     unitPrice: 50,
+  //     currency: "USD",
+  //     description: "耐久性の高いプラスチック部品",
+  //     remarks: "",
+  //   },
+  //   {
+  //     id: "prod-003",
+  //     incrementalId: 3,
+  //     productCode: "P-003",
+  //     productName: "金属部品C",
+  //     unitPrice: 200,
+  //     currency: "USD",
+  //     description: "精密金属加工部品",
+  //     remarks: "",
+  //   },
+  // ]);
+
   // 支払いマスタデータ（毎月かかる経費のテンプレート）
   const [paymentMasters, setPaymentMasters] = useState<PaymentMaster[]>([
     {
@@ -855,6 +921,7 @@ const App = () => {
   const menuItems = [
     { icon: LayoutDashboard, label: t.dashboard, page: "dashboard" },
     { icon: Users, label: t.suppliers, page: "suppliers" },
+    { icon: Package, label: t.productMasterMenu, page: "productMaster" },
     { icon: ShoppingCart, label: t.orders, page: "orders" },
     { icon: TrendingUp, label: t.sales, page: "sales" },
     { icon: DollarSign, label: t.paymentManagement, page: "payments" },
@@ -1073,6 +1140,27 @@ const App = () => {
     status: "pending" | "shipped" | "delivered" | "cancelled";
     remarks: string;
   }
+
+  // 品目マスタ（実装中のため一時的にコメントアウト）
+  // interface ProductMaster {
+  //   id: string;
+  //   incrementalId: number;
+  //   productCode: string; // 品番
+  //   productName: string; // 品目名
+  //   unitPrice: number; // 単価
+  //   currency: "USD" | "JPY" | "VND";
+  //   description: string; // 説明
+  //   remarks: string;
+  // }
+
+  // interface ProductMasterFormData {
+  //   productCode: string;
+  //   productName: string;
+  //   unitPrice: number;
+  //   currency: "USD" | "JPY" | "VND";
+  //   description: string;
+  //   remarks: string;
+  // }
 
   // 支払いマスタ（毎月かかる経費のテンプレート）
   interface PaymentMaster {
@@ -2773,6 +2861,7 @@ const App = () => {
               <h2 className="text-2xl font-bold text-gray-800">
                 {currentPage === "dashboard" && t.dashboard}
                 {currentPage === "suppliers" && t.supplierMaster}
+                {currentPage === "productMaster" && t.productMasterTitle}
                 {currentPage === "orders" && t.orderMaster}
                 {currentPage === "sales" && t.saleMaster}
                 {currentPage === "payments" && t.paymentManagement}
@@ -2783,6 +2872,8 @@ const App = () => {
               <p className="text-sm text-gray-500">
                 {currentPage === "suppliers"
                   ? t.supplierList
+                  : currentPage === "productMaster"
+                  ? t.productMasterList
                   : currentPage === "orders"
                   ? t.orderList
                   : currentPage === "sales"
@@ -2822,6 +2913,12 @@ const App = () => {
         <div className="p-8 max-w-7xl mx-auto">
           {currentPage === "dashboard" && renderDashboard()}
           {currentPage === "suppliers" && renderSuppliers()}
+          {currentPage === "productMaster" && (
+            <div className="bg-white p-12 rounded-xl shadow text-center">
+              <Package size={48} className="mx-auto mb-4 text-gray-400" />
+              <p className="text-gray-600">品目マスタ画面（準備中）</p>
+            </div>
+          )}
           {currentPage === "orders" && renderOrders()}
           {currentPage === "sales" && renderSales()}
           {currentPage === "payments" && renderPayments()}
