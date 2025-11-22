@@ -1036,14 +1036,14 @@ const App = () => {
                         ? `${order.unitPrice.toLocaleString()} VND`
                         : order.currency === "JPY"
                         ? `¥${order.unitPrice.toLocaleString()}`
-                        : `${order.unitPrice.toLocaleString()}`}
+                        : `$${order.unitPrice.toLocaleString()}`}
                     </td>
                     <td className="px-6 py-4 text-right text-sm font-bold text-gray-800">
                       {order.currency === "VND"
                         ? `${totalAmount.toLocaleString()} VND`
                         : order.currency === "JPY"
                         ? `¥${totalAmount.toLocaleString()}`
-                        : `${totalAmount.toLocaleString()}`}
+                        : `$${totalAmount.toLocaleString()}`}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">{order.deliveryDate}</td>
                     <td className="px-6 py-4">
