@@ -721,8 +721,12 @@ const App = () => {
   ]);
 
   const [paymentFormData, setPaymentFormData] = useState<PaymentFormData>({
+    category: "rent",
+    description: "",
     paymentDate: "",
     amount: 0,
+    currency: "JPY",
+    paymentMethod: "bank",
     status: "pending",
     remarks: "",
   });
@@ -1107,8 +1111,12 @@ const App = () => {
   }
 
   interface PaymentFormData {
+    category: "rent" | "utilities" | "salary" | "other";
+    description: string;
     paymentDate: string;
     amount: number;
+    currency: "USD" | "JPY" | "VND";
+    paymentMethod: "bank" | "cash" | "card";
     status: "pending" | "paid";
     remarks: string;
   }
@@ -1330,8 +1338,12 @@ const App = () => {
     if (payment) {
       setEditingPayment(payment);
       setPaymentFormData({
+        category: payment.category,
+        description: payment.description,
         paymentDate: payment.paymentDate,
         amount: payment.amount,
+        currency: payment.currency,
+        paymentMethod: payment.paymentMethod,
         status: payment.status,
         remarks: payment.remarks,
       });
@@ -1339,8 +1351,12 @@ const App = () => {
       setEditingPayment(null);
       const today = new Date().toISOString().split("T")[0];
       setPaymentFormData({
+        category: "rent",
+        description: "",
         paymentDate: today,
         amount: 0,
+        currency: "JPY",
+        paymentMethod: "bank",
         status: "pending",
         remarks: "",
       });
@@ -1349,25 +1365,53 @@ const App = () => {
   };
 
   const handlePaymentSave = () => {
+    if (!paymentFormData.description) {
+      setPaymentValidationError("内容は必須です");
+      return;
+    }
     if (!paymentFormData.amount) {
       setPaymentValidationError("金額は必須です");
       return;
     }
 
     if (editingPayment) {
+      // 編集の場合
       setPayments(
         payments.map((p) =>
           p.id === editingPayment.id
             ? {
                 ...p,
+                category: paymentFormData.category,
+                description: paymentFormData.description,
                 paymentDate: paymentFormData.paymentDate,
                 amount: Number(paymentFormData.amount),
+                currency: paymentFormData.currency,
+                paymentMethod: paymentFormData.paymentMethod,
                 status: paymentFormData.status,
                 remarks: paymentFormData.remarks,
               }
             : p
         )
       );
+    } else {
+      // 新規追加の場合
+      const incrementalId = payments.length > 0 ? Math.max(...payments.map((p) => p.incrementalId)) + 1 : 1;
+      const newPayment: Payment = {
+        id: `pay-${String(incrementalId).padStart(3, "0")}`,
+        incrementalId,
+        masterId: "", // マスタから生成されていない独立した支払い
+        yearMonth: selectedYearMonth,
+        paymentDate: paymentFormData.paymentDate,
+        category: paymentFormData.category,
+        description: paymentFormData.description,
+        amount: Number(paymentFormData.amount),
+        currency: paymentFormData.currency,
+        paymentMethod: paymentFormData.paymentMethod,
+        status: paymentFormData.status,
+        isFixed: false,
+        remarks: paymentFormData.remarks,
+      };
+      setPayments([...payments, newPayment]);
     }
     setPaymentValidationError("");
     setShowPaymentModal(false);
@@ -3322,51 +3366,59 @@ const App = () => {
         </div>
       )}
 
-      {/* 支払い編集モーダル（簡易版） */}
-      {showPaymentModal && editingPayment && (
+      {/* 支払い登録・編集モーダル */}
+      {showPaymentModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl">
-            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="text-xl font-bold text-gray-800">{t.editPayment}</h3>
-              <button onClick={() => setShowPaymentModal(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                <X size={20} />
-              </button>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-2xl">
+              <h2 className="text-2xl font-bold text-gray-800">
+                {editingPayment ? t.editPayment : t.addPayment}
+              </h2>
             </div>
 
             <div className="p-6 space-y-6">
               {paymentValidationError && (
-                <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
-                  <div className="flex items-center">
-                    <AlertCircle className="text-red-500 mr-2" size={20} />
-                    <p className="text-sm text-red-700 font-medium">{paymentValidationError}</p>
-                  </div>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+                  <AlertCircle className="text-red-600 shrink-0 mt-0.5" size={20} />
+                  <p className="text-sm text-red-800">{paymentValidationError}</p>
                 </div>
               )}
 
-              {/* 支払情報表示（読み取り専用） */}
-              <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-sm text-gray-600">{t.category}:</span>
-                    <span className="ml-2 text-sm font-medium">
-                      {editingPayment.category === "rent"
-                        ? t.rent
-                        : editingPayment.category === "utilities"
-                        ? t.utilities
-                        : editingPayment.category === "salary"
-                        ? t.salary
-                        : t.other}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-sm text-gray-600">{t.description}:</span>
-                    <span className="ml-2 text-sm font-medium">{editingPayment.description}</span>
-                  </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.category}</label>
+                  <select
+                    value={paymentFormData.category}
+                    onChange={(e) =>
+                      setPaymentFormData({
+                        ...paymentFormData,
+                        category: e.target.value as "rent" | "utilities" | "salary" | "other",
+                      })
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="rent">{t.rent}</option>
+                    <option value="utilities">{t.utilities}</option>
+                    <option value="salary">{t.salary}</option>
+                    <option value="other">{t.other}</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t.description} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={paymentFormData.description}
+                    onChange={(e) => setPaymentFormData({ ...paymentFormData, description: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder={t.description}
+                  />
                 </div>
               </div>
 
-              {/* 編集可能フィールド */}
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t.amount} <span className="text-red-500">*</span>
@@ -3378,6 +3430,44 @@ const App = () => {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     min="0"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.currency}</label>
+                  <select
+                    value={paymentFormData.currency}
+                    onChange={(e) =>
+                      setPaymentFormData({
+                        ...paymentFormData,
+                        currency: e.target.value as "USD" | "JPY" | "VND",
+                      })
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="USD">USD</option>
+                    <option value="JPY">JPY</option>
+                    <option value="VND">VND</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.paymentMethod}</label>
+                  <select
+                    value={paymentFormData.paymentMethod}
+                    onChange={(e) =>
+                      setPaymentFormData({
+                        ...paymentFormData,
+                        paymentMethod: e.target.value as "bank" | "cash" | "card",
+                      })
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="bank">{t.bank}</option>
+                    <option value="cash">{t.cash}</option>
+                    <option value="card">{t.card}</option>
+                  </select>
                 </div>
 
                 <div>
@@ -3408,23 +3498,23 @@ const App = () => {
                 <textarea
                   value={paymentFormData.remarks}
                   onChange={(e) => setPaymentFormData({ ...paymentFormData, remarks: e.target.value })}
-                  rows={3}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="備考を入力してください"
+                  rows={3}
+                  placeholder={t.remarks}
                 />
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-200 flex items-center justify-end gap-3 bg-gray-50">
+            <div className="sticky bottom-0 bg-gray-50 px-6 py-4 rounded-b-2xl flex gap-3">
               <button
                 onClick={() => setShowPaymentModal(false)}
-                className="px-6 py-2 text-gray-700 hover:bg-gray-100 border border-gray-300 rounded-lg font-medium transition-colors"
+                className="flex-1 px-6 py-3 text-gray-700 hover:bg-gray-200 border border-gray-300 rounded-lg font-medium transition-colors"
               >
                 {t.cancel}
               </button>
               <button
                 onClick={handlePaymentSave}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors"
+                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
               >
                 <Save size={18} />
                 {t.save}
