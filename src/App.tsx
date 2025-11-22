@@ -59,7 +59,17 @@ const App = () => {
   const [saleSearchQuery, setSaleSearchQuery] = useState("");
   const [saleFilterStatus, setSaleFilterStatus] = useState("all");
 
-  // 支払い関連のstate
+  // 支払いマスタ関連のstate
+  const [showPaymentMasterModal, setShowPaymentMasterModal] = useState(false);
+  const [editingPaymentMaster, setEditingPaymentMaster] = useState<PaymentMaster | null>(null);
+  const [showPaymentMasterDeleteConfirm, setShowPaymentMasterDeleteConfirm] = useState(false);
+  const [deletePaymentMasterTargetId, setDeletePaymentMasterTargetId] = useState<string>("");
+  const [paymentMasterValidationError, setPaymentMasterValidationError] = useState("");
+  const [paymentMasterSearchQuery, setPaymentMasterSearchQuery] = useState("");
+  const [paymentMasterFilterCategory, setPaymentMasterFilterCategory] = useState("all");
+
+  // 支払い実績関連のstate
+  const [selectedYearMonth, setSelectedYearMonth] = useState("2025-12"); // デフォルトは2025年12月
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
   const [showPaymentDeleteConfirm, setShowPaymentDeleteConfirm] = useState(false);
@@ -184,15 +194,22 @@ const App = () => {
       usa: "米国",
       deleteConfirmTitle: "削除の確認",
       deleteConfirmMessage: "本当に削除しますか？この操作は取り消せません。",
-      paymentMaster: "支払管理",
+      paymentMasterMenu: "支払マスタ",
+      paymentMasterTitle: "支払マスタ管理",
+      paymentMasterList: "支払マスタ一覧",
+      addPaymentMaster: "新規マスタ登録",
+      editPaymentMaster: "マスタ編集",
+      paymentManagement: "支払管理",
       paymentList: "支払一覧",
       addPayment: "新規支払",
       editPayment: "支払編集",
+      selectYearMonth: "対象年月",
+      generatePayments: "支払データ生成",
       paymentDate: "支払日",
+      paymentDay: "支払日",
       category: "カテゴリ",
       description: "内容",
       paymentMethod: "支払方法",
-      dueDate: "支払期日",
       rent: "家賃",
       utilities: "光熱費",
       salary: "給与",
@@ -202,9 +219,11 @@ const App = () => {
       paid: "支払済み",
       fixedCost: "固定費",
       variableCost: "変動費",
+      fixedAmount: "固定金額",
       totalPayments: "支払件数",
       paidPayments: "支払済み",
       pendingPayments: "未払い",
+      totalPaymentMasters: "マスタ件数",
     },
     vi: {
       dashboard: "Bảng điều khiển",
@@ -315,15 +334,22 @@ const App = () => {
       usa: "Mỹ",
       deleteConfirmTitle: "Xác nhận xóa",
       deleteConfirmMessage: "Bạn có chắc muốn xóa? Thao tác này không thể hoàn tác.",
-      paymentMaster: "Quản lý thanh toán",
+      paymentMasterMenu: "Master thanh toán",
+      paymentMasterTitle: "Quản lý master thanh toán",
+      paymentMasterList: "Danh sách master",
+      addPaymentMaster: "Thêm master mới",
+      editPaymentMaster: "Chỉnh sửa master",
+      paymentManagement: "Quản lý thanh toán",
       paymentList: "Danh sách thanh toán",
       addPayment: "Thanh toán mới",
       editPayment: "Chỉnh sửa thanh toán",
+      selectYearMonth: "Tháng/Năm",
+      generatePayments: "Tạo dữ liệu thanh toán",
       paymentDate: "Ngày thanh toán",
+      paymentDay: "Ngày thanh toán",
       category: "Danh mục",
       description: "Mô tả",
       paymentMethod: "Phương thức thanh toán",
-      dueDate: "Ngày đến hạn",
       rent: "Tiền thuê",
       utilities: "Tiện ích",
       salary: "Lương",
@@ -333,9 +359,11 @@ const App = () => {
       paid: "Đã thanh toán",
       fixedCost: "Chi phí cố định",
       variableCost: "Chi phí biến đổi",
+      fixedAmount: "Số tiền cố định",
       totalPayments: "Tổng thanh toán",
       paidPayments: "Đã thanh toán",
       pendingPayments: "Chưa thanh toán",
+      totalPaymentMasters: "Tổng master",
     },
   };
 
@@ -592,12 +620,65 @@ const App = () => {
     remarks: "",
   });
 
-  // 支払いデータ
+  // 支払いマスタデータ（毎月かかる経費のテンプレート）
+  const [paymentMasters, setPaymentMasters] = useState<PaymentMaster[]>([
+    {
+      id: "pmst-001",
+      incrementalId: 1,
+      category: "rent",
+      description: "工場賃料",
+      isFixed: true,
+      fixedAmount: 500000,
+      currency: "JPY",
+      paymentMethod: "bank",
+      paymentDay: 30, // 毎月30日に支払い
+      remarks: "固定費",
+    },
+    {
+      id: "pmst-002",
+      incrementalId: 2,
+      category: "utilities",
+      description: "電気代",
+      isFixed: false,
+      fixedAmount: 0,
+      currency: "JPY",
+      paymentMethod: "bank",
+      paymentDay: 30,
+      remarks: "25日確定、月末支払い",
+    },
+    {
+      id: "pmst-003",
+      incrementalId: 3,
+      category: "utilities",
+      description: "水道代",
+      isFixed: false,
+      fixedAmount: 0,
+      currency: "JPY",
+      paymentMethod: "bank",
+      paymentDay: 30,
+      remarks: "25日確定、月末支払い",
+    },
+  ]);
+
+  const [paymentMasterFormData, setPaymentMasterFormData] = useState<PaymentMasterFormData>({
+    category: "rent",
+    description: "",
+    isFixed: false,
+    fixedAmount: 0,
+    currency: "JPY",
+    paymentMethod: "bank",
+    paymentDay: 30,
+    remarks: "",
+  });
+
+  // 支払い実績データ（各月の実際の支払い）
   const [payments, setPayments] = useState<Payment[]>([
     {
-      id: "pm-001",
+      id: "pay-001",
       incrementalId: 1,
-      paymentDate: "2025-11-01",
+      masterId: "pmst-001",
+      yearMonth: "2025-11",
+      paymentDate: "2025-11-30",
       category: "rent",
       description: "工場賃料",
       amount: 500000,
@@ -605,77 +686,44 @@ const App = () => {
       paymentMethod: "bank",
       status: "paid",
       isFixed: true,
-      dueDate: "2025-11-30",
-      remarks: "毎月固定",
+      remarks: "",
     },
     {
-      id: "pm-002",
+      id: "pay-002",
       incrementalId: 2,
-      paymentDate: "2025-11-25",
+      masterId: "pmst-002",
+      yearMonth: "2025-11",
+      paymentDate: "2025-11-30",
       category: "utilities",
-      description: "電気代（10月分）",
+      description: "電気代",
       amount: 85000,
       currency: "JPY",
       paymentMethod: "bank",
       status: "paid",
       isFixed: false,
-      dueDate: "2025-11-30",
-      remarks: "確定済み",
+      remarks: "",
     },
     {
-      id: "pm-003",
+      id: "pay-003",
       incrementalId: 3,
-      paymentDate: "2025-11-25",
+      masterId: "pmst-003",
+      yearMonth: "2025-11",
+      paymentDate: "2025-11-30",
       category: "utilities",
-      description: "水道代（10月分）",
+      description: "水道代",
       amount: 35000,
       currency: "JPY",
       paymentMethod: "bank",
       status: "paid",
       isFixed: false,
-      dueDate: "2025-11-30",
-      remarks: "確定済み",
-    },
-    {
-      id: "pm-004",
-      incrementalId: 4,
-      paymentDate: "",
-      category: "utilities",
-      description: "電気代（11月分）",
-      amount: 0,
-      currency: "JPY",
-      paymentMethod: "bank",
-      status: "pending",
-      isFixed: false,
-      dueDate: "2025-12-25",
-      remarks: "25日確定予定",
-    },
-    {
-      id: "pm-005",
-      incrementalId: 5,
-      paymentDate: "",
-      category: "utilities",
-      description: "水道代（11月分）",
-      amount: 0,
-      currency: "JPY",
-      paymentMethod: "bank",
-      status: "pending",
-      isFixed: false,
-      dueDate: "2025-12-25",
-      remarks: "25日確定予定",
+      remarks: "",
     },
   ]);
 
   const [paymentFormData, setPaymentFormData] = useState<PaymentFormData>({
     paymentDate: "",
-    category: "rent",
-    description: "",
     amount: 0,
-    currency: "JPY",
-    paymentMethod: "bank",
     status: "pending",
-    isFixed: false,
-    dueDate: "",
     remarks: "",
   });
 
@@ -700,21 +748,21 @@ const App = () => {
     { month: "11月", sales: 125000, purchase: 55000, balance: 70000 },
   ];
 
-  // 未払いの光熱費タスクを動的に生成
-  const pendingUtilityPayments = payments.filter(
-    (p) => p.status === "pending" && p.category === "utilities" && p.dueDate
-  );
+  // TODO: 未払いの光熱費タスクを動的に生成（後で実装）
+  // const pendingUtilityPayments = payments.filter(
+  //   (p) => p.status === "pending" && p.category === "utilities"
+  // );
 
-  const utilityTasks = pendingUtilityPayments.map((payment, index) => ({
-    id: 100 + index,
-    type: "payment",
-    title: `${payment.description}の登録`,
-    description: `支払期日: ${payment.dueDate} - ${payment.remarks}`,
-    priority: "medium",
-    dueDate: payment.dueDate,
-    icon: DollarSign,
-    color: "text-orange-500",
-  }));
+  // const utilityTasks = pendingUtilityPayments.map((payment, index) => ({
+  //   id: 100 + index,
+  //   type: "payment",
+  //   title: `${payment.description}の登録`,
+  //   description: `対象月: ${payment.yearMonth}`,
+  //   priority: "medium",
+  //   dueDate: "月末",
+  //   icon: DollarSign,
+  //   color: "text-orange-500",
+  // }));
 
   const tasks = [
     {
@@ -747,7 +795,6 @@ const App = () => {
       icon: Package,
       color: "text-blue-500",
     },
-    ...utilityTasks,
   ];
 
   const recentActivities = [
@@ -1016,31 +1063,52 @@ const App = () => {
     remarks: string;
   }
 
+  // 支払いマスタ（毎月かかる経費のテンプレート）
+  interface PaymentMaster {
+    id: string;
+    incrementalId: number;
+    category: "rent" | "utilities" | "salary" | "other";
+    description: string;
+    isFixed: boolean; // 固定費かどうか
+    fixedAmount: number; // 固定費の場合の金額（変動費の場合は0）
+    currency: "USD" | "JPY" | "VND";
+    paymentMethod: "bank" | "cash" | "card";
+    paymentDay: number; // 支払日（毎月何日に支払うか）
+    remarks: string;
+  }
+
+  interface PaymentMasterFormData {
+    category: "rent" | "utilities" | "salary" | "other";
+    description: string;
+    isFixed: boolean;
+    fixedAmount: number;
+    currency: "USD" | "JPY" | "VND";
+    paymentMethod: "bank" | "cash" | "card";
+    paymentDay: number;
+    remarks: string;
+  }
+
+  // 支払い実績（各月の実際の支払いデータ）
   interface Payment {
     id: string;
     incrementalId: number;
-    paymentDate: string;
+    masterId: string; // 支払いマスタのID
+    yearMonth: string; // 対象年月（YYYY-MM形式）
+    paymentDate: string; // 実際の支払日
     category: "rent" | "utilities" | "salary" | "other";
     description: string;
-    amount: number;
+    amount: number; // 実際の支払額
     currency: "USD" | "JPY" | "VND";
     paymentMethod: "bank" | "cash" | "card";
-    status: "pending" | "paid" | "cancelled";
-    isFixed: boolean; // 固定費かどうか
-    dueDate: string; // 支払期日
+    status: "pending" | "paid"; // ステータスは2択
+    isFixed: boolean;
     remarks: string;
   }
 
   interface PaymentFormData {
     paymentDate: string;
-    category: "rent" | "utilities" | "salary" | "other";
-    description: string;
     amount: number;
-    currency: "USD" | "JPY" | "VND";
-    paymentMethod: "bank" | "cash" | "card";
-    status: "pending" | "paid" | "cancelled";
-    isFixed: boolean;
-    dueDate: string;
+    status: "pending" | "paid";
     remarks: string;
   }
 
@@ -1262,14 +1330,8 @@ const App = () => {
       setEditingPayment(payment);
       setPaymentFormData({
         paymentDate: payment.paymentDate,
-        category: payment.category,
-        description: payment.description,
         amount: payment.amount,
-        currency: payment.currency,
-        paymentMethod: payment.paymentMethod,
         status: payment.status,
-        isFixed: payment.isFixed,
-        dueDate: payment.dueDate,
         remarks: payment.remarks,
       });
     } else {
@@ -1277,14 +1339,8 @@ const App = () => {
       const today = new Date().toISOString().split("T")[0];
       setPaymentFormData({
         paymentDate: today,
-        category: "rent",
-        description: "",
         amount: 0,
-        currency: "JPY",
-        paymentMethod: "bank",
         status: "pending",
-        isFixed: false,
-        dueDate: "",
         remarks: "",
       });
     }
@@ -1292,34 +1348,25 @@ const App = () => {
   };
 
   const handlePaymentSave = () => {
-    if (!paymentFormData.description || !paymentFormData.amount || !paymentFormData.dueDate) {
-      setPaymentValidationError("内容、金額、支払期日は必須です");
+    if (!paymentFormData.amount) {
+      setPaymentValidationError("金額は必須です");
       return;
     }
 
-    const paymentData = {
-      paymentDate: paymentFormData.paymentDate,
-      category: paymentFormData.category,
-      description: paymentFormData.description,
-      amount: Number(paymentFormData.amount),
-      currency: paymentFormData.currency,
-      paymentMethod: paymentFormData.paymentMethod,
-      status: paymentFormData.status,
-      isFixed: paymentFormData.isFixed,
-      dueDate: paymentFormData.dueDate,
-      remarks: paymentFormData.remarks,
-    };
-
-    const incrementalId = payments.length > 0 ? Math.max(...payments.map((p) => p.incrementalId)) + 1 : 1;
     if (editingPayment) {
-      setPayments(payments.map((p) => (p.id === editingPayment.id ? { ...p, ...paymentData } : p)));
-    } else {
-      const newPayment = {
-        id: `pm-${String(incrementalId).padStart(3, "0")}`,
-        incrementalId,
-        ...paymentData,
-      };
-      setPayments([...payments, newPayment]);
+      setPayments(
+        payments.map((p) =>
+          p.id === editingPayment.id
+            ? {
+                ...p,
+                paymentDate: paymentFormData.paymentDate,
+                amount: Number(paymentFormData.amount),
+                status: paymentFormData.status,
+                remarks: paymentFormData.remarks,
+              }
+            : p
+        )
+      );
     }
     setPaymentValidationError("");
     setShowPaymentModal(false);
@@ -2107,7 +2154,6 @@ const App = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.description}</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.amount}</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.paymentMethod}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.dueDate}</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.paymentDate}</th>
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t.status}</th>
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t.actions}</th>
@@ -2161,7 +2207,6 @@ const App = () => {
                         ? t.cash
                         : t.card}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{payment.dueDate}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {payment.paymentDate || "-"}
                     </td>
@@ -2958,12 +3003,12 @@ const App = () => {
         </div>
       )}
 
-      {/* 支払い登録・編集モーダル */}
-      {showPaymentModal && (
+      {/* 支払い編集モーダル（簡易版） */}
+      {showPaymentModal && editingPayment && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white">
-              <h3 className="text-xl font-bold text-gray-800">{editingPayment ? t.editPayment : t.addPayment}</h3>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl">
+            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="text-xl font-bold text-gray-800">{t.editPayment}</h3>
               <button onClick={() => setShowPaymentModal(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <X size={20} />
               </button>
@@ -2979,40 +3024,29 @@ const App = () => {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.category}</label>
-                  <select
-                    value={paymentFormData.category}
-                    onChange={(e) =>
-                      setPaymentFormData({
-                        ...paymentFormData,
-                        category: e.target.value as "rent" | "utilities" | "salary" | "other",
-                      })
-                    }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="rent">{t.rent}</option>
-                    <option value="utilities">{t.utilities}</option>
-                    <option value="salary">{t.salary}</option>
-                    <option value="other">{t.other}</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t.description} <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={paymentFormData.description}
-                    onChange={(e) => setPaymentFormData({ ...paymentFormData, description: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="例：工場賃料、電気代（11月分）"
-                  />
+              {/* 支払情報表示（読み取り専用） */}
+              <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-sm text-gray-600">{t.category}:</span>
+                    <span className="ml-2 text-sm font-medium">
+                      {editingPayment.category === "rent"
+                        ? t.rent
+                        : editingPayment.category === "utilities"
+                        ? t.utilities
+                        : editingPayment.category === "salary"
+                        ? t.salary
+                        : t.other}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-600">{t.description}:</span>
+                    <span className="ml-2 text-sm font-medium">{editingPayment.description}</span>
+                  </div>
                 </div>
               </div>
 
+              {/* 編集可能フィールド */}
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -3028,33 +3062,6 @@ const App = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.currency}</label>
-                  <select
-                    value={paymentFormData.currency}
-                    onChange={(e) => setPaymentFormData({ ...paymentFormData, currency: e.target.value as "USD" | "JPY" | "VND" })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="JPY">JPY (¥)</option>
-                    <option value="USD">USD ($)</option>
-                    <option value="VND">VND</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t.dueDate} <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={paymentFormData.dueDate}
-                    onChange={(e) => setPaymentFormData({ ...paymentFormData, dueDate: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">{t.paymentDate}</label>
                   <input
                     type="date"
@@ -3065,44 +3072,16 @@ const App = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.paymentMethod}</label>
-                  <select
-                    value={paymentFormData.paymentMethod}
-                    onChange={(e) => setPaymentFormData({ ...paymentFormData, paymentMethod: e.target.value as "bank" | "cash" | "card" })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="bank">{t.bank}</option>
-                    <option value="cash">{t.cash}</option>
-                    <option value="card">{t.card}</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.status}</label>
-                  <select
-                    value={paymentFormData.status}
-                    onChange={(e) => setPaymentFormData({ ...paymentFormData, status: e.target.value as "pending" | "paid" | "cancelled" })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="pending">{t.pending}</option>
-                    <option value="paid">{t.paid}</option>
-                    <option value="cancelled">{t.cancelled}</option>
-                  </select>
-                </div>
-              </div>
-
               <div>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={paymentFormData.isFixed}
-                    onChange={(e) => setPaymentFormData({ ...paymentFormData, isFixed: e.target.checked })}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <span className="text-sm font-medium text-gray-700">{t.fixedCost}</span>
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t.status}</label>
+                <select
+                  value={paymentFormData.status}
+                  onChange={(e) => setPaymentFormData({ ...paymentFormData, status: e.target.value as "pending" | "paid" })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="pending">{t.pending}</option>
+                  <option value="paid">{t.paid}</option>
+                </select>
               </div>
 
               <div>
