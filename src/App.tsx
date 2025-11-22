@@ -26,6 +26,7 @@ import {
 import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 import { DashboardSummary } from "./components/DashboardSummary";
 import { QuickActions } from "./components/QuickActions";
+import { Alerts } from "./components/Alerts";
 
 const App = () => {
   const [lang, setLang] = useState<"ja" | "vi">("ja");
@@ -469,9 +470,9 @@ const App = () => {
   ];
 
   const alerts = [
-    { id: 1, type: "abnormalPrice", message: "Vietnam Plastics Ltd. - ポリエチレンの単価が前回比13%上昇", severity: "high" },
-    { id: 2, type: "newSupplier", message: "新規仕入先: Saigon Materials (承認待ち)", severity: "medium" },
-    { id: 3, type: "overduePayment", message: "Nguyen Trading Co.への支払いが2日遅延", severity: "high" },
+    { id: 1, type: "abnormalPrice", message: "Vietnam Plastics Ltd. - ポリエチレンの単価が前回比13%上昇", severity: "high" as const },
+    { id: 2, type: "newSupplier", message: "新規仕入先: Saigon Materials (承認待ち)", severity: "medium" as const },
+    { id: 3, type: "overduePayment", message: "Nguyen Trading Co.への支払いが2日遅延", severity: "high" as const },
   ];
 
   const menuItems = [
@@ -890,24 +891,7 @@ const App = () => {
         monthlyPurchase={calculateMonthlyPurchase()}
       />
 
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h3 className="text-lg font-bold mb-4 flex items-center">
-          <AlertCircle className="mr-2 text-orange-500" />
-          {t.alerts}
-        </h3>
-        <div className="space-y-3">
-          {alerts.map((alert) => (
-            <div
-              key={alert.id}
-              className={`p-4 rounded-lg border-l-4 ${
-                alert.severity === "high" ? "bg-red-50 border-red-500" : "bg-yellow-50 border-yellow-500"
-              }`}
-            >
-              <p className="text-sm">{alert.message}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+      <Alerts alerts={alerts} title={t.alerts} />
 
       <div>
         <h3 className="text-lg font-semibold text-gray-800 mb-4">{t.quickActions}</h3>
