@@ -25,6 +25,7 @@ import {
   Menu,
 } from "lucide-react";
 import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
+import { DashboardSummary } from "./components/DashboardSummary";
 
 const App = () => {
   const [lang, setLang] = useState<"ja" | "vi">("ja");
@@ -879,53 +880,15 @@ const App = () => {
         <p className="text-gray-600">本日は3件のタスクがあります</p>
       </div>
 
-      <div className="grid grid-cols-4 gap-6">
-        <div className="bg-blue-50 p-6 rounded-lg border-l-4 border-blue-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">{t.totalSales}</p>
-              <p className="text-2xl font-bold text-gray-800">$125,000</p>
-              <p className="text-xs text-green-600 mt-1">+4.2% vs 先月</p>
-            </div>
-            <TrendingUp className="text-blue-500" size={32} />
-          </div>
-        </div>
-
-        <div className="bg-green-50 p-6 rounded-lg border-l-4 border-green-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">{t.totalPurchase}</p>
-              <p className="text-2xl font-bold text-gray-800">
-                ${calculateMonthlyPurchase().total.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-              </p>
-              <p className="text-xs text-gray-600 mt-1">{calculateMonthlyPurchase().byOrder}件の発注</p>
-            </div>
-            <DollarSign className="text-green-500" size={32} />
-          </div>
-        </div>
-
-        <div className="bg-purple-50 p-6 rounded-lg border-l-4 border-purple-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">{t.pendingInvoices}</p>
-              <p className="text-2xl font-bold text-gray-800">8件</p>
-              <p className="text-xs text-gray-600 mt-1">当月累計</p>
-            </div>
-            <FileText className="text-purple-500" size={32} />
-          </div>
-        </div>
-
-        <div className="bg-orange-50 p-6 rounded-lg border-l-4 border-orange-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">{t.activeSuppliers}</p>
-              <p className="text-2xl font-bold text-gray-800">24社</p>
-              <p className="text-xs text-orange-600 mt-1">+3社</p>
-            </div>
-            <Users className="text-orange-500" size={32} />
-          </div>
-        </div>
-      </div>
+      <DashboardSummary
+        translations={{
+          totalSales: t.totalSales,
+          totalPurchase: t.totalPurchase,
+          pendingInvoices: t.pendingInvoices,
+          activeSuppliers: t.activeSuppliers,
+        }}
+        monthlyPurchase={calculateMonthlyPurchase()}
+      />
 
       <div className="bg-white p-6 rounded-lg shadow">
         <h3 className="text-lg font-bold mb-4 flex items-center">
