@@ -107,7 +107,7 @@ const App = () => {
       search: "検索",
       export: "エクスポート",
       import: "インポート",
-      supplierName: "仕入先名",
+      supplierName: "取引先名",
       type: "区分",
       region: "地域",
       currency: "通貨",
@@ -125,6 +125,7 @@ const App = () => {
       material: "材料",
       processing: "加工",
       logistics: "物流",
+      customer: "顧客",
       other: "その他",
       vietnam: "ベトナム",
       japan: "日本",
@@ -164,7 +165,6 @@ const App = () => {
       addSale: "新規売上",
       editSale: "売上編集",
       saleDate: "売上日",
-      customer: "顧客",
       customerName: "顧客名",
       pending: "未出荷",
       shipped: "出荷済み",
@@ -217,7 +217,7 @@ const App = () => {
       search: "Tìm kiếm",
       export: "Xuất",
       import: "Nhập",
-      supplierName: "Tên nhà cung cấp",
+      supplierName: "Tên đối tác",
       type: "Phân loại",
       region: "Khu vực",
       currency: "Tiền tệ",
@@ -235,6 +235,7 @@ const App = () => {
       material: "Nguyên liệu",
       processing: "Gia công",
       logistics: "Vận chuyển",
+      customer: "Khách hàng",
       other: "Khác",
       vietnam: "Việt Nam",
       japan: "Nhật Bản",
@@ -274,7 +275,6 @@ const App = () => {
       addSale: "Doanh thu mới",
       editSale: "Chỉnh sửa doanh thu",
       saleDate: "Ngày bán",
-      customer: "Khách hàng",
       customerName: "Tên khách hàng",
       pending: "Chưa giao",
       shipped: "Đã xuất",
@@ -368,6 +368,58 @@ const App = () => {
       createdAt: "2024-05-12",
       updatedAt: "2024-08-20",
     },
+    {
+      id: "s-006",
+      incrementalId: 6,
+      name: "パナソニック株式会社",
+      type: "customer",
+      region: "japan",
+      currency: "JPY",
+      paymentTerms: "monthEnd",
+      status: "active",
+      remarks: "主要取引先",
+      createdAt: "2024-01-10",
+      updatedAt: "2025-11-10",
+    },
+    {
+      id: "s-007",
+      incrementalId: 7,
+      name: "株式会社リケン",
+      type: "customer",
+      region: "japan",
+      currency: "JPY",
+      paymentTerms: "upon30Days",
+      status: "active",
+      remarks: "自動車部品向け",
+      createdAt: "2024-02-15",
+      updatedAt: "2025-11-15",
+    },
+    {
+      id: "s-008",
+      incrementalId: 8,
+      name: "日本電産株式会社",
+      type: "customer",
+      region: "japan",
+      currency: "JPY",
+      paymentTerms: "monthEnd",
+      status: "active",
+      remarks: "モーター部品向け",
+      createdAt: "2024-03-20",
+      updatedAt: "2025-11-18",
+    },
+    {
+      id: "s-009",
+      incrementalId: 9,
+      name: "森村商事株式会社",
+      type: "customer",
+      region: "japan",
+      currency: "JPY",
+      paymentTerms: "upon14Days",
+      status: "active",
+      remarks: "商社経由取引",
+      createdAt: "2024-04-05",
+      updatedAt: "2025-11-12",
+    },
   ]);
 
   const [formData, setFormData] = useState<FormData>({
@@ -434,65 +486,13 @@ const App = () => {
     remarks: "",
   });
 
-  // 顧客データ
-  const [customers] = useState<Customer[]>([
-    {
-      id: "c-001",
-      incrementalId: 1,
-      name: "パナソニック株式会社",
-      region: "japan",
-      currency: "JPY",
-      paymentTerms: "monthEnd",
-      status: "active",
-      remarks: "主要取引先",
-      createdAt: "2024-01-10",
-      updatedAt: "2025-11-10",
-    },
-    {
-      id: "c-002",
-      incrementalId: 2,
-      name: "株式会社リケン",
-      region: "japan",
-      currency: "JPY",
-      paymentTerms: "upon30Days",
-      status: "active",
-      remarks: "自動車部品向け",
-      createdAt: "2024-02-15",
-      updatedAt: "2025-11-15",
-    },
-    {
-      id: "c-003",
-      incrementalId: 3,
-      name: "日本電産株式会社",
-      region: "japan",
-      currency: "JPY",
-      paymentTerms: "monthEnd",
-      status: "active",
-      remarks: "モーター部品向け",
-      createdAt: "2024-03-20",
-      updatedAt: "2025-11-18",
-    },
-    {
-      id: "c-004",
-      incrementalId: 4,
-      name: "森村商事株式会社",
-      region: "japan",
-      currency: "JPY",
-      paymentTerms: "upon14Days",
-      status: "active",
-      remarks: "商社経由取引",
-      createdAt: "2024-04-05",
-      updatedAt: "2025-11-12",
-    },
-  ]);
-
   // 売上データ
   const [sales, setSales] = useState<Sale[]>([
     {
       id: "sl-001",
       incrementalId: 1,
       saleDate: "2025-11-15",
-      customerId: "c-001",
+      customerId: "s-006",
       product: "ビニール製品 VP-100",
       quantity: 2000,
       unitPrice: 2200,
@@ -505,7 +505,7 @@ const App = () => {
       id: "sl-002",
       incrementalId: 2,
       saleDate: "2025-11-18",
-      customerId: "c-002",
+      customerId: "s-007",
       product: "シート材 SH-200",
       quantity: 1500,
       unitPrice: 1800,
@@ -518,7 +518,7 @@ const App = () => {
       id: "sl-003",
       incrementalId: 3,
       saleDate: "2025-11-10",
-      customerId: "c-003",
+      customerId: "s-008",
       product: "成形品 MO-300",
       quantity: 800,
       unitPrice: 3500,
@@ -686,7 +686,7 @@ const App = () => {
     id: string;
     incrementalId: number;
     name: string;
-    type: "material" | "processing" | "logistics" | "other";
+    type: "material" | "processing" | "logistics" | "customer" | "other";
     region: "vietnam" | "japan" | "thailand" | "china";
     currency: "USD" | "JPY" | "VND";
     paymentTerms: "monthEnd" | "upon7Days" | "upon14Days" | "upon30Days";
@@ -698,7 +698,7 @@ const App = () => {
 
   interface FormData {
     name: string;
-    type: "material" | "processing" | "logistics" | "other";
+    type: "material" | "processing" | "logistics" | "customer" | "other";
     region: "vietnam" | "japan" | "thailand" | "china";
     currency: "USD" | "JPY" | "VND";
     paymentTerms: "monthEnd" | "upon7Days" | "upon14Days" | "upon30Days";
@@ -833,19 +833,6 @@ const App = () => {
     deliveryDate: string;
     status: "ordered" | "delivered" | "cancelled";
     remarks: string;
-  }
-
-  interface Customer {
-    id: string;
-    incrementalId: number;
-    name: string;
-    region: "japan" | "vietnam" | "thailand" | "china" | "usa";
-    currency: "USD" | "JPY" | "VND";
-    paymentTerms: "monthEnd" | "upon7Days" | "upon14Days" | "upon30Days";
-    status: "active" | "inactive";
-    remarks: string;
-    createdAt: string;
-    updatedAt: string;
   }
 
   interface Sale {
@@ -1103,7 +1090,7 @@ const App = () => {
 
   // 売上のフィルタリングと統計
   const filteredSales = sales.filter((sale) => {
-    const customer = customers.find((c) => c.id === sale.customerId);
+    const customer = suppliers.find((s) => s.id === sale.customerId);
     const customerName = customer ? customer.name : "";
     const matchesSearch =
       sale.product.toLowerCase().includes(saleSearchQuery.toLowerCase()) ||
@@ -1482,6 +1469,7 @@ const App = () => {
               <option value="material">{t.material}</option>
               <option value="processing">{t.processing}</option>
               <option value="logistics">{t.logistics}</option>
+              <option value="customer">{t.customer}</option>
               <option value="other">{t.other}</option>
             </select>
           </div>
@@ -1678,7 +1666,7 @@ const App = () => {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {filteredSales.map((sale) => {
-                const customer = customers.find((c) => c.id === sale.customerId);
+                const customer = suppliers.find((s) => s.id === sale.customerId);
                 const totalAmount = sale.quantity * sale.unitPrice;
                 return (
                   <tr key={sale.id} className="hover:bg-gray-50 transition-colors">
@@ -1963,13 +1951,14 @@ const App = () => {
                   <select
                     value={formData.type}
                     onChange={(e) =>
-                      setFormData({ ...formData, type: e.target.value as "material" | "processing" | "logistics" | "other" })
+                      setFormData({ ...formData, type: e.target.value as "material" | "processing" | "logistics" | "customer" | "other" })
                     }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="material">{t.material}</option>
                     <option value="processing">{t.processing}</option>
                     <option value="logistics">{t.logistics}</option>
+                    <option value="customer">{t.customer}</option>
                     <option value="other">{t.other}</option>
                   </select>
                 </div>
@@ -2341,8 +2330,8 @@ const App = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">{lang === "ja" ? "選択してください" : "Chọn khách hàng"}</option>
-                  {customers
-                    .filter((c) => c.status === "active")
+                  {suppliers
+                    .filter((s) => s.type === "customer" && s.status === "active")
                     .map((customer) => (
                       <option key={customer.id} value={customer.id}>
                         {customer.name}
