@@ -4,6 +4,7 @@ interface SalesData {
   name: string;
   value: number;
   currency: string;
+  [key: string]: string | number;
 }
 
 interface SalesByCustomerProps {

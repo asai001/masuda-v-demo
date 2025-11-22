@@ -847,7 +847,8 @@ const App = () => {
     { icon: Users, label: t.suppliers, page: "suppliers" },
     { icon: ShoppingCart, label: t.orders, page: "orders" },
     { icon: TrendingUp, label: t.sales, page: "sales" },
-    { icon: DollarSign, label: t.payments, page: "payments" },
+    { icon: DollarSign, label: t.paymentManagement, page: "payments" },
+    { icon: DollarSign, label: t.paymentMasterMenu, page: "paymentMaster" },
     { icon: FileText, label: t.reports, page: "reports" },
     { icon: Settings, label: t.systemSettings, page: "systemSettings" },
   ];
@@ -1390,6 +1391,130 @@ const App = () => {
     setDeletePaymentTargetId("");
   };
 
+  // 支払いマスタ関連の関数
+  const handleOpenPaymentMasterModal = (master: PaymentMaster | null): void => {
+    setPaymentMasterValidationError("");
+    if (master) {
+      setEditingPaymentMaster(master);
+      setPaymentMasterFormData({
+        category: master.category,
+        description: master.description,
+        isFixed: master.isFixed,
+        fixedAmount: master.fixedAmount,
+        currency: master.currency,
+        paymentMethod: master.paymentMethod,
+        paymentDay: master.paymentDay,
+        remarks: master.remarks,
+      });
+    } else {
+      setEditingPaymentMaster(null);
+      setPaymentMasterFormData({
+        category: "rent",
+        description: "",
+        isFixed: false,
+        fixedAmount: 0,
+        currency: "JPY",
+        paymentMethod: "bank",
+        paymentDay: 30,
+        remarks: "",
+      });
+    }
+    setShowPaymentMasterModal(true);
+  };
+
+  const handlePaymentMasterSave = () => {
+    if (!paymentMasterFormData.description) {
+      setPaymentMasterValidationError("内容は必須です");
+      return;
+    }
+
+    const masterData = {
+      category: paymentMasterFormData.category,
+      description: paymentMasterFormData.description,
+      isFixed: paymentMasterFormData.isFixed,
+      fixedAmount: Number(paymentMasterFormData.fixedAmount),
+      currency: paymentMasterFormData.currency,
+      paymentMethod: paymentMasterFormData.paymentMethod,
+      paymentDay: Number(paymentMasterFormData.paymentDay),
+      remarks: paymentMasterFormData.remarks,
+    };
+
+    const incrementalId = paymentMasters.length > 0 ? Math.max(...paymentMasters.map((m) => m.incrementalId)) + 1 : 1;
+    if (editingPaymentMaster) {
+      setPaymentMasters(paymentMasters.map((m) => (m.id === editingPaymentMaster.id ? { ...m, ...masterData } : m)));
+    } else {
+      const newMaster = {
+        id: `pmst-${String(incrementalId).padStart(3, "0")}`,
+        incrementalId,
+        ...masterData,
+      };
+      setPaymentMasters([...paymentMasters, newMaster]);
+    }
+    setPaymentMasterValidationError("");
+    setShowPaymentMasterModal(false);
+  };
+
+  const handleDeletePaymentMaster = (id: string) => {
+    setDeletePaymentMasterTargetId(id);
+    setShowPaymentMasterDeleteConfirm(true);
+  };
+
+  const handlePaymentMasterDeleteConfirm = () => {
+    if (deletePaymentMasterTargetId) {
+      setPaymentMasters(paymentMasters.filter((m) => m.id !== deletePaymentMasterTargetId));
+      setShowPaymentMasterDeleteConfirm(false);
+      setDeletePaymentMasterTargetId("");
+    }
+  };
+
+  const handlePaymentMasterDeleteCancel = () => {
+    setShowPaymentMasterDeleteConfirm(false);
+    setDeletePaymentMasterTargetId("");
+  };
+
+  // 選択年月の支払いデータを自動生成
+  const handleGeneratePayments = () => {
+    // 選択年月の支払いデータが既に存在するかチェック
+    const existingPayments = payments.filter((p) => p.yearMonth === selectedYearMonth);
+    if (existingPayments.length > 0) {
+      alert(lang === "ja" ? "選択された年月の支払いデータは既に存在します。" : "Dữ liệu thanh toán cho tháng đã chọn đã tồn tại.");
+      return;
+    }
+
+    // 支払いマスタから支払いデータを生成
+    const newPayments: Payment[] = paymentMasters.map((master, index) => {
+      const [year, month] = selectedYearMonth.split("-");
+      const lastDay = new Date(Number(year), Number(month), 0).getDate();
+      const paymentDay = Math.min(master.paymentDay, lastDay);
+      const paymentDate = `${selectedYearMonth}-${String(paymentDay).padStart(2, "0")}`;
+
+      const incrementalId = payments.length > 0 ? Math.max(...payments.map((p) => p.incrementalId)) + 1 + index : 1 + index;
+
+      return {
+        id: `pay-${String(incrementalId).padStart(3, "0")}`,
+        incrementalId,
+        masterId: master.id,
+        yearMonth: selectedYearMonth,
+        paymentDate: paymentDate,
+        category: master.category,
+        description: master.description,
+        amount: master.isFixed ? master.fixedAmount : 0,
+        currency: master.currency,
+        paymentMethod: master.paymentMethod,
+        status: "pending" as const,
+        isFixed: master.isFixed,
+        remarks: master.remarks,
+      };
+    });
+
+    setPayments([...payments, ...newPayments]);
+    alert(
+      lang === "ja"
+        ? `${selectedYearMonth}の支払いデータを${newPayments.length}件生成しました。`
+        : `Đã tạo ${newPayments.length} dữ liệu thanh toán cho ${selectedYearMonth}.`
+    );
+  };
+
   const filteredOrders = orders.filter((order) => {
     const supplier = suppliers.find((s) => s.id === order.supplierId);
     const supplierName = supplier ? supplier.name : "";
@@ -1425,16 +1550,32 @@ const App = () => {
   };
 
   // 支払いのフィルタリングと統計
+  // 選択年月の支払いをフィルタリング
   const filteredPayments = payments.filter((payment) => {
+    const matchesYearMonth = payment.yearMonth === selectedYearMonth;
     const matchesSearch = payment.description.toLowerCase().includes(paymentSearchQuery.toLowerCase());
     const matchesFilter = paymentFilterCategory === "all" || payment.category === paymentFilterCategory;
+    return matchesYearMonth && matchesSearch && matchesFilter;
+  });
+
+  // 選択年月の支払い統計
+  const paymentStats = {
+    total: payments.filter((p) => p.yearMonth === selectedYearMonth).length,
+    paid: payments.filter((p) => p.yearMonth === selectedYearMonth && p.status === "paid").length,
+    pending: payments.filter((p) => p.yearMonth === selectedYearMonth && p.status === "pending").length,
+  };
+
+  // 支払いマスタのフィルタリングと統計
+  const filteredPaymentMasters = paymentMasters.filter((master) => {
+    const matchesSearch = master.description.toLowerCase().includes(paymentMasterSearchQuery.toLowerCase());
+    const matchesFilter = paymentMasterFilterCategory === "all" || master.category === paymentMasterFilterCategory;
     return matchesSearch && matchesFilter;
   });
 
-  const paymentStats = {
-    total: payments.length,
-    paid: payments.filter((p) => p.status === "paid").length,
-    pending: payments.filter((p) => p.status === "pending").length,
+  const paymentMasterStats = {
+    total: paymentMasters.length,
+    fixed: paymentMasters.filter((m) => m.isFixed).length,
+    variable: paymentMasters.filter((m) => !m.isFixed).length,
   };
 
   const filteredSuppliers = suppliers.filter((supplier) => {
@@ -2112,37 +2253,53 @@ const App = () => {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="p-6 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4 flex-1">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-              <input
-                type="text"
-                placeholder={t.search}
-                value={paymentSearchQuery}
-                onChange={(e) => setPaymentSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+        <div className="p-6 space-y-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t.selectYearMonth}</label>
+                <input
+                  type="month"
+                  value={selectedYearMonth}
+                  onChange={(e) => setSelectedYearMonth(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <button
+                onClick={handleGeneratePayments}
+                className="mt-6 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2 font-medium transition-colors"
+              >
+                <Plus size={20} />
+                {t.generatePayments}
+              </button>
             </div>
-            <select
-              value={paymentFilterCategory}
-              onChange={(e) => setPaymentFilterCategory(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">{t.all}</option>
-              <option value="rent">{t.rent}</option>
-              <option value="utilities">{t.utilities}</option>
-              <option value="salary">{t.salary}</option>
-              <option value="other">{t.other}</option>
-            </select>
           </div>
-          <button
-            onClick={() => handleOpenPaymentModal(null)}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors"
-          >
-            <Plus size={20} />
-            {t.addPayment}
-          </button>
+
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4 flex-1">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <input
+                  type="text"
+                  placeholder={t.search}
+                  value={paymentSearchQuery}
+                  onChange={(e) => setPaymentSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <select
+                value={paymentFilterCategory}
+                onChange={(e) => setPaymentFilterCategory(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">{t.all}</option>
+                <option value="rent">{t.rent}</option>
+                <option value="utilities">{t.utilities}</option>
+                <option value="salary">{t.salary}</option>
+                <option value="other">{t.other}</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -2237,6 +2394,164 @@ const App = () => {
                         </button>
                         <button
                           onClick={() => handleDeletePayment(payment.id)}
+                          className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderPaymentMaster = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-3 gap-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 mb-1">{t.totalPaymentMasters}</p>
+              <p className="text-3xl font-bold text-gray-800">{paymentMasterStats.total}</p>
+            </div>
+            <div className="p-3 bg-blue-50 rounded-lg">
+              <DollarSign className="text-blue-500" size={24} />
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 mb-1">{t.fixedCost}</p>
+              <p className="text-3xl font-bold text-green-600">{paymentMasterStats.fixed}</p>
+            </div>
+            <div className="p-3 bg-green-50 rounded-lg">
+              <CheckCircle className="text-green-500" size={24} />
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 mb-1">{t.variableCost}</p>
+              <p className="text-3xl font-bold text-orange-600">{paymentMasterStats.variable}</p>
+            </div>
+            <div className="p-3 bg-orange-50 rounded-lg">
+              <Clock className="text-orange-500" size={24} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div className="p-6 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 flex-1">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <input
+                type="text"
+                placeholder={t.search}
+                value={paymentMasterSearchQuery}
+                onChange={(e) => setPaymentMasterSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <select
+              value={paymentMasterFilterCategory}
+              onChange={(e) => setPaymentMasterFilterCategory(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">{t.all}</option>
+              <option value="rent">{t.rent}</option>
+              <option value="utilities">{t.utilities}</option>
+              <option value="salary">{t.salary}</option>
+              <option value="other">{t.other}</option>
+            </select>
+          </div>
+          <button
+            onClick={() => handleOpenPaymentMasterModal(null)}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors"
+          >
+            <Plus size={20} />
+            {t.addPaymentMaster}
+          </button>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-y border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No.</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.category}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.description}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.fixedAmount}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.paymentMethod}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.paymentDay}</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t.actions}</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredPaymentMasters.map((master) => {
+                return (
+                  <tr key={master.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{master.incrementalId}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          master.category === "rent"
+                            ? "bg-blue-100 text-blue-800"
+                            : master.category === "utilities"
+                            ? "bg-orange-100 text-orange-800"
+                            : master.category === "salary"
+                            ? "bg-purple-100 text-purple-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {master.category === "rent"
+                          ? t.rent
+                          : master.category === "utilities"
+                          ? t.utilities
+                          : master.category === "salary"
+                          ? t.salary
+                          : t.other}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">{master.description}</div>
+                      {master.isFixed && <div className="text-xs text-blue-600 mt-1">{t.fixedCost}</div>}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-semibold text-gray-900">
+                        {master.isFixed
+                          ? master.currency === "JPY"
+                            ? `¥${master.fixedAmount.toLocaleString()}`
+                            : master.currency === "VND"
+                            ? `${master.fixedAmount.toLocaleString()} VND`
+                            : `$${master.fixedAmount.toLocaleString()}`
+                          : "-"}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {master.paymentMethod === "bank" ? t.bank : master.paymentMethod === "cash" ? t.cash : t.card}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {master.paymentDay}日
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => handleOpenPaymentMasterModal(master)}
+                          className="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeletePaymentMaster(master.id)}
                           className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
                         >
                           <Trash2 size={16} />
@@ -2366,7 +2681,8 @@ const App = () => {
                 {currentPage === "suppliers" && t.supplierMaster}
                 {currentPage === "orders" && t.orderMaster}
                 {currentPage === "sales" && t.saleMaster}
-                {currentPage === "payments" && t.payments}
+                {currentPage === "payments" && t.paymentManagement}
+                {currentPage === "paymentMaster" && t.paymentMasterTitle}
                 {currentPage === "reports" && t.reports}
                 {currentPage === "systemSettings" && t.systemSettings}
               </h2>
@@ -2379,6 +2695,8 @@ const App = () => {
                   ? t.saleList
                   : currentPage === "payments"
                   ? t.paymentList
+                  : currentPage === "paymentMaster"
+                  ? t.paymentMasterList
                   : "2024年11月20日 (水)"}
               </p>
             </div>
@@ -2413,6 +2731,7 @@ const App = () => {
           {currentPage === "orders" && renderOrders()}
           {currentPage === "sales" && renderSales()}
           {currentPage === "payments" && renderPayments()}
+          {currentPage === "paymentMaster" && renderPaymentMaster()}
           {currentPage === "reports" && (
             <div className="bg-white p-12 rounded-xl shadow text-center">
               <FileText size={48} className="mx-auto mb-4 text-gray-400" />
@@ -3134,6 +3453,209 @@ const App = () => {
                 </button>
                 <button
                   onClick={handlePaymentDeleteConfirm}
+                  className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
+                >
+                  {t.delete}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 支払いマスタ登録・編集モーダル */}
+      {showPaymentMasterModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-2xl">
+              <h2 className="text-2xl font-bold text-gray-800">
+                {editingPaymentMaster ? t.editPaymentMaster : t.addPaymentMaster}
+              </h2>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {paymentMasterValidationError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+                  <AlertCircle className="text-red-600 shrink-0 mt-0.5" size={20} />
+                  <p className="text-sm text-red-800">{paymentMasterValidationError}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.category}</label>
+                  <select
+                    value={paymentMasterFormData.category}
+                    onChange={(e) =>
+                      setPaymentMasterFormData({
+                        ...paymentMasterFormData,
+                        category: e.target.value as "rent" | "utilities" | "salary" | "other",
+                      })
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="rent">{t.rent}</option>
+                    <option value="utilities">{t.utilities}</option>
+                    <option value="salary">{t.salary}</option>
+                    <option value="other">{t.other}</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.description}</label>
+                  <input
+                    type="text"
+                    value={paymentMasterFormData.description}
+                    onChange={(e) => setPaymentMasterFormData({ ...paymentMasterFormData, description: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder={t.description}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="isFixed"
+                  checked={paymentMasterFormData.isFixed}
+                  onChange={(e) =>
+                    setPaymentMasterFormData({
+                      ...paymentMasterFormData,
+                      isFixed: e.target.checked,
+                      fixedAmount: e.target.checked ? paymentMasterFormData.fixedAmount : 0,
+                    })
+                  }
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                />
+                <label htmlFor="isFixed" className="text-sm font-medium text-gray-700">
+                  {t.fixedCost}
+                </label>
+              </div>
+
+              {paymentMasterFormData.isFixed && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t.fixedAmount}</label>
+                    <input
+                      type="number"
+                      value={paymentMasterFormData.fixedAmount}
+                      onChange={(e) =>
+                        setPaymentMasterFormData({ ...paymentMasterFormData, fixedAmount: Number(e.target.value) })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      min="0"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t.currency}</label>
+                    <select
+                      value={paymentMasterFormData.currency}
+                      onChange={(e) =>
+                        setPaymentMasterFormData({
+                          ...paymentMasterFormData,
+                          currency: e.target.value as "USD" | "JPY" | "VND",
+                        })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="USD">USD</option>
+                      <option value="JPY">JPY</option>
+                      <option value="VND">VND</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.paymentMethod}</label>
+                  <select
+                    value={paymentMasterFormData.paymentMethod}
+                    onChange={(e) =>
+                      setPaymentMasterFormData({
+                        ...paymentMasterFormData,
+                        paymentMethod: e.target.value as "bank" | "cash" | "card",
+                      })
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="bank">{t.bank}</option>
+                    <option value="cash">{t.cash}</option>
+                    <option value="card">{t.card}</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.paymentDay}</label>
+                  <input
+                    type="number"
+                    value={paymentMasterFormData.paymentDay}
+                    onChange={(e) =>
+                      setPaymentMasterFormData({ ...paymentMasterFormData, paymentDay: Number(e.target.value) })
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    min="1"
+                    max="31"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t.remarks}</label>
+                <textarea
+                  value={paymentMasterFormData.remarks}
+                  onChange={(e) => setPaymentMasterFormData({ ...paymentMasterFormData, remarks: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={3}
+                  placeholder={t.remarks}
+                />
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-gray-50 px-6 py-4 rounded-b-2xl flex gap-3">
+              <button
+                onClick={() => setShowPaymentMasterModal(false)}
+                className="flex-1 px-6 py-3 text-gray-700 hover:bg-gray-200 border border-gray-300 rounded-lg font-medium transition-colors"
+              >
+                {t.cancel}
+              </button>
+              <button
+                onClick={handlePaymentMasterSave}
+                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+              >
+                {t.save}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 支払いマスタ削除確認モーダル */}
+      {showPaymentMasterDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mx-auto mb-4">
+                <AlertCircle className="text-red-600" size={24} />
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 text-center mb-2">
+                {lang === "ja" ? "削除の確認" : "Xác nhận xóa"}
+              </h3>
+              <p className="text-gray-600 text-center mb-6">
+                {lang === "ja"
+                  ? "本当に削除しますか？この操作は取り消せません。"
+                  : "Bạn có chắc muốn xóa? Thao tác này không thể hoàn tác."}
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={handlePaymentMasterDeleteCancel}
+                  className="flex-1 px-6 py-3 text-gray-700 hover:bg-gray-100 border border-gray-300 rounded-lg font-medium transition-colors"
+                >
+                  {t.cancel}
+                </button>
+                <button
+                  onClick={handlePaymentMasterDeleteConfirm}
                   className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
                 >
                   {t.delete}
