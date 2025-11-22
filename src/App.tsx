@@ -23,10 +23,13 @@ import {
   LogOut,
   Menu,
 } from "lucide-react";
-import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 import { DashboardSummary } from "./components/DashboardSummary";
 import { QuickActions } from "./components/QuickActions";
 import { Alerts } from "./components/Alerts";
+import { TodayTasks } from "./components/TodayTasks";
+import { RecentActivity } from "./components/RecentActivity";
+import { SalesByCustomer } from "./components/SalesByCustomer";
+import { CashFlow } from "./components/CashFlow";
 
 const App = () => {
   const [lang, setLang] = useState<"ja" | "vi">("ja");
@@ -904,100 +907,17 @@ const App = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-800">{t.todayTasks}</h3>
-            </div>
-            <div className="divide-y divide-gray-200">
-              {tasks.map((task) => (
-                <div key={task.id} className="p-6 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-start gap-4">
-                    <div className={`p-2 rounded-lg ${task.priority === "high" ? "bg-red-50" : "bg-orange-50"}`}>
-                      <task.icon className={task.color} size={20} />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between mb-2">
-                        <h4 className="font-medium text-gray-800">{task.title}</h4>
-                        <span className="text-xs text-gray-500 ml-4">{task.dueDate}</span>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-3">{task.description}</p>
-                      <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">{t.approve} →</button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <TodayTasks tasks={tasks} title={t.todayTasks} approveText={t.approve} />
         </div>
 
         <div>
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-800">{t.recentActivity}</h3>
-            </div>
-            <div className="p-6 space-y-6 max-h-96 overflow-y-auto">
-              {recentActivities.map((activity) => (
-                <div key={activity.id} className="flex gap-3">
-                  <div className="shrink-0">
-                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                      <activity.icon className={activity.color} size={16} />
-                    </div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-800">{activity.action}</p>
-                    <p className="text-xs text-gray-600 mt-1">{activity.details}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="text-xs text-gray-500">{activity.user}</span>
-                      <span className="text-xs text-gray-400">•</span>
-                      <span className="text-xs text-gray-500">{activity.time}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <RecentActivity activities={recentActivities} title={t.recentActivity} />
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-bold mb-4">{t.salesByCustomer}</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={salesData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, value }) => `${name}: $${value.toLocaleString()}`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {salesData.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-bold mb-4">{t.cashFlow}</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={cashFlowData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="sales" stroke="#0088FE" name="売上" strokeWidth={2} />
-              <Line type="monotone" dataKey="purchase" stroke="#FF8042" name="仕入" strokeWidth={2} />
-              <Line type="monotone" dataKey="balance" stroke="#00C49F" name="残高" strokeWidth={2} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+        <SalesByCustomer data={salesData} title={t.salesByCustomer} colors={COLORS} />
+        <CashFlow data={cashFlowData} title={t.cashFlow} />
       </div>
     </div>
   );
