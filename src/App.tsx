@@ -18,7 +18,6 @@ import {
   CheckCircle,
   Clock,
   Package,
-  ArrowUpRight,
   Bell,
   Settings,
   LogOut,
@@ -26,6 +25,7 @@ import {
 } from "lucide-react";
 import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 import { DashboardSummary } from "./components/DashboardSummary";
+import { QuickActions } from "./components/QuickActions";
 
 const App = () => {
   const [lang, setLang] = useState<"ja" | "vi">("ja");
@@ -911,27 +911,11 @@ const App = () => {
 
       <div>
         <h3 className="text-lg font-semibold text-gray-800 mb-4">{t.quickActions}</h3>
-        <div className="grid grid-cols-4 gap-4">
-          {quickActions.map((action, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentPage(action.page)}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all hover:-translate-y-1 group text-left"
-            >
-              <div
-                className={`${action.color} w-12 h-12 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}
-              >
-                <action.icon className="text-white" size={24} />
-              </div>
-              <h4 className="font-semibold text-gray-800 mb-1">{action.title}</h4>
-              <p className="text-sm text-gray-500">{action.description}</p>
-              <div className="mt-4 flex items-center text-blue-600 text-sm font-medium">
-                <span>{t.createNew}</span>
-                <ArrowUpRight size={16} className="ml-1" />
-              </div>
-            </button>
-          ))}
-        </div>
+        <QuickActions
+          actions={quickActions}
+          translations={{ createNew: t.createNew }}
+          onActionClick={setCurrentPage}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
