@@ -1,9 +1,10 @@
-import { TrendingUp, DollarSign, ShoppingCart, Package } from "lucide-react";
+import { TrendingUp, DollarSign, ShoppingCart, Package, Wallet } from "lucide-react";
 
 interface DashboardSummaryProps {
   translations: {
     totalSales: string;
     totalPurchase: string;
+    monthlyPaymentAmount: string;
     monthlyOrderCount: string;
     pendingDeliveries: string;
   };
@@ -12,11 +13,16 @@ interface DashboardSummaryProps {
     orderCount: number;
     pendingCount: number;
   };
+  monthlyPayments: {
+    total: number;
+    paymentCount: number;
+    paidCount: number;
+  };
 }
 
-export const DashboardSummary = ({ translations, monthlyPurchase }: DashboardSummaryProps) => {
+export const DashboardSummary = ({ translations, monthlyPurchase, monthlyPayments }: DashboardSummaryProps) => {
   return (
-    <div className="grid grid-cols-4 gap-6">
+    <div className="grid grid-cols-5 gap-6">
       <div className="bg-blue-50 p-6 rounded-lg border-l-4 border-blue-500">
         <div className="flex items-center justify-between">
           <div>
@@ -60,6 +66,19 @@ export const DashboardSummary = ({ translations, monthlyPurchase }: DashboardSum
             <p className="text-xs text-orange-600 mt-1">未納入</p>
           </div>
           <Package className="text-orange-500" size={32} />
+        </div>
+      </div>
+
+      <div className="bg-red-50 p-6 rounded-lg border-l-4 border-red-500">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-gray-600">{translations.monthlyPaymentAmount}</p>
+            <p className="text-2xl font-bold text-gray-800">
+              ${monthlyPayments.total.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+            </p>
+            <p className="text-xs text-gray-600 mt-1">{monthlyPayments.paidCount}/{monthlyPayments.paymentCount}件 支払済み</p>
+          </div>
+          <Wallet className="text-red-500" size={32} />
         </div>
       </div>
     </div>

@@ -109,6 +109,7 @@ const App = () => {
       newOrders: "新規発注",
       totalSales: "今月の売上",
       totalPurchase: "今月の仕入",
+      monthlyPaymentAmount: "今月の支払",
       monthlyOrderCount: "今月の発注件数",
       pendingDeliveries: "今月の未納入件数",
       viewAll: "すべて表示",
@@ -251,6 +252,7 @@ const App = () => {
       newOrders: "Đơn hàng mới",
       totalSales: "Doanh thu tháng",
       totalPurchase: "Mua hàng tháng",
+      monthlyPaymentAmount: "Thanh toán tháng",
       monthlyOrderCount: "Số đơn hàng tháng",
       pendingDeliveries: "Chưa giao hàng",
       viewAll: "Xem tất cả",
@@ -1719,6 +1721,47 @@ const App = () => {
     };
   };
 
+  const calculateMonthlyPayments = () => {
+    // 現在の年月を取得（YYYY-MM形式）
+    const now = new Date();
+    const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
+    // 今月の支払いデータをフィルター
+    const currentMonthPayments = payments.filter((payment) => payment.yearMonth === currentYearMonth);
+
+    // 通貨別に合計を計算
+    let totalUSD = 0;
+    let totalJPY = 0;
+    let totalVND = 0;
+
+    currentMonthPayments.forEach((payment) => {
+      const amount = Number(payment.amount) || 0;
+
+      if (payment.currency === "USD") {
+        totalUSD += amount;
+      } else if (payment.currency === "JPY") {
+        totalJPY += amount;
+      } else if (payment.currency === "VND") {
+        totalVND += amount;
+      }
+    });
+
+    // USDに換算
+    const usdEquivalent = totalUSD + totalJPY / exchangeRates.jpy + totalVND / exchangeRates.vnd;
+
+    // 支払済み件数
+    const paidCount = currentMonthPayments.filter((p) => p.status === "paid").length;
+
+    return {
+      total: usdEquivalent,
+      paymentCount: currentMonthPayments.length,
+      paidCount: paidCount,
+      usd: totalUSD,
+      jpy: totalJPY,
+      vnd: totalVND,
+    };
+  };
+
   const renderDashboard = () => (
     <div className="space-y-6">
       <div>
@@ -1730,10 +1773,12 @@ const App = () => {
         translations={{
           totalSales: t.totalSales,
           totalPurchase: t.totalPurchase,
+          monthlyPaymentAmount: t.monthlyPaymentAmount,
           monthlyOrderCount: t.monthlyOrderCount,
           pendingDeliveries: t.pendingDeliveries,
         }}
         monthlyPurchase={calculateMonthlyPurchase()}
+        monthlyPayments={calculateMonthlyPayments()}
       />
 
       <div>
