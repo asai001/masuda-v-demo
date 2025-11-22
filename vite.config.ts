@@ -12,4 +12,7 @@ export default defineConfig({
     },
   },
   base: "/masuda-v-demo/",
+  build: {
+    outDir: "docs",
+  },
 });
