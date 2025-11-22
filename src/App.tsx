@@ -50,6 +50,15 @@ const App = () => {
   const [orderSearchQuery, setOrderSearchQuery] = useState("");
   const [orderFilterStatus, setOrderFilterStatus] = useState("all");
 
+  // 売上関連のstate
+  const [showSaleModal, setShowSaleModal] = useState(false);
+  const [editingSale, setEditingSale] = useState<Sale | null>(null);
+  const [showSaleDeleteConfirm, setShowSaleDeleteConfirm] = useState(false);
+  const [deleteSaleTargetId, setDeleteSaleTargetId] = useState<string>("");
+  const [saleValidationError, setSaleValidationError] = useState("");
+  const [saleSearchQuery, setSaleSearchQuery] = useState("");
+  const [saleFilterStatus, setSaleFilterStatus] = useState("all");
+
   // 換算レート設定
   const [exchangeRates, setExchangeRates] = useState({
     jpy: 150,
@@ -127,6 +136,7 @@ const App = () => {
       upon30Days: "着後30日",
       remarks: "備考",
       totalSuppliers: "登録件数",
+      activeSuppliers: "有効",
       inactiveSuppliers: "無効",
       panasonic: "パナソニック",
       riken: "リケン",
@@ -149,6 +159,20 @@ const App = () => {
       totalOrders: "発注件数",
       pendingOrders: "発注済み",
       deliveredOrders: "納品済み",
+      saleMaster: "売上管理",
+      saleList: "売上一覧",
+      addSale: "新規売上",
+      editSale: "売上編集",
+      saleDate: "売上日",
+      customer: "顧客",
+      customerName: "顧客名",
+      pending: "未出荷",
+      shipped: "出荷済み",
+      totalSalesCount: "売上件数",
+      pendingSales: "未出荷",
+      shippedSales: "出荷済み",
+      deliveredSales: "納品済み",
+      usa: "米国",
       deleteConfirmTitle: "削除の確認",
       deleteConfirmMessage: "本当に削除しますか？この操作は取り消せません。",
     },
@@ -222,6 +246,7 @@ const App = () => {
       upon30Days: "Sau 30 ngày",
       remarks: "Ghi chú",
       totalSuppliers: "Tổng số",
+      activeSuppliers: "Hoạt động",
       inactiveSuppliers: "Không hoạt động",
       panasonic: "Panasonic",
       riken: "Riken",
@@ -244,6 +269,20 @@ const App = () => {
       totalOrders: "Tổng đơn hàng",
       pendingOrders: "Đã đặt hàng",
       deliveredOrders: "Đã giao hàng",
+      saleMaster: "Quản lý doanh thu",
+      saleList: "Danh sách doanh thu",
+      addSale: "Doanh thu mới",
+      editSale: "Chỉnh sửa doanh thu",
+      saleDate: "Ngày bán",
+      customer: "Khách hàng",
+      customerName: "Tên khách hàng",
+      pending: "Chưa giao",
+      shipped: "Đã xuất",
+      totalSalesCount: "Số lượng doanh thu",
+      pendingSales: "Chưa giao",
+      shippedSales: "Đã xuất",
+      deliveredSales: "Đã giao",
+      usa: "Mỹ",
       deleteConfirmTitle: "Xác nhận xóa",
       deleteConfirmMessage: "Bạn có chắc muốn xóa? Thao tác này không thể hoàn tác.",
     },
@@ -392,6 +431,113 @@ const App = () => {
     currency: "USD",
     deliveryDate: "",
     status: "ordered",
+    remarks: "",
+  });
+
+  // 顧客データ
+  const [customers] = useState<Customer[]>([
+    {
+      id: "c-001",
+      incrementalId: 1,
+      name: "パナソニック株式会社",
+      region: "japan",
+      currency: "JPY",
+      paymentTerms: "monthEnd",
+      status: "active",
+      remarks: "主要取引先",
+      createdAt: "2024-01-10",
+      updatedAt: "2025-11-10",
+    },
+    {
+      id: "c-002",
+      incrementalId: 2,
+      name: "株式会社リケン",
+      region: "japan",
+      currency: "JPY",
+      paymentTerms: "upon30Days",
+      status: "active",
+      remarks: "自動車部品向け",
+      createdAt: "2024-02-15",
+      updatedAt: "2025-11-15",
+    },
+    {
+      id: "c-003",
+      incrementalId: 3,
+      name: "日本電産株式会社",
+      region: "japan",
+      currency: "JPY",
+      paymentTerms: "monthEnd",
+      status: "active",
+      remarks: "モーター部品向け",
+      createdAt: "2024-03-20",
+      updatedAt: "2025-11-18",
+    },
+    {
+      id: "c-004",
+      incrementalId: 4,
+      name: "森村商事株式会社",
+      region: "japan",
+      currency: "JPY",
+      paymentTerms: "upon14Days",
+      status: "active",
+      remarks: "商社経由取引",
+      createdAt: "2024-04-05",
+      updatedAt: "2025-11-12",
+    },
+  ]);
+
+  // 売上データ
+  const [sales, setSales] = useState<Sale[]>([
+    {
+      id: "sl-001",
+      incrementalId: 1,
+      saleDate: "2025-11-15",
+      customerId: "c-001",
+      product: "ビニール製品 VP-100",
+      quantity: 2000,
+      unitPrice: 2200,
+      currency: "JPY",
+      deliveryDate: "2025-11-25",
+      status: "shipped",
+      remarks: "定期取引",
+    },
+    {
+      id: "sl-002",
+      incrementalId: 2,
+      saleDate: "2025-11-18",
+      customerId: "c-002",
+      product: "シート材 SH-200",
+      quantity: 1500,
+      unitPrice: 1800,
+      currency: "JPY",
+      deliveryDate: "2025-11-28",
+      status: "pending",
+      remarks: "急ぎ対応",
+    },
+    {
+      id: "sl-003",
+      incrementalId: 3,
+      saleDate: "2025-11-10",
+      customerId: "c-003",
+      product: "成形品 MO-300",
+      quantity: 800,
+      unitPrice: 3500,
+      currency: "JPY",
+      deliveryDate: "2025-11-20",
+      status: "delivered",
+      remarks: "納品完了",
+    },
+  ]);
+
+  const [saleFormData, setSaleFormData] = useState<SaleFormData>({
+    saleDate: "",
+    customerId: "",
+    product: "",
+    quantity: 0,
+    unitPrice: 0,
+    currency: "JPY",
+    deliveryDate: "",
+    status: "pending",
     remarks: "",
   });
 
@@ -689,6 +835,45 @@ const App = () => {
     remarks: string;
   }
 
+  interface Customer {
+    id: string;
+    incrementalId: number;
+    name: string;
+    region: "japan" | "vietnam" | "thailand" | "china" | "usa";
+    currency: "USD" | "JPY" | "VND";
+    paymentTerms: "monthEnd" | "upon7Days" | "upon14Days" | "upon30Days";
+    status: "active" | "inactive";
+    remarks: string;
+    createdAt: string;
+    updatedAt: string;
+  }
+
+  interface Sale {
+    id: string;
+    incrementalId: number;
+    saleDate: string;
+    customerId: string;
+    product: string;
+    quantity: number;
+    unitPrice: number;
+    currency: "USD" | "JPY" | "VND";
+    deliveryDate: string;
+    status: "pending" | "shipped" | "delivered" | "cancelled";
+    remarks: string;
+  }
+
+  interface SaleFormData {
+    saleDate: string;
+    customerId: string;
+    product: string;
+    quantity: number;
+    unitPrice: number;
+    currency: "USD" | "JPY" | "VND";
+    deliveryDate: string;
+    status: "pending" | "shipped" | "delivered" | "cancelled";
+    remarks: string;
+  }
+
   const handleOpenOrderModal = (order: Order | null): void => {
     setOrderValidationError("");
     if (order) {
@@ -794,6 +979,112 @@ const App = () => {
     setDeleteOrderTargetId("");
   };
 
+  // 売上関連の関数
+  const handleOpenSaleModal = (sale: Sale | null): void => {
+    setSaleValidationError("");
+    if (sale) {
+      setEditingSale(sale);
+      setSaleFormData({
+        saleDate: sale.saleDate,
+        customerId: sale.customerId.toString(),
+        product: sale.product,
+        quantity: sale.quantity,
+        unitPrice: sale.unitPrice,
+        currency: sale.currency,
+        deliveryDate: sale.deliveryDate,
+        status: sale.status,
+        remarks: sale.remarks,
+      });
+    } else {
+      setEditingSale(null);
+      const today = new Date().toISOString().split("T")[0];
+      setSaleFormData({
+        saleDate: today,
+        customerId: "",
+        product: "",
+        quantity: 0,
+        unitPrice: 0,
+        currency: "JPY",
+        deliveryDate: "",
+        status: "pending",
+        remarks: "",
+      });
+    }
+    setShowSaleModal(true);
+  };
+
+  const handleSaleSave = () => {
+    // 必須項目のバリデーション
+    if (!saleFormData.saleDate) {
+      setSaleValidationError(lang === "ja" ? "売上日を入力してください" : "Vui lòng nhập ngày bán");
+      return;
+    }
+    if (!saleFormData.customerId) {
+      setSaleValidationError(lang === "ja" ? "顧客を選択してください" : "Vui lòng chọn khách hàng");
+      return;
+    }
+    if (!saleFormData.product || !saleFormData.product.trim()) {
+      setSaleValidationError(lang === "ja" ? "品目/品番を入力してください" : "Vui lòng nhập sản phẩm/mã");
+      return;
+    }
+    if (!saleFormData.quantity || saleFormData.quantity <= 0) {
+      setSaleValidationError(lang === "ja" ? "数量を正しく入力してください" : "Vui lòng nhập số lượng chính xác");
+      return;
+    }
+    if (!saleFormData.unitPrice || saleFormData.unitPrice <= 0) {
+      setSaleValidationError(lang === "ja" ? "単価を正しく入力してください" : "Vui lòng nhập đơn giá chính xác");
+      return;
+    }
+    if (!saleFormData.deliveryDate) {
+      setSaleValidationError(lang === "ja" ? "納品予定日を入力してください" : "Vui lòng nhập ngày giao hàng");
+      return;
+    }
+
+    const saleData = {
+      saleDate: saleFormData.saleDate,
+      customerId: saleFormData.customerId,
+      product: saleFormData.product.trim(),
+      quantity: Number(saleFormData.quantity),
+      unitPrice: Number(saleFormData.unitPrice),
+      currency: saleFormData.currency,
+      deliveryDate: saleFormData.deliveryDate,
+      status: saleFormData.status,
+      remarks: saleFormData.remarks,
+    };
+
+    const incrementalId = sales.length > 0 ? Math.max(...sales.map((s) => s.incrementalId)) + 1 : 1;
+    if (editingSale) {
+      setSales(sales.map((s) => (s.id === editingSale.id ? { ...s, ...saleData } : s)));
+    } else {
+      const newSale = {
+        id: `sl-${String(incrementalId).padStart(3, "0")}`,
+        incrementalId,
+        ...saleData,
+      };
+      setSales([...sales, newSale]);
+    }
+    setSaleValidationError("");
+    setShowSaleModal(false);
+  };
+
+  const handleDeleteSale = (id: string) => {
+    setDeleteSaleTargetId(id);
+    setShowSaleDeleteConfirm(true);
+  };
+
+  const handleSaleDeleteConfirm = () => {
+    if (deleteSaleTargetId) {
+      setSales(sales.filter((s) => s.id !== deleteSaleTargetId));
+      setShowSaleDeleteConfirm(false);
+      setDeleteSaleTargetId("");
+    }
+  };
+
+  const handleSaleDeleteCancel = () => {
+    setShowSaleDeleteConfirm(false);
+    setDeleteSaleTargetId("");
+  };
+
   const filteredOrders = orders.filter((order) => {
     const supplier = suppliers.find((s) => s.id === order.supplierId);
     const supplierName = supplier ? supplier.name : "";
@@ -808,6 +1099,24 @@ const App = () => {
     total: orders.length,
     ordered: orders.filter((o) => o.status === "ordered").length,
     delivered: orders.filter((o) => o.status === "delivered").length,
+  };
+
+  // 売上のフィルタリングと統計
+  const filteredSales = sales.filter((sale) => {
+    const customer = customers.find((c) => c.id === sale.customerId);
+    const customerName = customer ? customer.name : "";
+    const matchesSearch =
+      sale.product.toLowerCase().includes(saleSearchQuery.toLowerCase()) ||
+      customerName.toLowerCase().includes(saleSearchQuery.toLowerCase());
+    const matchesFilter = saleFilterStatus === "all" || sale.status === saleFilterStatus;
+    return matchesSearch && matchesFilter;
+  });
+
+  const saleStats = {
+    total: sales.length,
+    pending: sales.filter((s) => s.status === "pending").length,
+    shipped: sales.filter((s) => s.status === "shipped").length,
+    delivered: sales.filter((s) => s.status === "delivered").length,
   };
 
   const filteredSuppliers = suppliers.filter((supplier) => {
@@ -1261,6 +1570,190 @@ const App = () => {
     </div>
   );
 
+  const renderSales = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-4 gap-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 mb-1">{t.totalSalesCount}</p>
+              <p className="text-3xl font-bold text-gray-800">{saleStats.total}</p>
+            </div>
+            <div className="p-3 bg-blue-50 rounded-lg">
+              <TrendingUp className="text-blue-500" size={24} />
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 mb-1">{t.pendingSales}</p>
+              <p className="text-3xl font-bold text-orange-600">{saleStats.pending}</p>
+            </div>
+            <div className="p-3 bg-orange-50 rounded-lg">
+              <Clock className="text-orange-500" size={24} />
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 mb-1">{t.shippedSales}</p>
+              <p className="text-3xl font-bold text-purple-600">{saleStats.shipped}</p>
+            </div>
+            <div className="p-3 bg-purple-50 rounded-lg">
+              <Package className="text-purple-500" size={24} />
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 mb-1">{t.deliveredSales}</p>
+              <p className="text-3xl font-bold text-green-600">{saleStats.delivered}</p>
+            </div>
+            <div className="p-3 bg-green-50 rounded-lg">
+              <CheckCircle className="text-green-500" size={24} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div className="p-6 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 flex-1">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <input
+                type="text"
+                placeholder={t.search}
+                value={saleSearchQuery}
+                onChange={(e) => setSaleSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <select
+              value={saleFilterStatus}
+              onChange={(e) => setSaleFilterStatus(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">{t.all}</option>
+              <option value="pending">{t.pending}</option>
+              <option value="shipped">{t.shipped}</option>
+              <option value="delivered">{t.delivered}</option>
+              <option value="cancelled">{t.cancelled}</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-3">
+            <button className="px-4 py-2 text-gray-700 hover:bg-gray-50 border border-gray-300 rounded-lg flex items-center gap-2">
+              <Download size={18} />
+              {t.export}
+            </button>
+            <button
+              onClick={() => handleOpenSaleModal(null)}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium"
+            >
+              <Plus size={20} />
+              {t.addSale}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.saleDate}</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.customerName}</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.product}</th>
+                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.quantity}</th>
+                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.unitPrice}</th>
+                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.amount}</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.deliveryDate}</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.status}</th>
+                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.actions}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {filteredSales.map((sale) => {
+                const customer = customers.find((c) => c.id === sale.customerId);
+                const totalAmount = sale.quantity * sale.unitPrice;
+                return (
+                  <tr key={sale.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 text-sm text-gray-700">{sale.saleDate}</td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-800">{customer?.name || "-"}</div>
+                      <div className="text-xs text-gray-500">{customer?.region ? t[customer.region as keyof typeof t] as string : "-"}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-800">{sale.product}</div>
+                      {sale.remarks && <p className="text-sm text-gray-500">{sale.remarks}</p>}
+                    </td>
+                    <td className="px-6 py-4 text-right text-sm text-gray-700">{sale.quantity.toLocaleString()}</td>
+                    <td className="px-6 py-4 text-right text-sm font-medium text-gray-800">
+                      {sale.currency === "VND"
+                        ? `${sale.unitPrice.toLocaleString()} VND`
+                        : sale.currency === "JPY"
+                        ? `¥${sale.unitPrice.toLocaleString()}`
+                        : `$${sale.unitPrice.toLocaleString()}`}
+                    </td>
+                    <td className="px-6 py-4 text-right text-sm font-bold text-gray-800">
+                      {sale.currency === "VND"
+                        ? `${totalAmount.toLocaleString()} VND`
+                        : sale.currency === "JPY"
+                        ? `¥${totalAmount.toLocaleString()}`
+                        : `$${totalAmount.toLocaleString()}`}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">{sale.deliveryDate}</td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`px-3 py-1 text-xs font-medium rounded-full ${
+                          sale.status === "pending"
+                            ? "bg-orange-50 text-orange-700"
+                            : sale.status === "shipped"
+                            ? "bg-purple-50 text-purple-700"
+                            : sale.status === "delivered"
+                            ? "bg-green-50 text-green-700"
+                            : "bg-gray-50 text-gray-700"
+                        }`}
+                      >
+                        {sale.status === "pending"
+                          ? t.pending
+                          : sale.status === "shipped"
+                          ? t.shipped
+                          : sale.status === "delivered"
+                          ? t.delivered
+                          : t.cancelled}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => handleOpenSaleModal(sale)}
+                          className="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteSale(sale.id)}
+                          className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderSystemSettings = () => (
     <div className="space-y-6">
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -1373,13 +1866,13 @@ const App = () => {
                 {currentPage === "dashboard" && t.dashboard}
                 {currentPage === "suppliers" && t.supplierMaster}
                 {currentPage === "orders" && t.orderMaster}
-                {currentPage === "sales" && t.sales}
+                {currentPage === "sales" && t.saleMaster}
                 {currentPage === "payments" && t.payments}
                 {currentPage === "reports" && t.reports}
                 {currentPage === "systemSettings" && t.systemSettings}
               </h2>
               <p className="text-sm text-gray-500">
-                {currentPage === "suppliers" ? t.supplierList : currentPage === "orders" ? t.orderList : "2024年11月20日 (水)"}
+                {currentPage === "suppliers" ? t.supplierList : currentPage === "orders" ? t.orderList : currentPage === "sales" ? t.saleList : "2024年11月20日 (水)"}
               </p>
             </div>
             <div className="flex items-center gap-4">
@@ -1411,24 +1904,7 @@ const App = () => {
           {currentPage === "dashboard" && renderDashboard()}
           {currentPage === "suppliers" && renderSuppliers()}
           {currentPage === "orders" && renderOrders()}
-          {currentPage === "sales" && (
-            <div className="bg-white p-12 rounded-xl shadow text-center">
-              <TrendingUp size={48} className="mx-auto mb-4 text-gray-400" />
-              <p className="text-gray-600">売上計上画面（準備中）</p>
-            </div>
-          )}
-          {currentPage === "aaaaaaaaa" && (
-            <div className="bg-white p-12 rounded-xl shadow text-center">
-              <ShoppingCart size={48} className="mx-auto mb-4 text-gray-400" />
-              <p className="text-gray-600">発注登録画面（準備中）</p>
-            </div>
-          )}
-          {currentPage === "sales" && (
-            <div className="bg-white p-12 rounded-xl shadow text-center">
-              <TrendingUp size={48} className="mx-auto mb-4 text-gray-400" />
-              <p className="text-gray-600">売上計上画面（準備中）</p>
-            </div>
-          )}
+          {currentPage === "sales" && renderSales()}
           {currentPage === "payments" && (
             <div className="bg-white p-12 rounded-xl shadow text-center">
               <DollarSign size={48} className="mx-auto mb-4 text-gray-400" />
@@ -1798,6 +2274,222 @@ const App = () => {
                 </button>
                 <button
                   onClick={handleOrderDeleteConfirm}
+                  className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
+                >
+                  {t.delete}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 売上登録・編集モーダル */}
+      {showSaleModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white">
+              <h3 className="text-xl font-bold text-gray-800">{editingSale ? t.editSale : t.addSale}</h3>
+              <button onClick={() => setShowSaleModal(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {saleValidationError && (
+                <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+                  <div className="flex items-center">
+                    <AlertCircle className="text-red-500 mr-2" size={20} />
+                    <p className="text-sm text-red-700 font-medium">{saleValidationError}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t.saleDate} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={saleFormData.saleDate}
+                    onChange={(e) => setSaleFormData({ ...saleFormData, saleDate: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t.deliveryDate} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={saleFormData.deliveryDate}
+                    onChange={(e) => setSaleFormData({ ...saleFormData, deliveryDate: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t.customerName} <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={saleFormData.customerId}
+                  onChange={(e) => setSaleFormData({ ...saleFormData, customerId: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">{lang === "ja" ? "選択してください" : "Chọn khách hàng"}</option>
+                  {customers
+                    .filter((c) => c.status === "active")
+                    .map((customer) => (
+                      <option key={customer.id} value={customer.id}>
+                        {customer.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t.product} <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={saleFormData.product}
+                  onChange={(e) => setSaleFormData({ ...saleFormData, product: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="例: ビニール製品 VP-100"
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t.quantity} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={saleFormData.quantity}
+                    onChange={(e) => setSaleFormData({ ...saleFormData, quantity: Number(e.target.value) })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="2000"
+                    min="0"
+                    step="1"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t.unitPrice} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={saleFormData.unitPrice}
+                    onChange={(e) => setSaleFormData({ ...saleFormData, unitPrice: Number(e.target.value) })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="2200"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t.currency} <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={saleFormData.currency}
+                    onChange={(e) => setSaleFormData({ ...saleFormData, currency: e.target.value as "USD" | "JPY" | "VND" })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="USD">USD</option>
+                    <option value="JPY">JPY</option>
+                    <option value="VND">VND</option>
+                  </select>
+                </div>
+              </div>
+
+              {saleFormData.quantity && saleFormData.unitPrice && (
+                <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-blue-700">{t.totalAmount}:</span>
+                    <span className="text-xl font-bold text-blue-800">
+                      {saleFormData.currency === "VND"
+                        ? `${(Number(saleFormData.quantity) * Number(saleFormData.unitPrice)).toLocaleString()} VND`
+                        : saleFormData.currency === "JPY"
+                        ? `¥${(Number(saleFormData.quantity) * Number(saleFormData.unitPrice)).toLocaleString()}`
+                        : `$${(Number(saleFormData.quantity) * Number(saleFormData.unitPrice)).toLocaleString()}`}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t.status}</label>
+                <select
+                  value={saleFormData.status}
+                  onChange={(e) => setSaleFormData({ ...saleFormData, status: e.target.value as "pending" | "shipped" | "delivered" | "cancelled" })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="pending">{t.pending}</option>
+                  <option value="shipped">{t.shipped}</option>
+                  <option value="delivered">{t.delivered}</option>
+                  <option value="cancelled">{t.cancelled}</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t.remarks}</label>
+                <textarea
+                  value={saleFormData.remarks}
+                  onChange={(e) => setSaleFormData({ ...saleFormData, remarks: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="備考を入力してください"
+                />
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-200 flex items-center justify-end gap-3 bg-gray-50">
+              <button
+                onClick={() => setShowSaleModal(false)}
+                className="px-6 py-2 text-gray-700 hover:bg-gray-100 border border-gray-300 rounded-lg font-medium transition-colors"
+              >
+                {t.cancel}
+              </button>
+              <button
+                onClick={handleSaleSave}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors"
+              >
+                <Save size={18} />
+                {t.save}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 売上削除確認モーダル */}
+      {showSaleDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mx-auto mb-4">
+                <AlertCircle className="text-red-600" size={24} />
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 text-center mb-2">{t.deleteConfirmTitle}</h3>
+              <p className="text-gray-600 text-center mb-6">{t.deleteConfirmMessage}</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleSaleDeleteCancel}
+                  className="flex-1 px-6 py-3 text-gray-700 hover:bg-gray-100 border border-gray-300 rounded-lg font-medium transition-colors"
+                >
+                  {t.cancel}
+                </button>
+                <button
+                  onClick={handleSaleDeleteConfirm}
                   className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
                 >
                   {t.delete}
