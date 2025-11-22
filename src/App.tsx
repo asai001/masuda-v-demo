@@ -2347,6 +2347,13 @@ const App = () => {
                 <option value="other">{t.other}</option>
               </select>
             </div>
+            <button
+              onClick={() => handleOpenPaymentModal(null)}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors"
+            >
+              <Plus size={20} />
+              {t.addPayment}
+            </button>
           </div>
         </div>
 
