@@ -59,6 +59,15 @@ const App = () => {
   const [saleSearchQuery, setSaleSearchQuery] = useState("");
   const [saleFilterStatus, setSaleFilterStatus] = useState("all");
 
+  // 支払い関連のstate
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
+  const [showPaymentDeleteConfirm, setShowPaymentDeleteConfirm] = useState(false);
+  const [deletePaymentTargetId, setDeletePaymentTargetId] = useState<string>("");
+  const [paymentValidationError, setPaymentValidationError] = useState("");
+  const [paymentSearchQuery, setPaymentSearchQuery] = useState("");
+  const [paymentFilterCategory, setPaymentFilterCategory] = useState("all");
+
   // 換算レート設定
   const [exchangeRates, setExchangeRates] = useState({
     jpy: 150,
@@ -175,6 +184,27 @@ const App = () => {
       usa: "米国",
       deleteConfirmTitle: "削除の確認",
       deleteConfirmMessage: "本当に削除しますか？この操作は取り消せません。",
+      paymentMaster: "支払管理",
+      paymentList: "支払一覧",
+      addPayment: "新規支払",
+      editPayment: "支払編集",
+      paymentDate: "支払日",
+      category: "カテゴリ",
+      description: "内容",
+      paymentMethod: "支払方法",
+      dueDate: "支払期日",
+      rent: "家賃",
+      utilities: "光熱費",
+      salary: "給与",
+      bank: "銀行振込",
+      cash: "現金",
+      card: "カード",
+      paid: "支払済み",
+      fixedCost: "固定費",
+      variableCost: "変動費",
+      totalPayments: "支払件数",
+      paidPayments: "支払済み",
+      pendingPayments: "未払い",
     },
     vi: {
       dashboard: "Bảng điều khiển",
@@ -285,6 +315,27 @@ const App = () => {
       usa: "Mỹ",
       deleteConfirmTitle: "Xác nhận xóa",
       deleteConfirmMessage: "Bạn có chắc muốn xóa? Thao tác này không thể hoàn tác.",
+      paymentMaster: "Quản lý thanh toán",
+      paymentList: "Danh sách thanh toán",
+      addPayment: "Thanh toán mới",
+      editPayment: "Chỉnh sửa thanh toán",
+      paymentDate: "Ngày thanh toán",
+      category: "Danh mục",
+      description: "Mô tả",
+      paymentMethod: "Phương thức thanh toán",
+      dueDate: "Ngày đến hạn",
+      rent: "Tiền thuê",
+      utilities: "Tiện ích",
+      salary: "Lương",
+      bank: "Chuyển khoản",
+      cash: "Tiền mặt",
+      card: "Thẻ",
+      paid: "Đã thanh toán",
+      fixedCost: "Chi phí cố định",
+      variableCost: "Chi phí biến đổi",
+      totalPayments: "Tổng thanh toán",
+      paidPayments: "Đã thanh toán",
+      pendingPayments: "Chưa thanh toán",
     },
   };
 
@@ -541,6 +592,93 @@ const App = () => {
     remarks: "",
   });
 
+  // 支払いデータ
+  const [payments, setPayments] = useState<Payment[]>([
+    {
+      id: "pm-001",
+      incrementalId: 1,
+      paymentDate: "2025-11-01",
+      category: "rent",
+      description: "工場賃料",
+      amount: 500000,
+      currency: "JPY",
+      paymentMethod: "bank",
+      status: "paid",
+      isFixed: true,
+      dueDate: "2025-11-30",
+      remarks: "毎月固定",
+    },
+    {
+      id: "pm-002",
+      incrementalId: 2,
+      paymentDate: "2025-11-25",
+      category: "utilities",
+      description: "電気代（10月分）",
+      amount: 85000,
+      currency: "JPY",
+      paymentMethod: "bank",
+      status: "paid",
+      isFixed: false,
+      dueDate: "2025-11-30",
+      remarks: "確定済み",
+    },
+    {
+      id: "pm-003",
+      incrementalId: 3,
+      paymentDate: "2025-11-25",
+      category: "utilities",
+      description: "水道代（10月分）",
+      amount: 35000,
+      currency: "JPY",
+      paymentMethod: "bank",
+      status: "paid",
+      isFixed: false,
+      dueDate: "2025-11-30",
+      remarks: "確定済み",
+    },
+    {
+      id: "pm-004",
+      incrementalId: 4,
+      paymentDate: "",
+      category: "utilities",
+      description: "電気代（11月分）",
+      amount: 0,
+      currency: "JPY",
+      paymentMethod: "bank",
+      status: "pending",
+      isFixed: false,
+      dueDate: "2025-12-25",
+      remarks: "25日確定予定",
+    },
+    {
+      id: "pm-005",
+      incrementalId: 5,
+      paymentDate: "",
+      category: "utilities",
+      description: "水道代（11月分）",
+      amount: 0,
+      currency: "JPY",
+      paymentMethod: "bank",
+      status: "pending",
+      isFixed: false,
+      dueDate: "2025-12-25",
+      remarks: "25日確定予定",
+    },
+  ]);
+
+  const [paymentFormData, setPaymentFormData] = useState<PaymentFormData>({
+    paymentDate: "",
+    category: "rent",
+    description: "",
+    amount: 0,
+    currency: "JPY",
+    paymentMethod: "bank",
+    status: "pending",
+    isFixed: false,
+    dueDate: "",
+    remarks: "",
+  });
+
   const salesData = [
     { name: t.panasonic, value: 45000, currency: "USD" },
     { name: t.riken, value: 32000, currency: "USD" },
@@ -561,6 +699,22 @@ const App = () => {
     { month: "10月", sales: 120000, purchase: 60000, balance: 60000 },
     { month: "11月", sales: 125000, purchase: 55000, balance: 70000 },
   ];
+
+  // 未払いの光熱費タスクを動的に生成
+  const pendingUtilityPayments = payments.filter(
+    (p) => p.status === "pending" && p.category === "utilities" && p.dueDate
+  );
+
+  const utilityTasks = pendingUtilityPayments.map((payment, index) => ({
+    id: 100 + index,
+    type: "payment",
+    title: `${payment.description}の登録`,
+    description: `支払期日: ${payment.dueDate} - ${payment.remarks}`,
+    priority: "medium",
+    dueDate: payment.dueDate,
+    icon: DollarSign,
+    color: "text-orange-500",
+  }));
 
   const tasks = [
     {
@@ -593,6 +747,7 @@ const App = () => {
       icon: Package,
       color: "text-blue-500",
     },
+    ...utilityTasks,
   ];
 
   const recentActivities = [
@@ -861,6 +1016,34 @@ const App = () => {
     remarks: string;
   }
 
+  interface Payment {
+    id: string;
+    incrementalId: number;
+    paymentDate: string;
+    category: "rent" | "utilities" | "salary" | "other";
+    description: string;
+    amount: number;
+    currency: "USD" | "JPY" | "VND";
+    paymentMethod: "bank" | "cash" | "card";
+    status: "pending" | "paid" | "cancelled";
+    isFixed: boolean; // 固定費かどうか
+    dueDate: string; // 支払期日
+    remarks: string;
+  }
+
+  interface PaymentFormData {
+    paymentDate: string;
+    category: "rent" | "utilities" | "salary" | "other";
+    description: string;
+    amount: number;
+    currency: "USD" | "JPY" | "VND";
+    paymentMethod: "bank" | "cash" | "card";
+    status: "pending" | "paid" | "cancelled";
+    isFixed: boolean;
+    dueDate: string;
+    remarks: string;
+  }
+
   const handleOpenOrderModal = (order: Order | null): void => {
     setOrderValidationError("");
     if (order) {
@@ -1072,6 +1255,94 @@ const App = () => {
     setDeleteSaleTargetId("");
   };
 
+  // 支払い関連の関数
+  const handleOpenPaymentModal = (payment: Payment | null): void => {
+    setPaymentValidationError("");
+    if (payment) {
+      setEditingPayment(payment);
+      setPaymentFormData({
+        paymentDate: payment.paymentDate,
+        category: payment.category,
+        description: payment.description,
+        amount: payment.amount,
+        currency: payment.currency,
+        paymentMethod: payment.paymentMethod,
+        status: payment.status,
+        isFixed: payment.isFixed,
+        dueDate: payment.dueDate,
+        remarks: payment.remarks,
+      });
+    } else {
+      setEditingPayment(null);
+      const today = new Date().toISOString().split("T")[0];
+      setPaymentFormData({
+        paymentDate: today,
+        category: "rent",
+        description: "",
+        amount: 0,
+        currency: "JPY",
+        paymentMethod: "bank",
+        status: "pending",
+        isFixed: false,
+        dueDate: "",
+        remarks: "",
+      });
+    }
+    setShowPaymentModal(true);
+  };
+
+  const handlePaymentSave = () => {
+    if (!paymentFormData.description || !paymentFormData.amount || !paymentFormData.dueDate) {
+      setPaymentValidationError("内容、金額、支払期日は必須です");
+      return;
+    }
+
+    const paymentData = {
+      paymentDate: paymentFormData.paymentDate,
+      category: paymentFormData.category,
+      description: paymentFormData.description,
+      amount: Number(paymentFormData.amount),
+      currency: paymentFormData.currency,
+      paymentMethod: paymentFormData.paymentMethod,
+      status: paymentFormData.status,
+      isFixed: paymentFormData.isFixed,
+      dueDate: paymentFormData.dueDate,
+      remarks: paymentFormData.remarks,
+    };
+
+    const incrementalId = payments.length > 0 ? Math.max(...payments.map((p) => p.incrementalId)) + 1 : 1;
+    if (editingPayment) {
+      setPayments(payments.map((p) => (p.id === editingPayment.id ? { ...p, ...paymentData } : p)));
+    } else {
+      const newPayment = {
+        id: `pm-${String(incrementalId).padStart(3, "0")}`,
+        incrementalId,
+        ...paymentData,
+      };
+      setPayments([...payments, newPayment]);
+    }
+    setPaymentValidationError("");
+    setShowPaymentModal(false);
+  };
+
+  const handleDeletePayment = (id: string) => {
+    setDeletePaymentTargetId(id);
+    setShowPaymentDeleteConfirm(true);
+  };
+
+  const handlePaymentDeleteConfirm = () => {
+    if (deletePaymentTargetId) {
+      setPayments(payments.filter((p) => p.id !== deletePaymentTargetId));
+      setShowPaymentDeleteConfirm(false);
+      setDeletePaymentTargetId("");
+    }
+  };
+
+  const handlePaymentDeleteCancel = () => {
+    setShowPaymentDeleteConfirm(false);
+    setDeletePaymentTargetId("");
+  };
+
   const filteredOrders = orders.filter((order) => {
     const supplier = suppliers.find((s) => s.id === order.supplierId);
     const supplierName = supplier ? supplier.name : "";
@@ -1104,6 +1375,19 @@ const App = () => {
     pending: sales.filter((s) => s.status === "pending").length,
     shipped: sales.filter((s) => s.status === "shipped").length,
     delivered: sales.filter((s) => s.status === "delivered").length,
+  };
+
+  // 支払いのフィルタリングと統計
+  const filteredPayments = payments.filter((payment) => {
+    const matchesSearch = payment.description.toLowerCase().includes(paymentSearchQuery.toLowerCase());
+    const matchesFilter = paymentFilterCategory === "all" || payment.category === paymentFilterCategory;
+    return matchesSearch && matchesFilter;
+  });
+
+  const paymentStats = {
+    total: payments.length,
+    paid: payments.filter((p) => p.status === "paid").length,
+    pending: payments.filter((p) => p.status === "pending").length,
   };
 
   const filteredSuppliers = suppliers.filter((supplier) => {
@@ -1203,7 +1487,7 @@ const App = () => {
     <div className="space-y-6">
       <div>
         <h3 className="text-xl font-semibold text-gray-800 mb-2">{t.welcome}, Huong! 👋</h3>
-        <p className="text-gray-600">本日は3件のタスクがあります</p>
+        <p className="text-gray-600">本日は{tasks.length}件のタスクがあります</p>
       </div>
 
       <DashboardSummary
@@ -1742,6 +2026,188 @@ const App = () => {
     </div>
   );
 
+  const renderPayments = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-3 gap-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 mb-1">{t.totalPayments}</p>
+              <p className="text-3xl font-bold text-gray-800">{paymentStats.total}</p>
+            </div>
+            <div className="p-3 bg-blue-50 rounded-lg">
+              <DollarSign className="text-blue-500" size={24} />
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 mb-1">{t.paidPayments}</p>
+              <p className="text-3xl font-bold text-green-600">{paymentStats.paid}</p>
+            </div>
+            <div className="p-3 bg-green-50 rounded-lg">
+              <CheckCircle className="text-green-500" size={24} />
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 mb-1">{t.pendingPayments}</p>
+              <p className="text-3xl font-bold text-orange-600">{paymentStats.pending}</p>
+            </div>
+            <div className="p-3 bg-orange-50 rounded-lg">
+              <Clock className="text-orange-500" size={24} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div className="p-6 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 flex-1">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <input
+                type="text"
+                placeholder={t.search}
+                value={paymentSearchQuery}
+                onChange={(e) => setPaymentSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <select
+              value={paymentFilterCategory}
+              onChange={(e) => setPaymentFilterCategory(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">{t.all}</option>
+              <option value="rent">{t.rent}</option>
+              <option value="utilities">{t.utilities}</option>
+              <option value="salary">{t.salary}</option>
+              <option value="other">{t.other}</option>
+            </select>
+          </div>
+          <button
+            onClick={() => handleOpenPaymentModal(null)}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors"
+          >
+            <Plus size={20} />
+            {t.addPayment}
+          </button>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-y border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No.</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.category}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.description}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.amount}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.paymentMethod}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.dueDate}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.paymentDate}</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t.status}</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t.actions}</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredPayments.map((payment) => {
+                return (
+                  <tr key={payment.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{payment.incrementalId}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          payment.category === "rent"
+                            ? "bg-blue-100 text-blue-800"
+                            : payment.category === "utilities"
+                            ? "bg-orange-100 text-orange-800"
+                            : payment.category === "salary"
+                            ? "bg-purple-100 text-purple-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {payment.category === "rent"
+                          ? t.rent
+                          : payment.category === "utilities"
+                          ? t.utilities
+                          : payment.category === "salary"
+                          ? t.salary
+                          : t.other}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">{payment.description}</div>
+                      {payment.isFixed && (
+                        <div className="text-xs text-blue-600 mt-1">{t.fixedCost}</div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-semibold text-gray-900">
+                        {payment.currency === "JPY"
+                          ? `¥${payment.amount.toLocaleString()}`
+                          : payment.currency === "VND"
+                          ? `${payment.amount.toLocaleString()} VND`
+                          : `$${payment.amount.toLocaleString()}`}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {payment.paymentMethod === "bank"
+                        ? t.bank
+                        : payment.paymentMethod === "cash"
+                        ? t.cash
+                        : t.card}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{payment.dueDate}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {payment.paymentDate || "-"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <span
+                        className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          payment.status === "paid"
+                            ? "bg-green-50 text-green-700"
+                            : payment.status === "pending"
+                            ? "bg-orange-50 text-orange-700"
+                            : "bg-gray-50 text-gray-700"
+                        }`}
+                      >
+                        {payment.status === "paid"
+                          ? t.paid
+                          : payment.status === "pending"
+                          ? t.pending
+                          : t.cancelled}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => handleOpenPaymentModal(payment)}
+                          className="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeletePayment(payment.id)}
+                          className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderSystemSettings = () => (
     <div className="space-y-6">
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -1860,7 +2326,15 @@ const App = () => {
                 {currentPage === "systemSettings" && t.systemSettings}
               </h2>
               <p className="text-sm text-gray-500">
-                {currentPage === "suppliers" ? t.supplierList : currentPage === "orders" ? t.orderList : currentPage === "sales" ? t.saleList : "2024年11月20日 (水)"}
+                {currentPage === "suppliers"
+                  ? t.supplierList
+                  : currentPage === "orders"
+                  ? t.orderList
+                  : currentPage === "sales"
+                  ? t.saleList
+                  : currentPage === "payments"
+                  ? t.paymentList
+                  : "2024年11月20日 (水)"}
               </p>
             </div>
             <div className="flex items-center gap-4">
@@ -1893,12 +2367,7 @@ const App = () => {
           {currentPage === "suppliers" && renderSuppliers()}
           {currentPage === "orders" && renderOrders()}
           {currentPage === "sales" && renderSales()}
-          {currentPage === "payments" && (
-            <div className="bg-white p-12 rounded-xl shadow text-center">
-              <DollarSign size={48} className="mx-auto mb-4 text-gray-400" />
-              <p className="text-gray-600">支払管理画面（準備中）</p>
-            </div>
-          )}
+          {currentPage === "payments" && renderPayments()}
           {currentPage === "reports" && (
             <div className="bg-white p-12 rounded-xl shadow text-center">
               <FileText size={48} className="mx-auto mb-4 text-gray-400" />
@@ -2479,6 +2948,213 @@ const App = () => {
                 </button>
                 <button
                   onClick={handleSaleDeleteConfirm}
+                  className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
+                >
+                  {t.delete}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 支払い登録・編集モーダル */}
+      {showPaymentModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white">
+              <h3 className="text-xl font-bold text-gray-800">{editingPayment ? t.editPayment : t.addPayment}</h3>
+              <button onClick={() => setShowPaymentModal(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {paymentValidationError && (
+                <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+                  <div className="flex items-center">
+                    <AlertCircle className="text-red-500 mr-2" size={20} />
+                    <p className="text-sm text-red-700 font-medium">{paymentValidationError}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.category}</label>
+                  <select
+                    value={paymentFormData.category}
+                    onChange={(e) =>
+                      setPaymentFormData({
+                        ...paymentFormData,
+                        category: e.target.value as "rent" | "utilities" | "salary" | "other",
+                      })
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="rent">{t.rent}</option>
+                    <option value="utilities">{t.utilities}</option>
+                    <option value="salary">{t.salary}</option>
+                    <option value="other">{t.other}</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t.description} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={paymentFormData.description}
+                    onChange={(e) => setPaymentFormData({ ...paymentFormData, description: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="例：工場賃料、電気代（11月分）"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t.amount} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={paymentFormData.amount}
+                    onChange={(e) => setPaymentFormData({ ...paymentFormData, amount: Number(e.target.value) })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    min="0"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.currency}</label>
+                  <select
+                    value={paymentFormData.currency}
+                    onChange={(e) => setPaymentFormData({ ...paymentFormData, currency: e.target.value as "USD" | "JPY" | "VND" })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="JPY">JPY (¥)</option>
+                    <option value="USD">USD ($)</option>
+                    <option value="VND">VND</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t.dueDate} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={paymentFormData.dueDate}
+                    onChange={(e) => setPaymentFormData({ ...paymentFormData, dueDate: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.paymentDate}</label>
+                  <input
+                    type="date"
+                    value={paymentFormData.paymentDate}
+                    onChange={(e) => setPaymentFormData({ ...paymentFormData, paymentDate: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.paymentMethod}</label>
+                  <select
+                    value={paymentFormData.paymentMethod}
+                    onChange={(e) => setPaymentFormData({ ...paymentFormData, paymentMethod: e.target.value as "bank" | "cash" | "card" })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="bank">{t.bank}</option>
+                    <option value="cash">{t.cash}</option>
+                    <option value="card">{t.card}</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.status}</label>
+                  <select
+                    value={paymentFormData.status}
+                    onChange={(e) => setPaymentFormData({ ...paymentFormData, status: e.target.value as "pending" | "paid" | "cancelled" })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="pending">{t.pending}</option>
+                    <option value="paid">{t.paid}</option>
+                    <option value="cancelled">{t.cancelled}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={paymentFormData.isFixed}
+                    onChange={(e) => setPaymentFormData({ ...paymentFormData, isFixed: e.target.checked })}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">{t.fixedCost}</span>
+                </label>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t.remarks}</label>
+                <textarea
+                  value={paymentFormData.remarks}
+                  onChange={(e) => setPaymentFormData({ ...paymentFormData, remarks: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="備考を入力してください"
+                />
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-200 flex items-center justify-end gap-3 bg-gray-50">
+              <button
+                onClick={() => setShowPaymentModal(false)}
+                className="px-6 py-2 text-gray-700 hover:bg-gray-100 border border-gray-300 rounded-lg font-medium transition-colors"
+              >
+                {t.cancel}
+              </button>
+              <button
+                onClick={handlePaymentSave}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors"
+              >
+                <Save size={18} />
+                {t.save}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 支払い削除確認モーダル */}
+      {showPaymentDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mx-auto mb-4">
+                <AlertCircle className="text-red-600" size={24} />
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 text-center mb-2">{t.deleteConfirmTitle}</h3>
+              <p className="text-gray-600 text-center mb-6">{t.deleteConfirmMessage}</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={handlePaymentDeleteCancel}
+                  className="flex-1 px-6 py-3 text-gray-700 hover:bg-gray-100 border border-gray-300 rounded-lg font-medium transition-colors"
+                >
+                  {t.cancel}
+                </button>
+                <button
+                  onClick={handlePaymentDeleteConfirm}
                   className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
                 >
                   {t.delete}
