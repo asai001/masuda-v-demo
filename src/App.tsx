@@ -35,6 +35,7 @@ const App = () => {
   const [lang, setLang] = useState<"ja" | "vi">("ja");
   const [currentPage, setCurrentPage] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [showModal, setShowModal] = useState(false);
@@ -2276,7 +2277,7 @@ const App = () => {
 
   const renderOrders = () => (
     <div className="space-y-6">
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -2313,8 +2314,8 @@ const App = () => {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="p-6 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4 flex-1">
+        <div className="p-4 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex flex-col md:flex-row md:items-center gap-4 flex-1">
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
@@ -2336,17 +2337,18 @@ const App = () => {
               <option value="cancelled">{t.cancelled}</option>
             </select>
           </div>
-          <div className="flex items-center gap-3">
-            <button className="px-4 py-2 text-gray-700 hover:bg-gray-50 border border-gray-300 rounded-lg flex items-center gap-2">
+          <div className="flex items-center gap-2 md:gap-3">
+            <button className="px-3 md:px-4 py-2 text-gray-700 hover:bg-gray-50 border border-gray-300 rounded-lg flex items-center gap-2 text-sm md:text-base">
               <Download size={18} />
-              {t.export}
+              <span className="hidden sm:inline">{t.export}</span>
             </button>
             <button
               onClick={() => handleOpenOrderModal(null)}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium"
+              className="px-4 md:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium text-sm md:text-base"
             >
               <Plus size={20} />
-              {t.addOrder}
+              <span className="hidden sm:inline">{t.addOrder}</span>
+              <span className="sm:hidden">追加</span>
             </button>
           </div>
         </div>
@@ -2441,7 +2443,7 @@ const App = () => {
 
   const renderSuppliers = () => (
     <div className="space-y-6">
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -2478,8 +2480,8 @@ const App = () => {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="p-6 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4 flex-1">
+        <div className="p-4 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex flex-col md:flex-row md:items-center gap-4 flex-1">
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
@@ -2503,21 +2505,22 @@ const App = () => {
               <option value="other">{t.other}</option>
             </select>
           </div>
-          <div className="flex items-center gap-3">
-            <button className="px-4 py-2 text-gray-700 hover:bg-gray-50 border border-gray-300 rounded-lg flex items-center gap-2">
+          <div className="flex items-center gap-2 md:gap-3">
+            <button className="px-3 md:px-4 py-2 text-gray-700 hover:bg-gray-50 border border-gray-300 rounded-lg flex items-center gap-2 text-sm md:text-base">
               <Download size={18} />
-              {t.export}
+              <span className="hidden sm:inline">{t.export}</span>
             </button>
-            <button className="px-4 py-2 text-gray-700 hover:bg-gray-50 border border-gray-300 rounded-lg flex items-center gap-2">
+            <button className="px-3 md:px-4 py-2 text-gray-700 hover:bg-gray-50 border border-gray-300 rounded-lg flex items-center gap-2 text-sm md:text-base">
               <Upload size={18} />
-              {t.import}
+              <span className="hidden sm:inline">{t.import}</span>
             </button>
             <button
               onClick={() => handleOpenModal(null)}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium"
+              className="px-4 md:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium text-sm md:text-base"
             >
               <Plus size={20} />
-              {t.addSupplier}
+              <span className="hidden sm:inline">{t.addSupplier}</span>
+              <span className="sm:hidden">追加</span>
             </button>
           </div>
         </div>
@@ -2620,7 +2623,7 @@ const App = () => {
 
   const renderSales = () => (
     <div className="space-y-6">
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -2668,8 +2671,8 @@ const App = () => {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="p-6 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4 flex-1">
+        <div className="p-4 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex flex-col md:flex-row md:items-center gap-4 flex-1">
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
@@ -2692,17 +2695,18 @@ const App = () => {
               <option value="cancelled">{t.cancelled}</option>
             </select>
           </div>
-          <div className="flex items-center gap-3">
-            <button className="px-4 py-2 text-gray-700 hover:bg-gray-50 border border-gray-300 rounded-lg flex items-center gap-2">
+          <div className="flex items-center gap-2 md:gap-3">
+            <button className="px-3 md:px-4 py-2 text-gray-700 hover:bg-gray-50 border border-gray-300 rounded-lg flex items-center gap-2 text-sm md:text-base">
               <Download size={18} />
-              {t.export}
+              <span className="hidden sm:inline">{t.export}</span>
             </button>
             <button
               onClick={() => handleOpenSaleModal(null)}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium"
+              className="px-4 md:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium text-sm md:text-base"
             >
               <Plus size={20} />
-              {t.addSale}
+              <span className="hidden sm:inline">{t.addSale}</span>
+              <span className="sm:hidden">追加</span>
             </button>
           </div>
         </div>
@@ -2804,7 +2808,7 @@ const App = () => {
 
   const renderPayments = () => (
     <div className="space-y-6">
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -2841,9 +2845,9 @@ const App = () => {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="p-6 space-y-4">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
+        <div className="p-4 md:p-6 space-y-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">{t.selectYearMonth}</label>
                 <input
@@ -2855,16 +2859,17 @@ const App = () => {
               </div>
               <button
                 onClick={handleGeneratePayments}
-                className="mt-6 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2 font-medium transition-colors"
+                className="sm:mt-6 px-4 md:px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2 font-medium transition-colors text-sm md:text-base"
               >
                 <Plus size={20} />
-                {t.generatePayments}
+                <span className="hidden sm:inline">{t.generatePayments}</span>
+                <span className="sm:hidden">生成</span>
               </button>
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-4 flex-1">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center gap-4 flex-1">
               <div className="relative flex-1 max-w-md">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                 <input
@@ -2889,10 +2894,11 @@ const App = () => {
             </div>
             <button
               onClick={() => handleOpenPaymentModal(null)}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors"
+              className="px-4 md:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors text-sm md:text-base"
             >
               <Plus size={20} />
-              {t.addPayment}
+              <span className="hidden sm:inline">{t.addPayment}</span>
+              <span className="sm:hidden">追加</span>
             </button>
           </div>
         </div>
@@ -3001,7 +3007,7 @@ const App = () => {
 
   const renderProductMaster = () => (
     <div className="space-y-6">
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -3049,7 +3055,7 @@ const App = () => {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="p-6 flex items-center justify-between gap-4">
+        <div className="p-4 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4 flex-1">
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
@@ -3064,10 +3070,11 @@ const App = () => {
           </div>
           <button
             onClick={() => handleOpenProductMasterModal(null)}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors"
+            className="px-4 md:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors text-sm md:text-base"
           >
             <Plus size={20} />
-            {t.addProductMaster}
+            <span className="hidden sm:inline">{t.addProductMaster}</span>
+            <span className="sm:hidden">追加</span>
           </button>
         </div>
 
@@ -3138,7 +3145,7 @@ const App = () => {
 
   const renderPaymentMaster = () => (
     <div className="space-y-6">
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -3175,8 +3182,8 @@ const App = () => {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="p-6 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4 flex-1">
+        <div className="p-4 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex flex-col md:flex-row md:items-center gap-4 flex-1">
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
@@ -3201,10 +3208,11 @@ const App = () => {
           </div>
           <button
             onClick={() => handleOpenPaymentMasterModal(null)}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors"
+            className="px-4 md:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors text-sm md:text-base"
           >
             <Plus size={20} />
-            {t.addPaymentMaster}
+            <span className="hidden sm:inline">{t.addPaymentMaster}</span>
+            <span className="sm:hidden">追加</span>
           </button>
         </div>
 
@@ -3355,8 +3363,20 @@ const App = () => {
 
   return (
     <div className="flex h-screen bg-gray-50">
+      {/* モバイル用オーバーレイ */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
       {/* サイドバー */}
-      <aside className={`${sidebarOpen ? "w-64" : "w-20"} bg-white border-r border-gray-200 transition-all duration-300 flex flex-col`}>
+      <aside className={`${
+        mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+      } lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50 ${
+        sidebarOpen ? "w-64" : "w-20"
+      } bg-white border-r border-gray-200 transition-all duration-300 flex flex-col`}>
         <div className="p-6 border-b border-gray-200 flex items-center justify-between">
           {sidebarOpen && (
             <div>
@@ -3364,7 +3384,16 @@ const App = () => {
               <p className="text-xs text-gray-500">経営管理システム</p>
             </div>
           )}
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 hover:bg-gray-100 rounded-lg">
+          <button
+            onClick={() => {
+              setSidebarOpen(!sidebarOpen);
+              // モバイルの場合はメニューを閉じる
+              if (window.innerWidth < 1024) {
+                setMobileMenuOpen(false);
+              }
+            }}
+            className="p-2 hover:bg-gray-100 rounded-lg"
+          >
             {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
@@ -3373,7 +3402,13 @@ const App = () => {
           {menuItems.map((item, index) => (
             <button
               key={index}
-              onClick={() => setCurrentPage(item.page)}
+              onClick={() => {
+                setCurrentPage(item.page);
+                // モバイルの場合はメニューを閉じる
+                if (window.innerWidth < 1024) {
+                  setMobileMenuOpen(false);
+                }
+              }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                 currentPage === item.page ? "bg-blue-50 text-blue-600" : "text-gray-600 hover:bg-gray-50"
               }`}
@@ -3399,10 +3434,18 @@ const App = () => {
       {/* メインコンテンツ */}
       <main className="flex-1 overflow-auto">
         {/* ヘッダー */}
-        <header className="bg-white border-b border-gray-200 px-8 py-4 sticky top-0 z-10">
+        <header className="bg-white border-b border-gray-200 px-4 md:px-8 py-4 sticky top-0 z-10">
           <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800">
+            {/* モバイル用ハンバーガーメニュー */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden p-2 hover:bg-gray-100 rounded-lg mr-4"
+            >
+              <Menu size={24} />
+            </button>
+
+            <div className="flex-1">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-800">
                 {currentPage === "dashboard" && t.dashboard}
                 {currentPage === "suppliers" && t.supplierMaster}
                 {currentPage === "productMaster" && t.productMasterTitle}
@@ -3429,11 +3472,11 @@ const App = () => {
                   : "2024年11月20日 (水)"}
               </p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 md:gap-4">
               <select
                 value={lang}
                 onChange={(e) => setLang(e.target.value as "ja" | "vi")}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-2 md:px-4 py-2 border border-gray-300 rounded-lg text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="ja">日本語</option>
                 <option value="vi">Tiếng Việt</option>
@@ -3442,7 +3485,7 @@ const App = () => {
                 <Bell size={20} className="text-gray-600" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
               </button>
-              <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
+              <div className="hidden md:flex items-center gap-3 pl-4 border-l border-gray-200">
                 <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">H</div>
                 <div className="text-sm">
                   <p className="font-medium text-gray-800">Huong Nguyen</p>
@@ -3454,7 +3497,7 @@ const App = () => {
         </header>
 
         {/* コンテンツエリア */}
-        <div className="p-8 max-w-7xl mx-auto">
+        <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
           {currentPage === "dashboard" && renderDashboard()}
           {currentPage === "suppliers" && renderSuppliers()}
           {currentPage === "productMaster" && renderProductMaster()}
@@ -3474,16 +3517,16 @@ const App = () => {
 
       {/* モーダル */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-2 md:p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white">
+            <div className="p-4 md:p-6 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white">
               <h3 className="text-xl font-bold text-gray-800">{editingSupplier ? t.editSupplier : t.addSupplier}</h3>
               <button onClick={() => setShowModal(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <X size={20} />
               </button>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-4 md:p-6 space-y-4 md:space-y-6">
               {validationError && (
                 <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
                   <div className="flex items-center">
@@ -3506,7 +3549,7 @@ const App = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t.type} <span className="text-red-500">*</span>
@@ -3543,7 +3586,7 @@ const App = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t.currency} <span className="text-red-500">*</span>
@@ -3602,16 +3645,16 @@ const App = () => {
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-200 flex items-center justify-end gap-3 bg-gray-50">
+            <div className="p-4 md:p-6 border-t border-gray-200 flex items-center justify-end gap-2 md:gap-3 bg-gray-50">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-6 py-2 text-gray-700 hover:bg-gray-100 border border-gray-300 rounded-lg font-medium transition-colors"
+                className="px-4 md:px-6 py-2 text-gray-700 hover:bg-gray-100 border border-gray-300 rounded-lg font-medium transition-colors text-sm md:text-base"
               >
                 {t.cancel}
               </button>
               <button
                 onClick={handleSave}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors"
+                className="px-4 md:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors text-sm md:text-base"
               >
                 <Save size={18} />
                 {t.save}
@@ -3632,7 +3675,7 @@ const App = () => {
               </button>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-4 md:p-6 space-y-4 md:space-y-6">
               {orderValidationError && (
                 <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
                   <div className="flex items-center">
@@ -3642,7 +3685,7 @@ const App = () => {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t.orderDate} <span className="text-red-500">*</span>
@@ -3718,7 +3761,7 @@ const App = () => {
                 </select>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t.quantity} <span className="text-red-500">*</span>
@@ -3805,16 +3848,16 @@ const App = () => {
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-200 flex items-center justify-end gap-3 bg-gray-50">
+            <div className="p-4 md:p-6 border-t border-gray-200 flex items-center justify-end gap-2 md:gap-3 bg-gray-50">
               <button
                 onClick={() => setShowOrderModal(false)}
-                className="px-6 py-2 text-gray-700 hover:bg-gray-100 border border-gray-300 rounded-lg font-medium transition-colors"
+                className="px-4 md:px-6 py-2 text-gray-700 hover:bg-gray-100 border border-gray-300 rounded-lg font-medium transition-colors text-sm md:text-base"
               >
                 {t.cancel}
               </button>
               <button
                 onClick={handleOrderSave}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors"
+                className="px-4 md:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors text-sm md:text-base"
               >
                 <Save size={18} />
                 {t.save}
@@ -3864,7 +3907,7 @@ const App = () => {
               </button>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-4 md:p-6 space-y-4 md:space-y-6">
               {saleValidationError && (
                 <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
                   <div className="flex items-center">
@@ -3874,7 +3917,7 @@ const App = () => {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t.saleDate} <span className="text-red-500">*</span>
@@ -3933,7 +3976,7 @@ const App = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t.quantity} <span className="text-red-500">*</span>
@@ -4021,16 +4064,16 @@ const App = () => {
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-200 flex items-center justify-end gap-3 bg-gray-50">
+            <div className="p-4 md:p-6 border-t border-gray-200 flex items-center justify-end gap-2 md:gap-3 bg-gray-50">
               <button
                 onClick={() => setShowSaleModal(false)}
-                className="px-6 py-2 text-gray-700 hover:bg-gray-100 border border-gray-300 rounded-lg font-medium transition-colors"
+                className="px-4 md:px-6 py-2 text-gray-700 hover:bg-gray-100 border border-gray-300 rounded-lg font-medium transition-colors text-sm md:text-base"
               >
                 {t.cancel}
               </button>
               <button
                 onClick={handleSaleSave}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors"
+                className="px-4 md:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors text-sm md:text-base"
               >
                 <Save size={18} />
                 {t.save}
@@ -4079,7 +4122,7 @@ const App = () => {
               </h2>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-4 md:p-6 space-y-4 md:space-y-6">
               {paymentValidationError && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
                   <AlertCircle className="text-red-600 shrink-0 mt-0.5" size={20} />
@@ -4087,7 +4130,7 @@ const App = () => {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">{t.category}</label>
                   <select
@@ -4121,7 +4164,7 @@ const App = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t.amount} <span className="text-red-500">*</span>
@@ -4154,7 +4197,7 @@ const App = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">{t.paymentMethod}</label>
                   <select
@@ -4267,7 +4310,7 @@ const App = () => {
               </h2>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-4 md:p-6 space-y-4 md:space-y-6">
               {productMasterValidationError && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
                   <AlertCircle className="text-red-600 shrink-0 mt-0.5" size={20} />
@@ -4275,7 +4318,7 @@ const App = () => {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">{t.productCode}</label>
                   <input
@@ -4299,7 +4342,7 @@ const App = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">{t.unitPrice}</label>
                   <input
@@ -4418,7 +4461,7 @@ const App = () => {
               </h2>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-4 md:p-6 space-y-4 md:space-y-6">
               {paymentMasterValidationError && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
                   <AlertCircle className="text-red-600 shrink-0 mt-0.5" size={20} />
@@ -4426,7 +4469,7 @@ const App = () => {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">{t.category}</label>
                   <select
@@ -4478,7 +4521,7 @@ const App = () => {
               </div>
 
               {paymentMasterFormData.isFixed && (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">{t.fixedAmount}</label>
                     <input
@@ -4512,7 +4555,7 @@ const App = () => {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">{t.paymentMethod}</label>
                   <select

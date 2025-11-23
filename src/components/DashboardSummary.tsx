@@ -22,7 +22,7 @@ interface DashboardSummaryProps {
 
 export const DashboardSummary = ({ translations, monthlyPurchase, monthlyPayments }: DashboardSummaryProps) => {
   return (
-    <div className="grid grid-cols-5 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 md:gap-6">
       <div className="bg-blue-50 p-6 rounded-lg border-l-4 border-blue-500">
         <div className="flex items-center justify-between">
           <div>

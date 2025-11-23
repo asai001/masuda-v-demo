@@ -15,8 +15,8 @@ interface SalesByCustomerProps {
 
 export const SalesByCustomer = ({ data, title, colors }: SalesByCustomerProps) => {
   return (
-    <div className="bg-white p-6 rounded-lg shadow">
-      <h3 className="text-lg font-bold mb-4">{title}</h3>
+    <div className="bg-white p-4 md:p-6 rounded-lg shadow">
+      <h3 className="text-base md:text-lg font-bold mb-4">{title}</h3>
       <ResponsiveContainer width="100%" height={250}>
         <PieChart>
           <Pie
