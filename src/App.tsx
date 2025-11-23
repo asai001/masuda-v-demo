@@ -2611,6 +2611,67 @@ const App = () => {
     };
   };
 
+  const calculateMonthlySales = () => {
+    // 現在の年月を取得
+    const now = new Date();
+    const targetMonth = now.getMonth();
+    const targetYear = now.getFullYear();
+
+    // 今月のデータでフィルター
+    const currentMonthSales = sales.filter((sale) => {
+      if (!sale.saleDate) {
+        return false;
+      }
+
+      const saleDate = new Date(sale.saleDate);
+      const saleMonth = saleDate.getMonth();
+      const saleYear = saleDate.getFullYear();
+
+      return saleMonth === targetMonth && saleYear === targetYear;
+    });
+
+    // 通貨別に合計を計算
+    let totalUSD = 0;
+    let totalJPY = 0;
+    let totalVND = 0;
+
+    currentMonthSales.forEach((sale) => {
+      const quantity = Number(sale.quantity) || 0;
+      const unitPrice = Number(sale.unitPrice) || 0;
+      const amount = quantity * unitPrice;
+
+      if (sale.currency === "USD") {
+        totalUSD += amount;
+      } else if (sale.currency === "JPY") {
+        totalJPY += amount;
+      } else if (sale.currency === "VND") {
+        totalVND += amount;
+      }
+    });
+
+    // USDに換算（設定された換算レートを使用）
+    const usdEquivalent = totalUSD + totalJPY / exchangeRates.jpy + totalVND / exchangeRates.vnd;
+
+    // 今月の受注件数
+    const salesCount = currentMonthSales.length;
+
+    // 今月の未出荷件数
+    const pendingSalesCount = currentMonthSales.filter((sale) => !sale.shipped).length;
+
+    // 今月の出荷済み件数
+    const shippedSalesCount = currentMonthSales.filter((sale) => sale.shipped).length;
+
+    return {
+      total: usdEquivalent,
+      salesCount: salesCount,
+      pendingSalesCount: pendingSalesCount,
+      shippedSalesCount: shippedSalesCount,
+      usd: totalUSD,
+      jpy: totalJPY,
+      vnd: totalVND,
+    };
+  };
+
   const calculateMonthlyPayments = () => {
     // 現在の年月を取得（YYYY-MM形式）
     const now = new Date();
@@ -2667,6 +2728,7 @@ const App = () => {
           monthlyOrderCount: t.monthlyOrderCount,
           pendingDeliveries: t.pendingDeliveries,
         }}
+        monthlySales={calculateMonthlySales()}
         monthlyPurchase={calculateMonthlyPurchase()}
         monthlyPayments={calculateMonthlyPayments()}
       />

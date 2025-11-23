@@ -8,6 +8,12 @@ interface DashboardSummaryProps {
     monthlyOrderCount: string;
     pendingDeliveries: string;
   };
+  monthlySales: {
+    total: number;
+    salesCount: number;
+    pendingSalesCount: number;
+    shippedSalesCount: number;
+  };
   monthlyPurchase: {
     total: number;
     orderCount: number;
@@ -20,15 +26,17 @@ interface DashboardSummaryProps {
   };
 }
 
-export const DashboardSummary = ({ translations, monthlyPurchase, monthlyPayments }: DashboardSummaryProps) => {
+export const DashboardSummary = ({ translations, monthlySales, monthlyPurchase, monthlyPayments }: DashboardSummaryProps) => {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-6">
       <div className="bg-blue-50 p-4 md:p-6 rounded-lg border-l-4 border-blue-500">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-600">{translations.totalSales}</p>
-            <p className="text-xl md:text-2xl font-bold text-gray-800">$125,000</p>
-            <p className="text-xs text-green-600 mt-1">+4.2% vs 先月</p>
+            <p className="text-xl md:text-2xl font-bold text-gray-800">
+              ${monthlySales.total.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+            </p>
+            <p className="text-xs text-gray-600 mt-1">{monthlySales.salesCount}件の受注</p>
           </div>
           <TrendingUp className="text-blue-500 hidden md:block" size={32} />
           <TrendingUp className="text-blue-500 md:hidden" size={24} />
