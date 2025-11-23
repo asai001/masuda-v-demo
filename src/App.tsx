@@ -110,6 +110,12 @@ const App = () => {
     vnd: 25000,
   });
 
+  // レポート画面関連のstate
+  const [reportTab, setReportTab] = useState<"sales" | "purchase" | "financial">("sales");
+  const [reportPeriod, setReportPeriod] = useState<"thisMonth" | "lastMonth" | "thisQuarter" | "thisYear" | "custom">(
+    "thisMonth",
+  );
+
   // ソート機能用のstate
   type SortConfig = {
     key: string;
@@ -437,6 +443,39 @@ const App = () => {
       paymentStatusPaid: "支払済み",
       paymentStatusPending: "未払い",
       totalPaymentMasters: "マスタ件数",
+      reportTitle: "レポート",
+      salesReport: "売上レポート",
+      purchaseReport: "仕入レポート",
+      financialReport: "財務レポート",
+      periodSelection: "期間選択",
+      startDate: "開始日",
+      endDate: "終了日",
+      thisMonth: "今月",
+      lastMonth: "先月",
+      thisQuarter: "今四半期",
+      thisYear: "今年",
+      customPeriod: "カスタム期間",
+      applyFilter: "適用",
+      salesTrend: "売上推移",
+      salesByProduct: "製品別売上",
+      salesByRegion: "地域別売上",
+      topCustomers: "上位顧客",
+      purchaseTrend: "仕入推移",
+      purchaseBySupplierReport: "仕入先別仕入",
+      purchaseByCategory: "カテゴリ別仕入",
+      deliveryStatus: "納品状況",
+      profitLoss: "損益概算",
+      revenue: "売上",
+      cost: "仕入",
+      profit: "利益",
+      profitMargin: "利益率",
+      paymentStatusReport: "支払状況",
+      cashFlowSummary: "キャッシュフロー概要",
+      rank: "順位",
+      salesAmount: "売上金額",
+      purchaseAmount: "仕入金額",
+      count: "件数",
+      percentage: "割合",
     },
     vi: {
       dashboard: "Bảng điều khiển",
@@ -615,6 +654,39 @@ const App = () => {
       paymentStatusPaid: "Đã thanh toán",
       paymentStatusPending: "Chưa thanh toán",
       totalPaymentMasters: "Tổng master",
+      reportTitle: "Báo cáo",
+      salesReport: "Báo cáo doanh thu",
+      purchaseReport: "Báo cáo mua hàng",
+      financialReport: "Báo cáo tài chính",
+      periodSelection: "Chọn kỳ",
+      startDate: "Ngày bắt đầu",
+      endDate: "Ngày kết thúc",
+      thisMonth: "Tháng này",
+      lastMonth: "Tháng trước",
+      thisQuarter: "Quý này",
+      thisYear: "Năm nay",
+      customPeriod: "Kỳ tùy chỉnh",
+      applyFilter: "Áp dụng",
+      salesTrend: "xu hướng doanh thu",
+      salesByProduct: "Doanh thu theo sản phẩm",
+      salesByRegion: "Doanh thu theo khu vực",
+      topCustomers: "Khách hàng hàng đầu",
+      purchaseTrend: "Xu hướng mua hàng",
+      purchaseBySupplierReport: "Mua hàng theo nhà cung cấp",
+      purchaseByCategory: "Mua hàng theo danh mục",
+      deliveryStatus: "Tình trạng giao hàng",
+      profitLoss: "Lãi lỗ ước tính",
+      revenue: "Doanh thu",
+      cost: "Chi phí",
+      profit: "Lợi nhuận",
+      profitMargin: "Tỷ suất lợi nhuận",
+      paymentStatusReport: "Tình trạng thanh toán",
+      cashFlowSummary: "Tóm tắt dòng tiền",
+      rank: "Xếp hạng",
+      salesAmount: "Số tiền doanh thu",
+      purchaseAmount: "Số tiền mua hàng",
+      count: "Số lượng",
+      percentage: "Tỷ lệ",
     },
   };
 
@@ -4278,9 +4350,265 @@ const App = () => {
           {currentPage === "paymentMaster" && renderPaymentMaster()}
           {currentPage === "payments" && renderPayments()}
           {currentPage === "reports" && (
-            <div className="bg-white p-12 rounded-xl shadow text-center">
-              <FileText size={48} className="mx-auto mb-4 text-gray-400" />
-              <p className="text-gray-600">レポート画面（準備中）</p>
+            <div className="space-y-6">
+              {/* ヘッダー */}
+              <div className="bg-white p-4 md:p-6 rounded-lg shadow">
+                <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{t.reportTitle}</h2>
+
+                {/* タブ切り替え */}
+                <div className="flex gap-2 border-b border-gray-200">
+                  <button
+                    onClick={() => setReportTab("sales")}
+                    className={`px-4 py-2 font-medium transition-colors ${
+                      reportTab === "sales"
+                        ? "text-blue-600 border-b-2 border-blue-600"
+                        : "text-gray-600 hover:text-gray-800"
+                    }`}
+                  >
+                    {t.salesReport}
+                  </button>
+                  <button
+                    onClick={() => setReportTab("purchase")}
+                    className={`px-4 py-2 font-medium transition-colors ${
+                      reportTab === "purchase"
+                        ? "text-blue-600 border-b-2 border-blue-600"
+                        : "text-gray-600 hover:text-gray-800"
+                    }`}
+                  >
+                    {t.purchaseReport}
+                  </button>
+                  <button
+                    onClick={() => setReportTab("financial")}
+                    className={`px-4 py-2 font-medium transition-colors ${
+                      reportTab === "financial"
+                        ? "text-blue-600 border-b-2 border-blue-600"
+                        : "text-gray-600 hover:text-gray-800"
+                    }`}
+                  >
+                    {t.financialReport}
+                  </button>
+                </div>
+
+                {/* 期間選択 */}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setReportPeriod("thisMonth")}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                      reportPeriod === "thisMonth" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    {t.thisMonth}
+                  </button>
+                  <button
+                    onClick={() => setReportPeriod("lastMonth")}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                      reportPeriod === "lastMonth" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    {t.lastMonth}
+                  </button>
+                  <button
+                    onClick={() => setReportPeriod("thisQuarter")}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                      reportPeriod === "thisQuarter"
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    {t.thisQuarter}
+                  </button>
+                  <button
+                    onClick={() => setReportPeriod("thisYear")}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                      reportPeriod === "thisYear" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    {t.thisYear}
+                  </button>
+                </div>
+              </div>
+
+              {/* レポートコンテンツ */}
+              {reportTab === "sales" && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <CashFlow
+                      data={[
+                        { month: "1月", sales: 45000, purchase: 32000, balance: 13000 },
+                        { month: "2月", sales: 52000, purchase: 38000, balance: 14000 },
+                        { month: "3月", sales: 48000, purchase: 35000, balance: 13000 },
+                        { month: "4月", sales: 61000, purchase: 42000, balance: 19000 },
+                        { month: "5月", sales: 55000, purchase: 40000, balance: 15000 },
+                        { month: "6月", sales: 67000, purchase: 48000, balance: 19000 },
+                      ]}
+                      title={t.salesTrend}
+                    />
+                    <SalesByCustomer
+                      data={[
+                        { name: "顧客A", value: 45000, currency: "USD" },
+                        { name: "顧客B", value: 35000, currency: "USD" },
+                        { name: "顧客C", value: 25000, currency: "USD" },
+                        { name: "顧客D", value: 20000, currency: "USD" },
+                      ]}
+                      title={t.salesByProduct}
+                      colors={["#0088FE", "#00C49F", "#FFBB28", "#FF8042"]}
+                    />
+                  </div>
+
+                  {/* 上位顧客テーブル */}
+                  <div className="bg-white p-4 md:p-6 rounded-lg shadow">
+                    <h3 className="text-base md:text-lg font-bold mb-4">{t.topCustomers}</h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">{t.rank}</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">{t.customerName}</th>
+                            <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">{t.salesAmount}</th>
+                            <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">{t.count}</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                          <tr>
+                            <td className="px-4 py-3 text-sm">1</td>
+                            <td className="px-4 py-3 text-sm">顧客A</td>
+                            <td className="px-4 py-3 text-sm text-right font-medium">$45,000</td>
+                            <td className="px-4 py-3 text-sm text-right">12</td>
+                          </tr>
+                          <tr>
+                            <td className="px-4 py-3 text-sm">2</td>
+                            <td className="px-4 py-3 text-sm">顧客B</td>
+                            <td className="px-4 py-3 text-sm text-right font-medium">$35,000</td>
+                            <td className="px-4 py-3 text-sm text-right">8</td>
+                          </tr>
+                          <tr>
+                            <td className="px-4 py-3 text-sm">3</td>
+                            <td className="px-4 py-3 text-sm">顧客C</td>
+                            <td className="px-4 py-3 text-sm text-right font-medium">$25,000</td>
+                            <td className="px-4 py-3 text-sm text-right">6</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {reportTab === "purchase" && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <CashFlow
+                      data={[
+                        { month: "1月", sales: 32000, purchase: 0, balance: 0 },
+                        { month: "2月", sales: 38000, purchase: 0, balance: 0 },
+                        { month: "3月", sales: 35000, purchase: 0, balance: 0 },
+                        { month: "4月", sales: 42000, purchase: 0, balance: 0 },
+                        { month: "5月", sales: 40000, purchase: 0, balance: 0 },
+                        { month: "6月", sales: 48000, purchase: 0, balance: 0 },
+                      ]}
+                      title={t.purchaseTrend}
+                    />
+                    <SalesByCustomer
+                      data={[
+                        { name: t.panasonic, value: 28000, currency: "USD" },
+                        { name: t.riken, value: 22000, currency: "USD" },
+                        { name: t.nidec, value: 18000, currency: "USD" },
+                        { name: t.morimura, value: 15000, currency: "USD" },
+                      ]}
+                      title={t.purchaseBySupplierReport}
+                      colors={["#0088FE", "#00C49F", "#FFBB28", "#FF8042"]}
+                    />
+                  </div>
+
+                  {/* 納品状況テーブル */}
+                  <div className="bg-white p-4 md:p-6 rounded-lg shadow">
+                    <h3 className="text-base md:text-lg font-bold mb-4">{t.deliveryStatus}</h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">{t.supplierName}</th>
+                            <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">{t.totalOrders}</th>
+                            <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">{t.deliveredOrders}</th>
+                            <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">{t.pendingOrders}</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                          <tr>
+                            <td className="px-4 py-3 text-sm">{t.panasonic}</td>
+                            <td className="px-4 py-3 text-sm text-right">15</td>
+                            <td className="px-4 py-3 text-sm text-right text-green-600 font-medium">12</td>
+                            <td className="px-4 py-3 text-sm text-right text-orange-600 font-medium">3</td>
+                          </tr>
+                          <tr>
+                            <td className="px-4 py-3 text-sm">{t.riken}</td>
+                            <td className="px-4 py-3 text-sm text-right">10</td>
+                            <td className="px-4 py-3 text-sm text-right text-green-600 font-medium">8</td>
+                            <td className="px-4 py-3 text-sm text-right text-orange-600 font-medium">2</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {reportTab === "financial" && (
+                <div className="space-y-6">
+                  {/* 損益概算 */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-blue-50 p-6 rounded-lg border-l-4 border-blue-500">
+                      <p className="text-sm text-gray-600 mb-2">{t.revenue}</p>
+                      <p className="text-2xl font-bold text-gray-800">$125,000</p>
+                    </div>
+                    <div className="bg-orange-50 p-6 rounded-lg border-l-4 border-orange-500">
+                      <p className="text-sm text-gray-600 mb-2">{t.cost}</p>
+                      <p className="text-2xl font-bold text-gray-800">$83,000</p>
+                    </div>
+                    <div className="bg-green-50 p-6 rounded-lg border-l-4 border-green-500">
+                      <p className="text-sm text-gray-600 mb-2">{t.profit}</p>
+                      <p className="text-2xl font-bold text-gray-800">$42,000</p>
+                      <p className="text-xs text-green-600 mt-1">{t.profitMargin}: 33.6%</p>
+                    </div>
+                  </div>
+
+                  {/* キャッシュフロー */}
+                  <CashFlow
+                    data={[
+                      { month: "1月", sales: 45000, purchase: 32000, balance: 13000 },
+                      { month: "2月", sales: 52000, purchase: 38000, balance: 14000 },
+                      { month: "3月", sales: 48000, purchase: 35000, balance: 13000 },
+                      { month: "4月", sales: 61000, purchase: 42000, balance: 19000 },
+                      { month: "5月", sales: 55000, purchase: 40000, balance: 15000 },
+                      { month: "6月", sales: 67000, purchase: 48000, balance: 19000 },
+                    ]}
+                    title={t.cashFlowSummary}
+                  />
+
+                  {/* 支払状況 */}
+                  <div className="bg-white p-4 md:p-6 rounded-lg shadow">
+                    <h3 className="text-base md:text-lg font-bold mb-4">{t.paymentStatusReport}</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="text-center">
+                        <p className="text-sm text-gray-600">{t.totalPayments}</p>
+                        <p className="text-xl font-bold text-gray-800">24件</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm text-gray-600">{t.paidPayments}</p>
+                        <p className="text-xl font-bold text-green-600">18件</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm text-gray-600">{t.pendingPayments}</p>
+                        <p className="text-xl font-bold text-orange-600">6件</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm text-gray-600">{t.totalAmount}</p>
+                        <p className="text-xl font-bold text-gray-800">$83,000</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
           {currentPage === "systemSettings" && renderSystemSettings()}
