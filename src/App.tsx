@@ -59,21 +59,21 @@ const App = () => {
   const [saleSearchQuery, setSaleSearchQuery] = useState("");
   const [saleFilterStatus, setSaleFilterStatus] = useState("all");
 
-  // 品目マスタ関連のstate（実装中のため一時的にコメントアウト）
-  // const [showProductMasterModal, setShowProductMasterModal] = useState(false);
-  // const [editingProductMaster, setEditingProductMaster] = useState<ProductMaster | null>(null);
-  // const [showProductMasterDeleteConfirm, setShowProductMasterDeleteConfirm] = useState(false);
-  // const [deleteProductMasterTargetId, setDeleteProductMasterTargetId] = useState<string>("");
-  // const [productMasterValidationError, setProductMasterValidationError] = useState("");
-  // const [productMasterSearchQuery, setProductMasterSearchQuery] = useState("");
-  // const [productMasterFormData, setProductMasterFormData] = useState<ProductMasterFormData>({
-  //   productCode: "",
-  //   productName: "",
-  //   unitPrice: 0,
-  //   currency: "USD",
-  //   description: "",
-  //   remarks: "",
-  // });
+  // 品目マスタ関連のstate
+  const [showProductMasterModal, setShowProductMasterModal] = useState(false);
+  const [editingProductMaster, setEditingProductMaster] = useState<ProductMaster | null>(null);
+  const [showProductMasterDeleteConfirm, setShowProductMasterDeleteConfirm] = useState(false);
+  const [deleteProductMasterTargetId, setDeleteProductMasterTargetId] = useState<string>("");
+  const [productMasterValidationError, setProductMasterValidationError] = useState("");
+  const [productMasterSearchQuery, setProductMasterSearchQuery] = useState("");
+  const [productMasterFormData, setProductMasterFormData] = useState<ProductMasterFormData>({
+    productCode: "",
+    productName: "",
+    unitPrice: 0,
+    currency: "USD",
+    description: "",
+    remarks: "",
+  });
 
   // 支払いマスタ関連のstate
   const [showPaymentMasterModal, setShowPaymentMasterModal] = useState(false);
@@ -85,7 +85,13 @@ const App = () => {
   const [paymentMasterFilterCategory, setPaymentMasterFilterCategory] = useState("all");
 
   // 支払い実績関連のstate
-  const [selectedYearMonth, setSelectedYearMonth] = useState("2025-12"); // デフォルトは2025年12月
+  const getCurrentYearMonth = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
+  };
+  const [selectedYearMonth, setSelectedYearMonth] = useState(getCurrentYearMonth()); // デフォルトは当月
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
   const [showPaymentDeleteConfirm, setShowPaymentDeleteConfirm] = useState(false);
@@ -99,6 +105,154 @@ const App = () => {
     jpy: 150,
     vnd: 25000,
   });
+
+  // ソート機能用のstate
+  type SortConfig = {
+    key: string;
+    direction: 'asc' | 'desc';
+  } | null;
+
+  const [supplierSortConfig, setSupplierSortConfig] = useState<SortConfig>(null);
+  const [orderSortConfig, setOrderSortConfig] = useState<SortConfig>(null);
+  const [saleSortConfig, setSaleSortConfig] = useState<SortConfig>(null);
+  const [paymentSortConfig, setPaymentSortConfig] = useState<SortConfig>(null);
+  const [productMasterSortConfig, setProductMasterSortConfig] = useState<SortConfig>(null);
+  const [paymentMasterSortConfig, setPaymentMasterSortConfig] = useState<SortConfig>(null);
+
+  // 汎用ソート関数
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sortData = <T extends Record<string, any>>(data: T[], sortConfig: SortConfig): T[] => {
+    if (!sortConfig) return data;
+
+    const sortedData = [...data].sort((a, b) => {
+      const aValue = a[sortConfig.key];
+      const bValue = b[sortConfig.key];
+
+      if (aValue === bValue) return 0;
+
+      // 数値の場合
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
+      }
+
+      // 文字列の場合
+      const aStr = String(aValue).toLowerCase();
+      const bStr = String(bValue).toLowerCase();
+
+      if (sortConfig.direction === 'asc') {
+        return aStr < bStr ? -1 : 1;
+      } else {
+        return aStr > bStr ? -1 : 1;
+      }
+    });
+
+    return sortedData;
+  };
+
+  // ソートヘッダークリックハンドラー
+  const handleSort = (key: string, currentConfig: SortConfig, setConfig: (config: SortConfig) => void) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (currentConfig && currentConfig.key === key && currentConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setConfig({ key, direction });
+  };
+
+  // ソート可能なテーブルヘッダー
+  const SortableHeader = ({
+    label,
+    sortKey,
+    currentConfig,
+    onClick
+  }: {
+    label: string;
+    sortKey: string;
+    currentConfig: SortConfig;
+    onClick: () => void;
+  }) => {
+    const isActive = currentConfig?.key === sortKey;
+    const direction = isActive ? currentConfig.direction : null;
+
+    return (
+      <th
+        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+        onClick={onClick}
+      >
+        <div className="flex items-center gap-1">
+          {label}
+          <span className="text-gray-400">
+            {!isActive && '⇅'}
+            {isActive && direction === 'asc' && '↑'}
+            {isActive && direction === 'desc' && '↓'}
+          </span>
+        </div>
+      </th>
+    );
+  };
+
+  // アクティビティ追跡
+  interface Activity {
+    id: number;
+    action: string;
+    details: string;
+    user: string;
+    time: string;
+    icon: typeof CheckCircle;
+    color: string;
+  }
+
+  const [activities, setActivities] = useState<Activity[]>([
+    {
+      id: 1,
+      action: "発注が承認されました",
+      details: "Saigon Materials - 添加剤 200kg",
+      user: "Huong",
+      time: "10分前",
+      icon: CheckCircle,
+      color: "text-green-500",
+    },
+    {
+      id: 2,
+      action: "新規取引先が追加されました",
+      details: "Hanoi Plastics Co., Ltd.",
+      user: "Thanh",
+      time: "1時間前",
+      icon: Users,
+      color: "text-blue-500",
+    },
+    {
+      id: 3,
+      action: "売上が計上されました",
+      details: "リケン - $32,000",
+      user: "Huong",
+      time: "2時間前",
+      icon: TrendingUp,
+      color: "text-purple-500",
+    },
+    {
+      id: 4,
+      action: "支払が完了しました",
+      details: "Vietnam Plastics Ltd. - $18,000",
+      user: "Thanh",
+      time: "3時間前",
+      icon: CheckCircle,
+      color: "text-green-500",
+    },
+  ]);
+
+  // アクティビティを追加する関数
+  const addActivity = (action: string, details: string, icon: typeof CheckCircle, color: string) => {
+    const newActivity: Activity = {
+      id: activities.length > 0 ? Math.max(...activities.map(a => a.id)) + 1 : 1,
+      action,
+      details,
+      user: "システム",
+      time: "たった今",
+      icon,
+      color,
+    };
+    setActivities([newActivity, ...activities].slice(0, 10)); // 最新10件のみ保持
+  };
 
   const translations = {
     ja: {
@@ -555,9 +709,9 @@ const App = () => {
       incrementalId: 1,
       orderDate: "2025-11-15",
       supplierId: "s-001",
-      product: "PVC材料 A-123",
+      product: "P-001 - 電子部品A",
       quantity: 1000,
-      unitPrice: 5.2,
+      unitPrice: 150,
       currency: "USD",
       deliveryDate: "2025-11-25",
       status: "ordered",
@@ -568,10 +722,10 @@ const App = () => {
       incrementalId: 2,
       orderDate: "2025-11-18",
       supplierId: "s-002",
-      product: "ポリエチレン PE-500",
+      product: "P-002 - プラスチック部品B",
       quantity: 500,
-      unitPrice: 85000,
-      currency: "VND",
+      unitPrice: 50,
+      currency: "USD",
       deliveryDate: "2025-11-28",
       status: "ordered",
       remarks: "急ぎ",
@@ -581,9 +735,9 @@ const App = () => {
       incrementalId: 3,
       orderDate: "2025-11-10",
       supplierId: "s-003",
-      product: "添加剤 AD-200",
+      product: "P-003 - 金属部品C",
       quantity: 200,
-      unitPrice: 12.5,
+      unitPrice: 200,
       currency: "USD",
       deliveryDate: "2025-11-20",
       status: "delivered",
@@ -658,39 +812,64 @@ const App = () => {
     remarks: "",
   });
 
-  // 品目マスタデータ（実装中のため一時的にコメントアウト）
-  // const [productMasters, setProductMasters] = useState<ProductMaster[]>([
-  //   {
-  //     id: "prod-001",
-  //     incrementalId: 1,
-  //     productCode: "P-001",
-  //     productName: "電子部品A",
-  //     unitPrice: 150,
-  //     currency: "USD",
-  //     description: "高品質電子部品",
-  //     remarks: "",
-  //   },
-  //   {
-  //     id: "prod-002",
-  //     incrementalId: 2,
-  //     productCode: "P-002",
-  //     productName: "プラスチック部品B",
-  //     unitPrice: 50,
-  //     currency: "USD",
-  //     description: "耐久性の高いプラスチック部品",
-  //     remarks: "",
-  //   },
-  //   {
-  //     id: "prod-003",
-  //     incrementalId: 3,
-  //     productCode: "P-003",
-  //     productName: "金属部品C",
-  //     unitPrice: 200,
-  //     currency: "USD",
-  //     description: "精密金属加工部品",
-  //     remarks: "",
-  //   },
-  // ]);
+  // 品目マスタデータ
+  const [productMasters, setProductMasters] = useState<ProductMaster[]>([
+    {
+      id: "prod-001",
+      incrementalId: 1,
+      productCode: "P-001",
+      productName: "電子部品A",
+      unitPrice: 150,
+      currency: "USD",
+      description: "高品質電子部品",
+      remarks: "",
+    },
+    {
+      id: "prod-002",
+      incrementalId: 2,
+      productCode: "P-002",
+      productName: "プラスチック部品B",
+      unitPrice: 50,
+      currency: "USD",
+      description: "耐久性の高いプラスチック部品",
+      remarks: "",
+    },
+    {
+      id: "prod-003",
+      incrementalId: 3,
+      productCode: "P-003",
+      productName: "金属部品C",
+      unitPrice: 200,
+      currency: "USD",
+      description: "精密金属加工部品",
+      remarks: "",
+    },
+  ]);
+
+  // 品目マスタのフィルタリング
+  const filteredProductMasters = sortData(
+    productMasters.filter((pm) => {
+      const searchLower = productMasterSearchQuery.toLowerCase();
+      return (
+        pm.productCode.toLowerCase().includes(searchLower) ||
+        pm.productName.toLowerCase().includes(searchLower) ||
+        pm.description.toLowerCase().includes(searchLower)
+      );
+    }),
+    productMasterSortConfig
+  );
+
+  // 品目マスタの統計情報
+  const productMasterStats = {
+    totalCount: productMasters.length,
+    usdCount: productMasters.filter(pm => pm.currency === "USD").length,
+    jpyCount: productMasters.filter(pm => pm.currency === "JPY").length,
+    vndCount: productMasters.filter(pm => pm.currency === "VND").length,
+    avgUnitPriceUSD: productMasters
+      .filter(pm => pm.currency === "USD")
+      .reduce((sum, pm) => sum + pm.unitPrice, 0) /
+      (productMasters.filter(pm => pm.currency === "USD").length || 1),
+  };
 
   // 支払いマスタデータ（毎月かかる経費のテンプレート）
   const [paymentMasters, setPaymentMasters] = useState<PaymentMaster[]>([
@@ -873,45 +1052,6 @@ const App = () => {
     },
   ];
 
-  const recentActivities = [
-    {
-      id: 1,
-      action: "発注が承認されました",
-      details: "Saigon Materials - 添加剤 200kg",
-      user: "Huong",
-      time: "10分前",
-      icon: CheckCircle,
-      color: "text-green-500",
-    },
-    {
-      id: 2,
-      action: "新規取引先が追加されました",
-      details: "Hanoi Plastics Co., Ltd.",
-      user: "Thanh",
-      time: "1時間前",
-      icon: Users,
-      color: "text-blue-500",
-    },
-    {
-      id: 3,
-      action: "売上が計上されました",
-      details: "リケン - $32,000",
-      user: "Huong",
-      time: "2時間前",
-      icon: TrendingUp,
-      color: "text-purple-500",
-    },
-    {
-      id: 4,
-      action: "支払が完了しました",
-      details: "Vietnam Plastics Ltd. - $18,000",
-      user: "Thanh",
-      time: "3時間前",
-      icon: CheckCircle,
-      color: "text-green-500",
-    },
-  ];
-
   const alerts = [
     { id: 1, type: "abnormalPrice", message: "Vietnam Plastics Ltd. - ポリエチレンの単価が前回比13%上昇", severity: "high" as const },
     { id: 2, type: "newSupplier", message: "新規仕入先: Saigon Materials (承認待ち)", severity: "medium" as const },
@@ -1055,6 +1195,12 @@ const App = () => {
           (s) => (s.id === editingSupplier.id ? { ...s, ...formData, updatedAt: new Date().toISOString().split("T")[0] } : s) as Supplier
         )
       );
+      addActivity(
+        "取引先が更新されました",
+        `${formData.name}`,
+        Edit,
+        "text-blue-500"
+      );
     } else {
       const newSupplier = {
         id,
@@ -1064,6 +1210,12 @@ const App = () => {
         updatedAt: new Date().toISOString().split("T")[0],
       };
       setSuppliers([...suppliers, newSupplier]);
+      addActivity(
+        "新規取引先が追加されました",
+        `${formData.name}`,
+        Users,
+        "text-green-500"
+      );
     }
     setValidationError("");
     setShowModal(false);
@@ -1076,7 +1228,16 @@ const App = () => {
 
   const handleDeleteConfirm = () => {
     if (deleteTargetId) {
+      const deletedSupplier = suppliers.find(s => s.id === deleteTargetId);
       setSuppliers(suppliers.filter((s) => s.id !== deleteTargetId));
+      if (deletedSupplier) {
+        addActivity(
+          "取引先が削除されました",
+          `${deletedSupplier.name}`,
+          Trash2,
+          "text-red-500"
+        );
+      }
       setShowDeleteConfirm(false);
       setDeleteTargetId(null);
     }
@@ -1141,26 +1302,26 @@ const App = () => {
     remarks: string;
   }
 
-  // 品目マスタ（実装中のため一時的にコメントアウト）
-  // interface ProductMaster {
-  //   id: string;
-  //   incrementalId: number;
-  //   productCode: string; // 品番
-  //   productName: string; // 品目名
-  //   unitPrice: number; // 単価
-  //   currency: "USD" | "JPY" | "VND";
-  //   description: string; // 説明
-  //   remarks: string;
-  // }
+  // 品目マスタ
+  interface ProductMaster {
+    id: string;
+    incrementalId: number;
+    productCode: string; // 品番
+    productName: string; // 品目名
+    unitPrice: number; // 単価
+    currency: "USD" | "JPY" | "VND";
+    description: string; // 説明
+    remarks: string;
+  }
 
-  // interface ProductMasterFormData {
-  //   productCode: string;
-  //   productName: string;
-  //   unitPrice: number;
-  //   currency: "USD" | "JPY" | "VND";
-  //   description: string;
-  //   remarks: string;
-  // }
+  interface ProductMasterFormData {
+    productCode: string;
+    productName: string;
+    unitPrice: number;
+    currency: "USD" | "JPY" | "VND";
+    description: string;
+    remarks: string;
+  }
 
   // 支払いマスタ（毎月かかる経費のテンプレート）
   interface PaymentMaster {
@@ -1290,6 +1451,13 @@ const App = () => {
     const incrementalId = orders.length > 0 ? Math.max(...orders.map((o) => o.incrementalId)) + 1 : 1;
     if (editingOrder) {
       setOrders(orders.map((o) => (o.id === editingOrder.id ? { ...o, ...orderData } : o)));
+      const supplier = suppliers.find(s => s.id === orderFormData.supplierId);
+      addActivity(
+        "発注が更新されました",
+        `${supplier?.name || "取引先"} - ${orderFormData.product}`,
+        Edit,
+        "text-blue-500"
+      );
     } else {
       const newOrder = {
         id: `o-${String(incrementalId).padStart(3, "0")}`,
@@ -1297,6 +1465,13 @@ const App = () => {
         ...orderData,
       };
       setOrders([...orders, newOrder]);
+      const supplier = suppliers.find(s => s.id === orderFormData.supplierId);
+      addActivity(
+        "新規発注が登録されました",
+        `${supplier?.name || "取引先"} - ${orderFormData.product}`,
+        ShoppingCart,
+        "text-green-500"
+      );
     }
     setOrderValidationError("");
     setShowOrderModal(false);
@@ -1309,7 +1484,17 @@ const App = () => {
 
   const handleOrderDeleteConfirm = () => {
     if (deleteOrderTargetId) {
+      const deletedOrder = orders.find(o => o.id === deleteOrderTargetId);
       setOrders(orders.filter((o) => o.id !== deleteOrderTargetId));
+      if (deletedOrder) {
+        const supplier = suppliers.find(s => s.id === deletedOrder.supplierId);
+        addActivity(
+          "発注が削除されました",
+          `${supplier?.name || "取引先"} - ${deletedOrder.product}`,
+          Trash2,
+          "text-red-500"
+        );
+      }
       setShowOrderDeleteConfirm(false);
       setDeleteOrderTargetId("");
     }
@@ -1396,6 +1581,16 @@ const App = () => {
     const incrementalId = sales.length > 0 ? Math.max(...sales.map((s) => s.incrementalId)) + 1 : 1;
     if (editingSale) {
       setSales(sales.map((s) => (s.id === editingSale.id ? { ...s, ...saleData } : s)));
+      const customer = suppliers.find(c => c.id === saleFormData.customerId);
+      const amount = saleFormData.quantity * saleFormData.unitPrice;
+      const currencySymbol = saleFormData.currency === "JPY" ? "¥" : saleFormData.currency === "VND" ? "" : "$";
+      const currencySuffix = saleFormData.currency === "VND" ? " VND" : "";
+      addActivity(
+        "売上が更新されました",
+        `${customer?.name || "顧客"} - ${currencySymbol}${amount.toLocaleString()}${currencySuffix}`,
+        Edit,
+        "text-blue-500"
+      );
     } else {
       const newSale = {
         id: `sl-${String(incrementalId).padStart(3, "0")}`,
@@ -1403,6 +1598,16 @@ const App = () => {
         ...saleData,
       };
       setSales([...sales, newSale]);
+      const customer = suppliers.find(c => c.id === saleFormData.customerId);
+      const amount = saleFormData.quantity * saleFormData.unitPrice;
+      const currencySymbol = saleFormData.currency === "JPY" ? "¥" : saleFormData.currency === "VND" ? "" : "$";
+      const currencySuffix = saleFormData.currency === "VND" ? " VND" : "";
+      addActivity(
+        "売上が計上されました",
+        `${customer?.name || "顧客"} - ${currencySymbol}${amount.toLocaleString()}${currencySuffix}`,
+        TrendingUp,
+        "text-purple-500"
+      );
     }
     setSaleValidationError("");
     setShowSaleModal(false);
@@ -1415,7 +1620,17 @@ const App = () => {
 
   const handleSaleDeleteConfirm = () => {
     if (deleteSaleTargetId) {
+      const deletedSale = sales.find(s => s.id === deleteSaleTargetId);
       setSales(sales.filter((s) => s.id !== deleteSaleTargetId));
+      if (deletedSale) {
+        const customer = suppliers.find(c => c.id === deletedSale.customerId);
+        addActivity(
+          "売上が削除されました",
+          `${customer?.name || "顧客"} - ${deletedSale.product}`,
+          Trash2,
+          "text-red-500"
+        );
+      }
       setShowSaleDeleteConfirm(false);
       setDeleteSaleTargetId("");
     }
@@ -1487,6 +1702,14 @@ const App = () => {
             : p
         )
       );
+      const currencySymbol = paymentFormData.currency === "JPY" ? "¥" : paymentFormData.currency === "VND" ? "" : "$";
+      const currencySuffix = paymentFormData.currency === "VND" ? " VND" : "";
+      addActivity(
+        "支払が更新されました",
+        `${paymentFormData.description} - ${currencySymbol}${paymentFormData.amount.toLocaleString()}${currencySuffix}`,
+        Edit,
+        "text-blue-500"
+      );
     } else {
       // 新規追加の場合
       const incrementalId = payments.length > 0 ? Math.max(...payments.map((p) => p.incrementalId)) + 1 : 1;
@@ -1506,6 +1729,14 @@ const App = () => {
         remarks: paymentFormData.remarks,
       };
       setPayments([...payments, newPayment]);
+      const currencySymbol = paymentFormData.currency === "JPY" ? "¥" : paymentFormData.currency === "VND" ? "" : "$";
+      const currencySuffix = paymentFormData.currency === "VND" ? " VND" : "";
+      addActivity(
+        paymentFormData.status === "paid" ? "支払が完了しました" : "支払が登録されました",
+        `${paymentFormData.description} - ${currencySymbol}${paymentFormData.amount.toLocaleString()}${currencySuffix}`,
+        DollarSign,
+        paymentFormData.status === "paid" ? "text-green-500" : "text-orange-500"
+      );
     }
     setPaymentValidationError("");
     setShowPaymentModal(false);
@@ -1518,7 +1749,16 @@ const App = () => {
 
   const handlePaymentDeleteConfirm = () => {
     if (deletePaymentTargetId) {
+      const deletedPayment = payments.find(p => p.id === deletePaymentTargetId);
       setPayments(payments.filter((p) => p.id !== deletePaymentTargetId));
+      if (deletedPayment) {
+        addActivity(
+          "支払が削除されました",
+          `${deletedPayment.description}`,
+          Trash2,
+          "text-red-500"
+        );
+      }
       setShowPaymentDeleteConfirm(false);
       setDeletePaymentTargetId("");
     }
@@ -1530,6 +1770,107 @@ const App = () => {
   };
 
   // 支払いマスタ関連の関数
+  // 品目マスタのCRUD関数
+  const handleOpenProductMasterModal = (master: ProductMaster | null): void => {
+    setProductMasterValidationError("");
+    if (master) {
+      setEditingProductMaster(master);
+      setProductMasterFormData({
+        productCode: master.productCode,
+        productName: master.productName,
+        unitPrice: master.unitPrice,
+        currency: master.currency,
+        description: master.description,
+        remarks: master.remarks,
+      });
+    } else {
+      setEditingProductMaster(null);
+      setProductMasterFormData({
+        productCode: "",
+        productName: "",
+        unitPrice: 0,
+        currency: "USD",
+        description: "",
+        remarks: "",
+      });
+    }
+    setShowProductMasterModal(true);
+  };
+
+  const handleProductMasterSave = () => {
+    if (!productMasterFormData.productCode) {
+      setProductMasterValidationError("品番は必須です");
+      return;
+    }
+    if (!productMasterFormData.productName) {
+      setProductMasterValidationError("品目名は必須です");
+      return;
+    }
+
+    const masterData = {
+      productCode: productMasterFormData.productCode,
+      productName: productMasterFormData.productName,
+      unitPrice: Number(productMasterFormData.unitPrice),
+      currency: productMasterFormData.currency,
+      description: productMasterFormData.description,
+      remarks: productMasterFormData.remarks,
+    };
+
+    const incrementalId = productMasters.length > 0 ? Math.max(...productMasters.map((m) => m.incrementalId)) + 1 : 1;
+    if (editingProductMaster) {
+      setProductMasters(productMasters.map((m) => (m.id === editingProductMaster.id ? { ...m, ...masterData } : m)));
+      addActivity(
+        "品目マスタが更新されました",
+        `${productMasterFormData.productCode} - ${productMasterFormData.productName}`,
+        Edit,
+        "text-blue-500"
+      );
+    } else {
+      const newMaster = {
+        id: `prod-${String(incrementalId).padStart(3, "0")}`,
+        incrementalId,
+        ...masterData,
+      };
+      setProductMasters([...productMasters, newMaster]);
+      addActivity(
+        "新規品目マスタが登録されました",
+        `${productMasterFormData.productCode} - ${productMasterFormData.productName}`,
+        Package,
+        "text-green-500"
+      );
+    }
+    setProductMasterValidationError("");
+    setShowProductMasterModal(false);
+  };
+
+  const handleDeleteProductMaster = (id: string) => {
+    setDeleteProductMasterTargetId(id);
+    setShowProductMasterDeleteConfirm(true);
+  };
+
+  const handleProductMasterDeleteConfirm = () => {
+    if (deleteProductMasterTargetId) {
+      const deletedMaster = productMasters.find(m => m.id === deleteProductMasterTargetId);
+      setProductMasters(productMasters.filter((m) => m.id !== deleteProductMasterTargetId));
+      if (deletedMaster) {
+        addActivity(
+          "品目マスタが削除されました",
+          `${deletedMaster.productCode} - ${deletedMaster.productName}`,
+          Trash2,
+          "text-red-500"
+        );
+      }
+      setShowProductMasterDeleteConfirm(false);
+      setDeleteProductMasterTargetId("");
+    }
+  };
+
+  const handleProductMasterDeleteCancel = () => {
+    setShowProductMasterDeleteConfirm(false);
+    setDeleteProductMasterTargetId("");
+  };
+
+  // 支払いマスタのCRUD関数
   const handleOpenPaymentMasterModal = (master: PaymentMaster | null): void => {
     setPaymentMasterValidationError("");
     if (master) {
@@ -1580,6 +1921,12 @@ const App = () => {
     const incrementalId = paymentMasters.length > 0 ? Math.max(...paymentMasters.map((m) => m.incrementalId)) + 1 : 1;
     if (editingPaymentMaster) {
       setPaymentMasters(paymentMasters.map((m) => (m.id === editingPaymentMaster.id ? { ...m, ...masterData } : m)));
+      addActivity(
+        "支払いマスタが更新されました",
+        `${paymentMasterFormData.description}`,
+        Edit,
+        "text-blue-500"
+      );
     } else {
       const newMaster = {
         id: `pmst-${String(incrementalId).padStart(3, "0")}`,
@@ -1587,6 +1934,12 @@ const App = () => {
         ...masterData,
       };
       setPaymentMasters([...paymentMasters, newMaster]);
+      addActivity(
+        "新規支払いマスタが登録されました",
+        `${paymentMasterFormData.description}`,
+        DollarSign,
+        "text-green-500"
+      );
     }
     setPaymentMasterValidationError("");
     setShowPaymentMasterModal(false);
@@ -1599,7 +1952,16 @@ const App = () => {
 
   const handlePaymentMasterDeleteConfirm = () => {
     if (deletePaymentMasterTargetId) {
+      const deletedMaster = paymentMasters.find(m => m.id === deletePaymentMasterTargetId);
       setPaymentMasters(paymentMasters.filter((m) => m.id !== deletePaymentMasterTargetId));
+      if (deletedMaster) {
+        addActivity(
+          "支払いマスタが削除されました",
+          `${deletedMaster.description}`,
+          Trash2,
+          "text-red-500"
+        );
+      }
       setShowPaymentMasterDeleteConfirm(false);
       setDeletePaymentMasterTargetId("");
     }
@@ -1653,15 +2015,18 @@ const App = () => {
     );
   };
 
-  const filteredOrders = orders.filter((order) => {
-    const supplier = suppliers.find((s) => s.id === order.supplierId);
-    const supplierName = supplier ? supplier.name : "";
-    const matchesSearch =
-      order.product.toLowerCase().includes(orderSearchQuery.toLowerCase()) ||
-      supplierName.toLowerCase().includes(orderSearchQuery.toLowerCase());
-    const matchesFilter = orderFilterStatus === "all" || order.status === orderFilterStatus;
-    return matchesSearch && matchesFilter;
-  });
+  const filteredOrders = sortData(
+    orders.filter((order) => {
+      const supplier = suppliers.find((s) => s.id === order.supplierId);
+      const supplierName = supplier ? supplier.name : "";
+      const matchesSearch =
+        order.product.toLowerCase().includes(orderSearchQuery.toLowerCase()) ||
+        supplierName.toLowerCase().includes(orderSearchQuery.toLowerCase());
+      const matchesFilter = orderFilterStatus === "all" || order.status === orderFilterStatus;
+      return matchesSearch && matchesFilter;
+    }),
+    orderSortConfig
+  );
 
   const orderStats = {
     total: orders.length,
@@ -1670,15 +2035,18 @@ const App = () => {
   };
 
   // 売上のフィルタリングと統計
-  const filteredSales = sales.filter((sale) => {
-    const customer = suppliers.find((s) => s.id === sale.customerId);
-    const customerName = customer ? customer.name : "";
-    const matchesSearch =
-      sale.product.toLowerCase().includes(saleSearchQuery.toLowerCase()) ||
-      customerName.toLowerCase().includes(saleSearchQuery.toLowerCase());
-    const matchesFilter = saleFilterStatus === "all" || sale.status === saleFilterStatus;
-    return matchesSearch && matchesFilter;
-  });
+  const filteredSales = sortData(
+    sales.filter((sale) => {
+      const customer = suppliers.find((s) => s.id === sale.customerId);
+      const customerName = customer ? customer.name : "";
+      const matchesSearch =
+        sale.product.toLowerCase().includes(saleSearchQuery.toLowerCase()) ||
+        customerName.toLowerCase().includes(saleSearchQuery.toLowerCase());
+      const matchesFilter = saleFilterStatus === "all" || sale.status === saleFilterStatus;
+      return matchesSearch && matchesFilter;
+    }),
+    saleSortConfig
+  );
 
   const saleStats = {
     total: sales.length,
@@ -1689,12 +2057,15 @@ const App = () => {
 
   // 支払いのフィルタリングと統計
   // 選択年月の支払いをフィルタリング
-  const filteredPayments = payments.filter((payment) => {
-    const matchesYearMonth = payment.yearMonth === selectedYearMonth;
-    const matchesSearch = payment.description.toLowerCase().includes(paymentSearchQuery.toLowerCase());
-    const matchesFilter = paymentFilterCategory === "all" || payment.category === paymentFilterCategory;
-    return matchesYearMonth && matchesSearch && matchesFilter;
-  });
+  const filteredPayments = sortData(
+    payments.filter((payment) => {
+      const matchesYearMonth = payment.yearMonth === selectedYearMonth;
+      const matchesSearch = payment.description.toLowerCase().includes(paymentSearchQuery.toLowerCase());
+      const matchesFilter = paymentFilterCategory === "all" || payment.category === paymentFilterCategory;
+      return matchesYearMonth && matchesSearch && matchesFilter;
+    }),
+    paymentSortConfig
+  );
 
   // 選択年月の支払い統計
   const paymentStats = {
@@ -1704,11 +2075,14 @@ const App = () => {
   };
 
   // 支払いマスタのフィルタリングと統計
-  const filteredPaymentMasters = paymentMasters.filter((master) => {
-    const matchesSearch = master.description.toLowerCase().includes(paymentMasterSearchQuery.toLowerCase());
-    const matchesFilter = paymentMasterFilterCategory === "all" || master.category === paymentMasterFilterCategory;
-    return matchesSearch && matchesFilter;
-  });
+  const filteredPaymentMasters = sortData(
+    paymentMasters.filter((master) => {
+      const matchesSearch = master.description.toLowerCase().includes(paymentMasterSearchQuery.toLowerCase());
+      const matchesFilter = paymentMasterFilterCategory === "all" || master.category === paymentMasterFilterCategory;
+      return matchesSearch && matchesFilter;
+    }),
+    paymentMasterSortConfig
+  );
 
   const paymentMasterStats = {
     total: paymentMasters.length,
@@ -1716,11 +2090,14 @@ const App = () => {
     variable: paymentMasters.filter((m) => !m.isFixed).length,
   };
 
-  const filteredSuppliers = suppliers.filter((supplier) => {
-    const matchesSearch = supplier.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = filterType === "all" || supplier.type === filterType;
-    return matchesSearch && matchesFilter;
-  });
+  const filteredSuppliers = sortData(
+    suppliers.filter((supplier) => {
+      const matchesSearch = supplier.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesFilter = filterType === "all" || supplier.type === filterType;
+      return matchesSearch && matchesFilter;
+    }),
+    supplierSortConfig
+  );
 
   const stats = {
     total: suppliers.length,
@@ -1886,7 +2263,7 @@ const App = () => {
         </div>
 
         <div>
-          <RecentActivity activities={recentActivities} title={t.recentActivity} />
+          <RecentActivity activities={activities} title={t.recentActivity} />
         </div>
       </div>
 
@@ -1980,14 +2357,14 @@ const App = () => {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.orderDate}</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.supplierName}</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.product}</th>
-                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.quantity}</th>
-                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.unitPrice}</th>
+                <SortableHeader label={t.orderDate} sortKey="orderDate" currentConfig={orderSortConfig} onClick={() => handleSort('orderDate', orderSortConfig, setOrderSortConfig)} />
+                <SortableHeader label={t.supplierName} sortKey="supplierId" currentConfig={orderSortConfig} onClick={() => handleSort('supplierId', orderSortConfig, setOrderSortConfig)} />
+                <SortableHeader label={t.product} sortKey="product" currentConfig={orderSortConfig} onClick={() => handleSort('product', orderSortConfig, setOrderSortConfig)} />
+                <SortableHeader label={t.quantity} sortKey="quantity" currentConfig={orderSortConfig} onClick={() => handleSort('quantity', orderSortConfig, setOrderSortConfig)} />
+                <SortableHeader label={t.unitPrice} sortKey="unitPrice" currentConfig={orderSortConfig} onClick={() => handleSort('unitPrice', orderSortConfig, setOrderSortConfig)} />
                 <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.amount}</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.deliveryDate}</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.status}</th>
+                <SortableHeader label={t.deliveryDate} sortKey="deliveryDate" currentConfig={orderSortConfig} onClick={() => handleSort('deliveryDate', orderSortConfig, setOrderSortConfig)} />
+                <SortableHeader label={t.status} sortKey="status" currentConfig={orderSortConfig} onClick={() => handleSort('status', orderSortConfig, setOrderSortConfig)} />
                 <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.actions}</th>
               </tr>
             </thead>
@@ -2151,12 +2528,42 @@ const App = () => {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.supplierName}</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.type}</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.region}</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.currency}</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.paymentTerms}</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.status}</th>
+                <SortableHeader
+                  label={t.supplierName}
+                  sortKey="name"
+                  currentConfig={supplierSortConfig}
+                  onClick={() => handleSort('name', supplierSortConfig, setSupplierSortConfig)}
+                />
+                <SortableHeader
+                  label={t.type}
+                  sortKey="type"
+                  currentConfig={supplierSortConfig}
+                  onClick={() => handleSort('type', supplierSortConfig, setSupplierSortConfig)}
+                />
+                <SortableHeader
+                  label={t.region}
+                  sortKey="region"
+                  currentConfig={supplierSortConfig}
+                  onClick={() => handleSort('region', supplierSortConfig, setSupplierSortConfig)}
+                />
+                <SortableHeader
+                  label={t.currency}
+                  sortKey="currency"
+                  currentConfig={supplierSortConfig}
+                  onClick={() => handleSort('currency', supplierSortConfig, setSupplierSortConfig)}
+                />
+                <SortableHeader
+                  label={t.paymentTerms}
+                  sortKey="paymentTerms"
+                  currentConfig={supplierSortConfig}
+                  onClick={() => handleSort('paymentTerms', supplierSortConfig, setSupplierSortConfig)}
+                />
+                <SortableHeader
+                  label={t.status}
+                  sortKey="status"
+                  currentConfig={supplierSortConfig}
+                  onClick={() => handleSort('status', supplierSortConfig, setSupplierSortConfig)}
+                />
                 <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.actions}</th>
               </tr>
             </thead>
@@ -2306,14 +2713,14 @@ const App = () => {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.saleDate}</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.customerName}</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.product}</th>
-                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.quantity}</th>
-                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.unitPrice}</th>
+                <SortableHeader label={t.saleDate} sortKey="saleDate" currentConfig={saleSortConfig} onClick={() => handleSort('saleDate', saleSortConfig, setSaleSortConfig)} />
+                <SortableHeader label={t.customerName} sortKey="customerId" currentConfig={saleSortConfig} onClick={() => handleSort('customerId', saleSortConfig, setSaleSortConfig)} />
+                <SortableHeader label={t.product} sortKey="product" currentConfig={saleSortConfig} onClick={() => handleSort('product', saleSortConfig, setSaleSortConfig)} />
+                <SortableHeader label={t.quantity} sortKey="quantity" currentConfig={saleSortConfig} onClick={() => handleSort('quantity', saleSortConfig, setSaleSortConfig)} />
+                <SortableHeader label={t.unitPrice} sortKey="unitPrice" currentConfig={saleSortConfig} onClick={() => handleSort('unitPrice', saleSortConfig, setSaleSortConfig)} />
                 <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.amount}</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.deliveryDate}</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.status}</th>
+                <SortableHeader label={t.deliveryDate} sortKey="deliveryDate" currentConfig={saleSortConfig} onClick={() => handleSort('deliveryDate', saleSortConfig, setSaleSortConfig)} />
+                <SortableHeader label={t.status} sortKey="status" currentConfig={saleSortConfig} onClick={() => handleSort('status', saleSortConfig, setSaleSortConfig)} />
                 <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.actions}</th>
               </tr>
             </thead>
@@ -2495,12 +2902,12 @@ const App = () => {
             <thead className="bg-gray-50 border-y border-gray-200">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No.</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.category}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.description}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.amount}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.paymentMethod}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.paymentDate}</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t.status}</th>
+                <SortableHeader label={t.category} sortKey="category" currentConfig={paymentSortConfig} onClick={() => handleSort('category', paymentSortConfig, setPaymentSortConfig)} />
+                <SortableHeader label={t.description} sortKey="description" currentConfig={paymentSortConfig} onClick={() => handleSort('description', paymentSortConfig, setPaymentSortConfig)} />
+                <SortableHeader label={t.amount} sortKey="amount" currentConfig={paymentSortConfig} onClick={() => handleSort('amount', paymentSortConfig, setPaymentSortConfig)} />
+                <SortableHeader label={t.paymentMethod} sortKey="paymentMethod" currentConfig={paymentSortConfig} onClick={() => handleSort('paymentMethod', paymentSortConfig, setPaymentSortConfig)} />
+                <SortableHeader label={t.paymentDate} sortKey="paymentDate" currentConfig={paymentSortConfig} onClick={() => handleSort('paymentDate', paymentSortConfig, setPaymentSortConfig)} />
+                <SortableHeader label={t.status} sortKey="status" currentConfig={paymentSortConfig} onClick={() => handleSort('status', paymentSortConfig, setPaymentSortConfig)} />
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t.actions}</th>
               </tr>
             </thead>
@@ -2576,6 +2983,143 @@ const App = () => {
                         </button>
                         <button
                           onClick={() => handleDeletePayment(payment.id)}
+                          className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderProductMaster = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-4 gap-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 mb-1">{t.totalProductMasters}</p>
+              <p className="text-3xl font-bold text-gray-800">{productMasterStats.totalCount}</p>
+            </div>
+            <div className="p-3 bg-blue-50 rounded-lg">
+              <Package className="text-blue-500" size={24} />
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 mb-1">USD {t.productName}</p>
+              <p className="text-3xl font-bold text-green-600">{productMasterStats.usdCount}</p>
+            </div>
+            <div className="p-3 bg-green-50 rounded-lg">
+              <DollarSign className="text-green-500" size={24} />
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 mb-1">JPY {t.productName}</p>
+              <p className="text-3xl font-bold text-orange-600">{productMasterStats.jpyCount}</p>
+            </div>
+            <div className="p-3 bg-orange-50 rounded-lg">
+              <DollarSign className="text-orange-500" size={24} />
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 mb-1">{t.unitPrice} (USD平均)</p>
+              <p className="text-2xl font-bold text-purple-600">${productMasterStats.avgUnitPriceUSD.toFixed(0)}</p>
+            </div>
+            <div className="p-3 bg-purple-50 rounded-lg">
+              <TrendingUp className="text-purple-500" size={24} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div className="p-6 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 flex-1">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <input
+                type="text"
+                placeholder={t.search}
+                value={productMasterSearchQuery}
+                onChange={(e) => setProductMasterSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+          <button
+            onClick={() => handleOpenProductMasterModal(null)}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors"
+          >
+            <Plus size={20} />
+            {t.addProductMaster}
+          </button>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-y border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No.</th>
+                <SortableHeader label={t.productCode} sortKey="productCode" currentConfig={productMasterSortConfig} onClick={() => handleSort('productCode', productMasterSortConfig, setProductMasterSortConfig)} />
+                <SortableHeader label={t.productName} sortKey="productName" currentConfig={productMasterSortConfig} onClick={() => handleSort('productName', productMasterSortConfig, setProductMasterSortConfig)} />
+                <SortableHeader label={t.unitPrice} sortKey="unitPrice" currentConfig={productMasterSortConfig} onClick={() => handleSort('unitPrice', productMasterSortConfig, setProductMasterSortConfig)} />
+                <SortableHeader label={t.description} sortKey="description" currentConfig={productMasterSortConfig} onClick={() => handleSort('description', productMasterSortConfig, setProductMasterSortConfig)} />
+                <SortableHeader label={t.remarks} sortKey="remarks" currentConfig={productMasterSortConfig} onClick={() => handleSort('remarks', productMasterSortConfig, setProductMasterSortConfig)} />
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t.actions}</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredProductMasters.map((master) => {
+                return (
+                  <tr key={master.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{master.incrementalId}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{master.productCode}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">{master.productName}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-semibold text-gray-900">
+                        {master.currency === "JPY"
+                          ? `¥${master.unitPrice.toLocaleString()}`
+                          : master.currency === "VND"
+                          ? `${master.unitPrice.toLocaleString()} VND`
+                          : `$${master.unitPrice.toLocaleString()}`}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-600">{master.description || "-"}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-600">{master.remarks || "-"}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => handleOpenProductMasterModal(master)}
+                          className="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteProductMaster(master.id)}
                           className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
                         >
                           <Trash2 size={16} />
@@ -2669,11 +3213,11 @@ const App = () => {
             <thead className="bg-gray-50 border-y border-gray-200">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No.</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.category}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.description}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.fixedAmount}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.paymentMethod}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.paymentDay}</th>
+                <SortableHeader label={t.category} sortKey="category" currentConfig={paymentMasterSortConfig} onClick={() => handleSort('category', paymentMasterSortConfig, setPaymentMasterSortConfig)} />
+                <SortableHeader label={t.description} sortKey="description" currentConfig={paymentMasterSortConfig} onClick={() => handleSort('description', paymentMasterSortConfig, setPaymentMasterSortConfig)} />
+                <SortableHeader label={t.fixedAmount} sortKey="fixedAmount" currentConfig={paymentMasterSortConfig} onClick={() => handleSort('fixedAmount', paymentMasterSortConfig, setPaymentMasterSortConfig)} />
+                <SortableHeader label={t.paymentMethod} sortKey="paymentMethod" currentConfig={paymentMasterSortConfig} onClick={() => handleSort('paymentMethod', paymentMasterSortConfig, setPaymentMasterSortConfig)} />
+                <SortableHeader label={t.paymentDay} sortKey="paymentDay" currentConfig={paymentMasterSortConfig} onClick={() => handleSort('paymentDay', paymentMasterSortConfig, setPaymentMasterSortConfig)} />
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t.actions}</th>
               </tr>
             </thead>
@@ -2913,12 +3457,7 @@ const App = () => {
         <div className="p-8 max-w-7xl mx-auto">
           {currentPage === "dashboard" && renderDashboard()}
           {currentPage === "suppliers" && renderSuppliers()}
-          {currentPage === "productMaster" && (
-            <div className="bg-white p-12 rounded-xl shadow text-center">
-              <Package size={48} className="mx-auto mb-4 text-gray-400" />
-              <p className="text-gray-600">品目マスタ画面（準備中）</p>
-            </div>
-          )}
+          {currentPage === "productMaster" && renderProductMaster()}
           {currentPage === "orders" && renderOrders()}
           {currentPage === "sales" && renderSales()}
           {currentPage === "payments" && renderPayments()}
@@ -3153,13 +3692,30 @@ const App = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {t.product} <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
+                <select
                   value={orderFormData.product}
-                  onChange={(e) => setOrderFormData({ ...orderFormData, product: e.target.value })}
+                  onChange={(e) => {
+                    const selectedProduct = productMasters.find(pm => `${pm.productCode} - ${pm.productName}` === e.target.value);
+                    if (selectedProduct) {
+                      setOrderFormData({
+                        ...orderFormData,
+                        product: e.target.value,
+                        unitPrice: selectedProduct.unitPrice,
+                        currency: selectedProduct.currency,
+                      });
+                    } else {
+                      setOrderFormData({ ...orderFormData, product: e.target.value });
+                    }
+                  }}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="例: PVC材料 A-123"
-                />
+                >
+                  <option value="">{lang === "ja" ? "品目を選択してください" : "Chọn sản phẩm"}</option>
+                  {productMasters.map((pm) => (
+                    <option key={pm.id} value={`${pm.productCode} - ${pm.productName}`}>
+                      {pm.productCode} - {pm.productName}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="grid grid-cols-3 gap-4">
@@ -3690,6 +4246,158 @@ const App = () => {
                 </button>
                 <button
                   onClick={handlePaymentDeleteConfirm}
+                  className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
+                >
+                  {t.delete}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 支払いマスタ登録・編集モーダル */}
+      {/* 品目マスタ登録・編集モーダル */}
+      {showProductMasterModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-2xl">
+              <h2 className="text-2xl font-bold text-gray-800">
+                {editingProductMaster ? t.editProductMaster : t.addProductMaster}
+              </h2>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {productMasterValidationError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+                  <AlertCircle className="text-red-600 shrink-0 mt-0.5" size={20} />
+                  <p className="text-sm text-red-800">{productMasterValidationError}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.productCode}</label>
+                  <input
+                    type="text"
+                    value={productMasterFormData.productCode}
+                    onChange={(e) => setProductMasterFormData({ ...productMasterFormData, productCode: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder={t.productCode}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.productName}</label>
+                  <input
+                    type="text"
+                    value={productMasterFormData.productName}
+                    onChange={(e) => setProductMasterFormData({ ...productMasterFormData, productName: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder={t.productName}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.unitPrice}</label>
+                  <input
+                    type="number"
+                    value={productMasterFormData.unitPrice}
+                    onChange={(e) =>
+                      setProductMasterFormData({ ...productMasterFormData, unitPrice: Number(e.target.value) })
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    min="0"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.currency}</label>
+                  <select
+                    value={productMasterFormData.currency}
+                    onChange={(e) =>
+                      setProductMasterFormData({
+                        ...productMasterFormData,
+                        currency: e.target.value as "USD" | "JPY" | "VND",
+                      })
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="USD">USD</option>
+                    <option value="JPY">JPY</option>
+                    <option value="VND">VND</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t.description}</label>
+                <input
+                  type="text"
+                  value={productMasterFormData.description}
+                  onChange={(e) => setProductMasterFormData({ ...productMasterFormData, description: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder={t.description}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t.remarks}</label>
+                <textarea
+                  value={productMasterFormData.remarks}
+                  onChange={(e) => setProductMasterFormData({ ...productMasterFormData, remarks: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={3}
+                  placeholder={t.remarks}
+                />
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-gray-50 px-6 py-4 rounded-b-2xl flex gap-3">
+              <button
+                onClick={() => setShowProductMasterModal(false)}
+                className="flex-1 px-6 py-3 text-gray-700 hover:bg-gray-200 border border-gray-300 rounded-lg font-medium transition-colors"
+              >
+                {t.cancel}
+              </button>
+              <button
+                onClick={handleProductMasterSave}
+                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+              >
+                {t.save}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 品目マスタ削除確認モーダル */}
+      {showProductMasterDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mx-auto mb-4">
+                <AlertCircle className="text-red-600" size={24} />
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 text-center mb-2">
+                {lang === "ja" ? "削除の確認" : "Xác nhận xóa"}
+              </h3>
+              <p className="text-gray-600 text-center mb-6">
+                {lang === "ja"
+                  ? "この品目マスタを削除してもよろしいですか？"
+                  : "Bạn có chắc chắn muốn xóa master sản phẩm này?"}
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleProductMasterDeleteCancel}
+                  className="flex-1 px-6 py-3 text-gray-700 hover:bg-gray-100 border border-gray-300 rounded-lg font-medium transition-colors"
+                >
+                  {t.cancel}
+                </button>
+                <button
+                  onClick={handleProductMasterDeleteConfirm}
                   className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
                 >
                   {t.delete}
