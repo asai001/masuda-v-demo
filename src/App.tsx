@@ -117,6 +117,8 @@ const App = () => {
   } | null;
 
   const [supplierSortConfig, setSupplierSortConfig] = useState<SortConfig>(null);
+  const [productSortConfig, setProductSortConfig] = useState<SortConfig>(null);
+  const [purchaseItemSortConfig, setPurchaseItemSortConfig] = useState<SortConfig>(null);
   const [orderSortConfig, setOrderSortConfig] = useState<SortConfig>(null);
   const [saleSortConfig, setSaleSortConfig] = useState<SortConfig>(null);
   const [paymentSortConfig, setPaymentSortConfig] = useState<SortConfig>(null);
@@ -308,6 +310,7 @@ const App = () => {
       paymentTerms: "支払条件",
       status: "ステータス",
       actions: "操作",
+      deleteAction: "削除",
       active: "有効",
       inactive: "無効",
       save: "保存",
@@ -397,8 +400,8 @@ const App = () => {
       box: "箱",
       liter: "リットル",
       meter: "メートル",
-      productMasterTitle: "品目マスタ管理",
-      productMasterList: "品目マスタ一覧",
+      productMasterTitle: "製品マスタ管理",
+      productMasterList: "製品マスタ一覧",
       addProductMaster: "新規品目登録",
       editProductMaster: "品目編集",
       totalProductMasters: "品目件数",
@@ -485,6 +488,7 @@ const App = () => {
       paymentTerms: "Điều khoản thanh toán",
       status: "Trạng thái",
       actions: "Thao tác",
+      deleteAction: "Xóa",
       active: "Hoạt động",
       inactive: "Không hoạt động",
       save: "Lưu",
@@ -1617,7 +1621,12 @@ const App = () => {
         updatedAt: new Date().toISOString().split("T")[0],
       };
       setPurchaseItems(purchaseItems.map((p) => (p.id === editingPurchaseItem.id ? updatedPurchaseItem : p)));
-      addActivity("発注品目が更新されました", `${purchaseItemFormData.productCode} - ${purchaseItemFormData.productName}`, Package, "text-blue-500");
+      addActivity(
+        "発注品目が更新されました",
+        `${purchaseItemFormData.productCode} - ${purchaseItemFormData.productName}`,
+        Package,
+        "text-blue-500"
+      );
     } else {
       const id = `pi-${Date.now()}`;
       const newPurchaseItem = {
@@ -1628,7 +1637,12 @@ const App = () => {
         updatedAt: new Date().toISOString().split("T")[0],
       };
       setPurchaseItems([...purchaseItems, newPurchaseItem]);
-      addActivity("新規発注品目が追加されました", `${purchaseItemFormData.productCode} - ${purchaseItemFormData.productName}`, Package, "text-green-500");
+      addActivity(
+        "新規発注品目が追加されました",
+        `${purchaseItemFormData.productCode} - ${purchaseItemFormData.productName}`,
+        Package,
+        "text-green-500"
+      );
     }
     setPurchaseItemValidationError("");
     setShowPurchaseItemModal(false);
@@ -1644,7 +1658,12 @@ const App = () => {
       const deletedPurchaseItem = purchaseItems.find((p) => p.id === deletePurchaseItemTargetId);
       setPurchaseItems(purchaseItems.filter((p) => p.id !== deletePurchaseItemTargetId));
       if (deletedPurchaseItem) {
-        addActivity("発注品目が削除されました", `${deletedPurchaseItem.productCode} - ${deletedPurchaseItem.productName}`, Trash2, "text-red-500");
+        addActivity(
+          "発注品目が削除されました",
+          `${deletedPurchaseItem.productCode} - ${deletedPurchaseItem.productName}`,
+          Trash2,
+          "text-red-500"
+        );
       }
       setShowPurchaseItemDeleteConfirm(false);
       setDeletePurchaseItemTargetId(null);
@@ -1916,7 +1935,12 @@ const App = () => {
       if (deletedOrder) {
         const supplier = suppliers.find((s) => s.id === deletedOrder.supplierId);
         const purchaseItem = purchaseItems.find((p) => p.id === deletedOrder.productId);
-        addActivity("発注が削除されました", `${supplier?.name || "取引先"} - ${purchaseItem?.productName || "品目"}`, Trash2, "text-red-500");
+        addActivity(
+          "発注が削除されました",
+          `${supplier?.name || "取引先"} - ${purchaseItem?.productName || "品目"}`,
+          Trash2,
+          "text-red-500"
+        );
       }
       setShowOrderDeleteConfirm(false);
       setDeleteOrderTargetId("");
@@ -2710,18 +2734,52 @@ const App = () => {
           <table className="w-full">
             <thead className="bg-gray-50 border-y border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.productCode}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.productName}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.productCategory}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.unit}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.standardPrice}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.status}</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t.actions}</th>
+                <SortableHeader
+                  label={t.productCode}
+                  sortKey="productCode"
+                  currentConfig={productSortConfig}
+                  onClick={() => handleSort("productCode", productSortConfig, setProductSortConfig)}
+                />
+                <SortableHeader
+                  label={t.productName}
+                  sortKey="productName"
+                  currentConfig={productSortConfig}
+                  onClick={() => handleSort("productName", productSortConfig, setProductSortConfig)}
+                />
+                <SortableHeader
+                  label={t.productCategory}
+                  sortKey="category"
+                  currentConfig={productSortConfig}
+                  onClick={() => handleSort("category", productSortConfig, setProductSortConfig)}
+                />
+                <SortableHeader
+                  label={t.unit}
+                  sortKey="unit"
+                  currentConfig={productSortConfig}
+                  onClick={() => handleSort("unit", productSortConfig, setProductSortConfig)}
+                />
+                <SortableHeader
+                  label={t.standardPrice}
+                  sortKey="standardPrice"
+                  currentConfig={productSortConfig}
+                  onClick={() => handleSort("standardPrice", productSortConfig, setProductSortConfig)}
+                />
+                <SortableHeader
+                  label={t.status}
+                  sortKey="status"
+                  currentConfig={productSortConfig}
+                  onClick={() => handleSort("status", productSortConfig, setProductSortConfig)}
+                />
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t.deleteAction}</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredProducts.map((product) => (
-                <tr key={product.id} className="hover:bg-gray-50 transition-colors">
+                <tr
+                  key={product.id}
+                  onClick={() => handleOpenProductModal(product)}
+                  className="hover:bg-gray-50 transition-colors cursor-pointer"
+                >
                   <td className="px-6 py-4">
                     <p className="font-medium text-gray-800">{product.productCode}</p>
                   </td>
@@ -2762,14 +2820,8 @@ const App = () => {
                       {product.status === "active" ? t.active : t.inactive}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-center gap-2">
-                      <button
-                        onClick={() => handleOpenProductModal(product)}
-                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      >
-                        <Edit size={18} />
-                      </button>
+                  <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center justify-center">
                       <button
                         onClick={() => handleProductDeleteClick(product.id)}
                         className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -2870,18 +2922,52 @@ const App = () => {
           <table className="w-full">
             <thead className="bg-gray-50 border-y border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.productCode}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.productName}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.productCategory}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.unit}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.standardPrice}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.status}</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t.actions}</th>
+                <SortableHeader
+                  label={t.productCode}
+                  sortKey="productCode"
+                  currentConfig={purchaseItemSortConfig}
+                  onClick={() => handleSort("productCode", purchaseItemSortConfig, setPurchaseItemSortConfig)}
+                />
+                <SortableHeader
+                  label={t.productName}
+                  sortKey="productName"
+                  currentConfig={purchaseItemSortConfig}
+                  onClick={() => handleSort("productName", purchaseItemSortConfig, setPurchaseItemSortConfig)}
+                />
+                <SortableHeader
+                  label={t.productCategory}
+                  sortKey="category"
+                  currentConfig={purchaseItemSortConfig}
+                  onClick={() => handleSort("category", purchaseItemSortConfig, setPurchaseItemSortConfig)}
+                />
+                <SortableHeader
+                  label={t.unit}
+                  sortKey="unit"
+                  currentConfig={purchaseItemSortConfig}
+                  onClick={() => handleSort("unit", purchaseItemSortConfig, setPurchaseItemSortConfig)}
+                />
+                <SortableHeader
+                  label={t.standardPrice}
+                  sortKey="standardPrice"
+                  currentConfig={purchaseItemSortConfig}
+                  onClick={() => handleSort("standardPrice", purchaseItemSortConfig, setPurchaseItemSortConfig)}
+                />
+                <SortableHeader
+                  label={t.status}
+                  sortKey="status"
+                  currentConfig={purchaseItemSortConfig}
+                  onClick={() => handleSort("status", purchaseItemSortConfig, setPurchaseItemSortConfig)}
+                />
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t.deleteAction}</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredPurchaseItems.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                <tr
+                  key={item.id}
+                  onClick={() => handleOpenPurchaseItemModal(item)}
+                  className="hover:bg-gray-50 transition-colors cursor-pointer"
+                >
                   <td className="px-6 py-4">
                     <p className="font-medium text-gray-800">{item.productCode}</p>
                   </td>
@@ -2922,14 +3008,8 @@ const App = () => {
                       {item.status === "active" ? t.active : t.inactive}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-center gap-2">
-                      <button
-                        onClick={() => handleOpenPurchaseItemModal(item)}
-                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      >
-                        <Edit size={18} />
-                      </button>
+                  <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center justify-center">
                       <button
                         onClick={() => handlePurchaseItemDeleteClick(item.id)}
                         className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -3080,7 +3160,7 @@ const App = () => {
                   {lang === "ja" ? "書類状況" : "Tài liệu"}
                 </th>
                 <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
-                  {t.actions}
+                  {t.deleteAction}
                 </th>
               </tr>
             </thead>
@@ -3307,13 +3387,17 @@ const App = () => {
                   onClick={() => handleSort("status", supplierSortConfig, setSupplierSortConfig)}
                 />
                 <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
-                  {t.actions}
+                  {t.deleteAction}
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 [&_td]:whitespace-nowrap">
               {filteredSuppliers.map((supplier) => (
-                <tr key={supplier.id} className="hover:bg-gray-50 transition-colors">
+                <tr
+                  key={supplier.id}
+                  onClick={() => handleOpenModal(supplier)}
+                  className="hover:bg-gray-50 transition-colors cursor-pointer"
+                >
                   <td className="px-6 py-4">
                     <div>
                       <p className="font-medium text-gray-800">{supplier.name}</p>
@@ -3335,15 +3419,8 @@ const App = () => {
                       {t[supplier.status]}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-center gap-2">
-                      <button
-                        onClick={() => handleOpenModal(supplier)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title={t.edit}
-                      >
-                        <Edit size={18} />
-                      </button>
+                  <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center justify-center">
                       <button
                         onClick={() => handleDeleteClick(supplier.id)}
                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -3506,7 +3583,7 @@ const App = () => {
                   {lang === "ja" ? "書類状況" : "Tài liệu"}
                 </th>
                 <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
-                  {t.actions}
+                  {t.deleteAction}
                 </th>
               </tr>
             </thead>
@@ -3743,14 +3820,18 @@ const App = () => {
                   onClick={() => handleSort("status", paymentSortConfig, setPaymentSortConfig)}
                 />
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  {t.actions}
+                  {t.deleteAction}
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredPayments.map((payment) => {
                 return (
-                  <tr key={payment.id} className="hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={payment.id}
+                    onClick={() => handleOpenPaymentModal(payment)}
+                    className="hover:bg-gray-50 transition-colors cursor-pointer"
+                  >
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{payment.incrementalId}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
@@ -3799,14 +3880,8 @@ const App = () => {
                         {payment.status === "paid" ? t.paymentStatusPaid : t.paymentStatusPending}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => handleOpenPaymentModal(payment)}
-                          className="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                        >
-                          <Edit size={16} />
-                        </button>
+                    <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center justify-center">
                         <button
                           onClick={() => handleDeletePayment(payment.id)}
                           className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
@@ -3934,14 +4009,18 @@ const App = () => {
                   onClick={() => handleSort("paymentDay", paymentMasterSortConfig, setPaymentMasterSortConfig)}
                 />
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  {t.actions}
+                  {t.deleteAction}
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredPaymentMasters.map((master) => {
                 return (
-                  <tr key={master.id} className="hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={master.id}
+                    onClick={() => handleOpenPaymentMasterModal(master)}
+                    className="hover:bg-gray-50 transition-colors cursor-pointer"
+                  >
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{master.incrementalId}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
@@ -3983,14 +4062,8 @@ const App = () => {
                       {master.paymentMethod === "bank" ? t.bank : master.paymentMethod === "cash" ? t.cash : t.card}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{master.paymentDay}日</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => handleOpenPaymentMasterModal(master)}
-                          className="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                        >
-                          <Edit size={16} />
-                        </button>
+                    <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center justify-center">
                         <button
                           onClick={() => handleDeletePaymentMaster(master.id)}
                           className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
@@ -5355,7 +5428,9 @@ const App = () => {
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-2 md:p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="p-4 md:p-6 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white">
-              <h2 className="text-xl md:text-2xl font-bold text-gray-800">{editingPurchaseItem ? t.editPurchaseItem : t.addPurchaseItem}</h2>
+              <h2 className="text-xl md:text-2xl font-bold text-gray-800">
+                {editingPurchaseItem ? t.editPurchaseItem : t.addPurchaseItem}
+              </h2>
               <button onClick={() => setShowPurchaseItemModal(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <X size={24} />
               </button>
@@ -5412,7 +5487,9 @@ const App = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">{t.unit}</label>
                   <select
                     value={purchaseItemFormData.unit}
-                    onChange={(e) => setPurchaseItemFormData({ ...purchaseItemFormData, unit: e.target.value as PurchaseItemFormData["unit"] })}
+                    onChange={(e) =>
+                      setPurchaseItemFormData({ ...purchaseItemFormData, unit: e.target.value as PurchaseItemFormData["unit"] })
+                    }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="kg">{t.kg}</option>
@@ -5437,7 +5514,9 @@ const App = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">{t.currency}</label>
                   <select
                     value={purchaseItemFormData.currency}
-                    onChange={(e) => setPurchaseItemFormData({ ...purchaseItemFormData, currency: e.target.value as "USD" | "JPY" | "VND" })}
+                    onChange={(e) =>
+                      setPurchaseItemFormData({ ...purchaseItemFormData, currency: e.target.value as "USD" | "JPY" | "VND" })
+                    }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="USD">USD</option>
