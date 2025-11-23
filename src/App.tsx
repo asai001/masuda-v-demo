@@ -43,6 +43,15 @@ const App = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [validationError, setValidationError] = useState("");
+
+  // 製品マスタ関連のstate
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [showProductDeleteConfirm, setShowProductDeleteConfirm] = useState(false);
+  const [deleteProductTargetId, setDeleteProductTargetId] = useState<string | null>(null);
+  const [productValidationError, setProductValidationError] = useState("");
+  const [productSearchQuery, setProductSearchQuery] = useState("");
+  const [productFilterCategory, setProductFilterCategory] = useState("all");
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [showOrderDeleteConfirm, setShowOrderDeleteConfirm] = useState(false);
@@ -59,22 +68,6 @@ const App = () => {
   const [saleValidationError, setSaleValidationError] = useState("");
   const [saleSearchQuery, setSaleSearchQuery] = useState("");
   const [saleFilterStatus, setSaleFilterStatus] = useState("all");
-
-  // 品目マスタ関連のstate
-  const [showProductMasterModal, setShowProductMasterModal] = useState(false);
-  const [editingProductMaster, setEditingProductMaster] = useState<ProductMaster | null>(null);
-  const [showProductMasterDeleteConfirm, setShowProductMasterDeleteConfirm] = useState(false);
-  const [deleteProductMasterTargetId, setDeleteProductMasterTargetId] = useState<string>("");
-  const [productMasterValidationError, setProductMasterValidationError] = useState("");
-  const [productMasterSearchQuery, setProductMasterSearchQuery] = useState("");
-  const [productMasterFormData, setProductMasterFormData] = useState<ProductMasterFormData>({
-    productCode: "",
-    productName: "",
-    unitPrice: 0,
-    currency: "USD",
-    description: "",
-    remarks: "",
-  });
 
   // 支払いマスタ関連のstate
   const [showPaymentMasterModal, setShowPaymentMasterModal] = useState(false);
@@ -117,7 +110,6 @@ const App = () => {
   const [orderSortConfig, setOrderSortConfig] = useState<SortConfig>(null);
   const [saleSortConfig, setSaleSortConfig] = useState<SortConfig>(null);
   const [paymentSortConfig, setPaymentSortConfig] = useState<SortConfig>(null);
-  const [productMasterSortConfig, setProductMasterSortConfig] = useState<SortConfig>(null);
   const [paymentMasterSortConfig, setPaymentMasterSortConfig] = useState<SortConfig>(null);
 
   // 汎用ソート関数
@@ -259,6 +251,7 @@ const App = () => {
     ja: {
       dashboard: "ダッシュボード",
       suppliers: "取引先マスタ",
+      products: "製品マスタ",
       orders: "発注登録",
       sales: "受注管理",
       payments: "支払管理",
@@ -365,14 +358,34 @@ const App = () => {
       deliveredSales: "納品済み",
       usa: "米国",
       deleteConfirmTitle: "削除の確認",
-      deleteConfirmMessage: "本当に削除しますか？この操作は取り消せません。",
+      deleteConfirmMessage: "本当に削除しますか?この操作は取り消せません。",
       productMasterMenu: "品目マスタ",
+      productMaster: "製品マスタ",
+      productList: "製品一覧",
+      addProduct: "新規製品",
+      editProduct: "製品編集",
+      productCode: "品番",
+      productName: "品目名",
+      productCategory: "カテゴリ",
+      unit: "単位",
+      standardPrice: "標準単価",
+      totalProducts: "登録製品数",
+      activeProducts: "有効",
+      inactiveProducts: "無効",
+      raw_material: "原材料",
+      finished_goods: "完成品",
+      semi_finished: "半製品",
+      parts: "部品",
+      kg: "kg",
+      ton: "トン",
+      piece: "個",
+      box: "箱",
+      liter: "リットル",
+      meter: "メートル",
       productMasterTitle: "品目マスタ管理",
       productMasterList: "品目マスタ一覧",
       addProductMaster: "新規品目登録",
       editProductMaster: "品目編集",
-      productCode: "品番",
-      productName: "品目名",
       totalProductMasters: "品目件数",
       paymentMasterMenu: "支払マスタ",
       paymentMasterTitle: "支払マスタ管理",
@@ -410,6 +423,7 @@ const App = () => {
     vi: {
       dashboard: "Bảng điều khiển",
       suppliers: "Nhà cung cấp",
+      products: "Sản phẩm",
       orders: "Đặt hàng",
       sales: "Đơn đặt hàng",
       payments: "Thanh toán",
@@ -518,12 +532,32 @@ const App = () => {
       deleteConfirmTitle: "Xác nhận xóa",
       deleteConfirmMessage: "Bạn có chắc muốn xóa? Thao tác này không thể hoàn tác.",
       productMasterMenu: "Master sản phẩm",
+      productMaster: "Sản phẩm master",
+      productList: "Danh sách sản phẩm",
+      addProduct: "Sản phẩm mới",
+      editProduct: "Chỉnh sửa sản phẩm",
+      productCode: "Mã sản phẩm",
+      productName: "Tên sản phẩm",
+      productCategory: "Danh mục",
+      unit: "Đơn vị",
+      standardPrice: "Đơn giá chuẩn",
+      totalProducts: "Tổng sản phẩm",
+      activeProducts: "Hoạt động",
+      inactiveProducts: "Không hoạt động",
+      raw_material: "Nguyên liệu",
+      finished_goods: "Thành phẩm",
+      semi_finished: "Bán thành phẩm",
+      parts: "Linh kiện",
+      kg: "kg",
+      ton: "Tấn",
+      piece: "Cái",
+      box: "Hộp",
+      liter: "Lít",
+      meter: "Mét",
       productMasterTitle: "Quản lý master sản phẩm",
       productMasterList: "Danh sách master sản phẩm",
       addProductMaster: "Thêm sản phẩm mới",
       editProductMaster: "Chỉnh sửa sản phẩm",
-      productCode: "Mã sản phẩm",
-      productName: "Tên sản phẩm",
       totalProductMasters: "Tổng số sản phẩm",
       paymentMasterMenu: "Master thanh toán",
       paymentMasterTitle: "Quản lý master thanh toán",
@@ -694,6 +728,79 @@ const App = () => {
     },
   ]);
 
+  const [products, setProducts] = useState<Product[]>([
+    {
+      id: "p-001",
+      incrementalId: 1,
+      productCode: "P-001",
+      productName: "電子部品A",
+      category: "parts",
+      unit: "piece",
+      standardPrice: 150,
+      currency: "USD",
+      remarks: "標準電子部品",
+      status: "active",
+      createdAt: "2024-01-15",
+      updatedAt: "2025-11-20",
+    },
+    {
+      id: "p-002",
+      incrementalId: 2,
+      productCode: "P-002",
+      productName: "プラスチック樹脂",
+      category: "raw_material",
+      unit: "kg",
+      standardPrice: 2.5,
+      currency: "USD",
+      remarks: "汎用樹脂",
+      status: "active",
+      createdAt: "2024-02-01",
+      updatedAt: "2025-11-18",
+    },
+    {
+      id: "p-003",
+      incrementalId: 3,
+      productCode: "P-003",
+      productName: "添加剤",
+      category: "raw_material",
+      unit: "kg",
+      standardPrice: 5.0,
+      currency: "USD",
+      remarks: "特殊添加剤",
+      status: "active",
+      createdAt: "2024-02-10",
+      updatedAt: "2025-11-15",
+    },
+    {
+      id: "p-004",
+      incrementalId: 4,
+      productCode: "P-004",
+      productName: "成形品A",
+      category: "finished_goods",
+      unit: "piece",
+      standardPrice: 25,
+      currency: "JPY",
+      remarks: "完成品",
+      status: "active",
+      createdAt: "2024-03-01",
+      updatedAt: "2025-11-22",
+    },
+    {
+      id: "p-005",
+      incrementalId: 5,
+      productCode: "P-005",
+      productName: "半製品B",
+      category: "semi_finished",
+      unit: "piece",
+      standardPrice: 15,
+      currency: "USD",
+      remarks: "中間製品",
+      status: "active",
+      createdAt: "2024-03-15",
+      updatedAt: "2025-11-19",
+    },
+  ]);
+
   const [formData, setFormData] = useState<FormData>({
     name: "",
     type: "material",
@@ -704,13 +811,24 @@ const App = () => {
     remarks: "",
   });
 
+  const [productFormData, setProductFormData] = useState<ProductFormData>({
+    productCode: "",
+    productName: "",
+    category: "raw_material",
+    unit: "kg",
+    standardPrice: 0,
+    currency: "USD",
+    remarks: "",
+    status: "active",
+  });
+
   const [orders, setOrders] = useState<Order[]>([
     {
       id: "o-001",
       incrementalId: 1,
       orderDate: "2025-11-15",
       supplierId: "s-001",
-      product: "P-001 - 電子部品A",
+      productId: "p-001",
       quantity: 1000,
       unitPrice: 150,
       currency: "USD",
@@ -728,9 +846,9 @@ const App = () => {
       incrementalId: 2,
       orderDate: "2025-11-18",
       supplierId: "s-002",
-      product: "P-002 - プラスチック部品B",
+      productId: "p-002",
       quantity: 500,
-      unitPrice: 50,
+      unitPrice: 2.5,
       currency: "USD",
       deliveryDate: "2025-11-28",
       remarks: "急ぎ",
@@ -746,9 +864,9 @@ const App = () => {
       incrementalId: 3,
       orderDate: "2025-11-10",
       supplierId: "s-003",
-      product: "P-003 - 金属部品C",
+      productId: "p-003",
       quantity: 200,
-      unitPrice: 200,
+      unitPrice: 5.0,
       currency: "USD",
       deliveryDate: "2025-11-20",
       remarks: "納品完了",
@@ -764,7 +882,7 @@ const App = () => {
   const [orderFormData, setOrderFormData] = useState<OrderFormData>({
     orderDate: "",
     supplierId: "",
-    product: "",
+    productId: "",
     quantity: 0,
     unitPrice: 0,
     currency: "USD",
@@ -785,9 +903,9 @@ const App = () => {
       incrementalId: 1,
       saleDate: "2025-11-15",
       customerId: "s-006",
-      product: "ビニール製品 VP-100",
+      productId: "p-004",
       quantity: 2000,
-      unitPrice: 2200,
+      unitPrice: 25,
       currency: "JPY",
       deliveryDate: "2025-11-25",
       remarks: "定期取引",
@@ -803,10 +921,10 @@ const App = () => {
       incrementalId: 2,
       saleDate: "2025-11-18",
       customerId: "s-007",
-      product: "シート材 SH-200",
+      productId: "p-005",
       quantity: 1500,
-      unitPrice: 1800,
-      currency: "JPY",
+      unitPrice: 15,
+      currency: "USD",
       deliveryDate: "2025-11-28",
       remarks: "急ぎ対応",
       shipped: false,
@@ -821,9 +939,9 @@ const App = () => {
       incrementalId: 3,
       saleDate: "2025-11-10",
       customerId: "s-008",
-      product: "成形品 MO-300",
+      productId: "p-004",
       quantity: 800,
-      unitPrice: 3500,
+      unitPrice: 25,
       currency: "JPY",
       deliveryDate: "2025-11-20",
       remarks: "納品完了",
@@ -839,7 +957,7 @@ const App = () => {
   const [saleFormData, setSaleFormData] = useState<SaleFormData>({
     saleDate: "",
     customerId: "",
-    product: "",
+    productId: "",
     quantity: 0,
     unitPrice: 0,
     currency: "JPY",
@@ -852,64 +970,6 @@ const App = () => {
     deliveryNoteSent: false,
     invoiceSent: false,
   });
-
-  // 品目マスタデータ
-  const [productMasters, setProductMasters] = useState<ProductMaster[]>([
-    {
-      id: "prod-001",
-      incrementalId: 1,
-      productCode: "P-001",
-      productName: "電子部品A",
-      unitPrice: 150,
-      currency: "USD",
-      description: "高品質電子部品",
-      remarks: "",
-    },
-    {
-      id: "prod-002",
-      incrementalId: 2,
-      productCode: "P-002",
-      productName: "プラスチック部品B",
-      unitPrice: 50,
-      currency: "USD",
-      description: "耐久性の高いプラスチック部品",
-      remarks: "",
-    },
-    {
-      id: "prod-003",
-      incrementalId: 3,
-      productCode: "P-003",
-      productName: "金属部品C",
-      unitPrice: 200,
-      currency: "USD",
-      description: "精密金属加工部品",
-      remarks: "",
-    },
-  ]);
-
-  // 品目マスタのフィルタリング
-  const filteredProductMasters = sortData(
-    productMasters.filter((pm) => {
-      const searchLower = productMasterSearchQuery.toLowerCase();
-      return (
-        pm.productCode.toLowerCase().includes(searchLower) ||
-        pm.productName.toLowerCase().includes(searchLower) ||
-        pm.description.toLowerCase().includes(searchLower)
-      );
-    }),
-    productMasterSortConfig
-  );
-
-  // 品目マスタの統計情報
-  const productMasterStats = {
-    totalCount: productMasters.length,
-    usdCount: productMasters.filter((pm) => pm.currency === "USD").length,
-    jpyCount: productMasters.filter((pm) => pm.currency === "JPY").length,
-    vndCount: productMasters.filter((pm) => pm.currency === "VND").length,
-    avgUnitPriceUSD:
-      productMasters.filter((pm) => pm.currency === "USD").reduce((sum, pm) => sum + pm.unitPrice, 0) /
-      (productMasters.filter((pm) => pm.currency === "USD").length || 1),
-  };
 
   // 支払いマスタデータ（毎月かかる経費のテンプレート）
   const [paymentMasters, setPaymentMasters] = useState<PaymentMaster[]>([
@@ -1101,7 +1161,7 @@ const App = () => {
   const menuItems = [
     { icon: LayoutDashboard, label: t.dashboard, page: "dashboard" },
     { icon: Users, label: t.suppliers, page: "suppliers" },
-    { icon: Package, label: t.productMasterMenu, page: "productMaster" },
+    { icon: Package, label: t.products, page: "products" },
     { icon: ShoppingCart, label: t.orders, page: "orders" },
     { icon: TrendingUp, label: t.sales, page: "sales" },
     { icon: DollarSign, label: t.paymentManagement, page: "payments" },
@@ -1154,6 +1214,32 @@ const App = () => {
     remarks: string;
     createdAt: string;
     updatedAt: string;
+  }
+
+  interface Product {
+    id: string;
+    incrementalId: number;
+    productCode: string; // 品番
+    productName: string; // 品目名
+    category: "raw_material" | "finished_goods" | "semi_finished" | "parts" | "other";
+    unit: "kg" | "ton" | "piece" | "box" | "liter" | "meter";
+    standardPrice: number;
+    currency: "USD" | "JPY" | "VND";
+    remarks: string;
+    status: "active" | "inactive";
+    createdAt: string;
+    updatedAt: string;
+  }
+
+  interface ProductFormData {
+    productCode: string;
+    productName: string;
+    category: "raw_material" | "finished_goods" | "semi_finished" | "parts" | "other";
+    unit: "kg" | "ton" | "piece" | "box" | "liter" | "meter";
+    standardPrice: number;
+    currency: "USD" | "JPY" | "VND";
+    remarks: string;
+    status: "active" | "inactive";
   }
 
   interface FormData {
@@ -1273,6 +1359,89 @@ const App = () => {
     setDeleteTargetId(null);
   };
 
+  // 製品マスタ関連の関数
+  const handleOpenProductModal = (product: Product | null) => {
+    if (product) {
+      setEditingProduct(product);
+      setProductFormData({
+        productCode: product.productCode,
+        productName: product.productName,
+        category: product.category,
+        unit: product.unit,
+        standardPrice: product.standardPrice,
+        currency: product.currency,
+        remarks: product.remarks,
+        status: product.status,
+      });
+    } else {
+      setEditingProduct(null);
+      setProductFormData({
+        productCode: "",
+        productName: "",
+        category: "raw_material",
+        unit: "kg",
+        standardPrice: 0,
+        currency: "USD",
+        remarks: "",
+        status: "active",
+      });
+    }
+    setProductValidationError("");
+    setShowProductModal(true);
+  };
+
+  const handleProductSave = () => {
+    if (!productFormData.productCode.trim() || !productFormData.productName.trim()) {
+      setProductValidationError(lang === "ja" ? "品番と品目名は必須です" : "Mã sản phẩm và tên sản phẩm là bắt buộc");
+      return;
+    }
+
+    if (editingProduct) {
+      const updatedProduct = {
+        ...editingProduct,
+        ...productFormData,
+        updatedAt: new Date().toISOString().split("T")[0],
+      };
+      setProducts(products.map((p) => (p.id === editingProduct.id ? updatedProduct : p)));
+      addActivity("製品が更新されました", `${productFormData.productCode} - ${productFormData.productName}`, Package, "text-blue-500");
+    } else {
+      const id = `p-${Date.now()}`;
+      const newProduct = {
+        id,
+        incrementalId: products.length > 0 ? Math.max(...products.map((p) => p.incrementalId)) + 1 : 1,
+        ...productFormData,
+        createdAt: new Date().toISOString().split("T")[0],
+        updatedAt: new Date().toISOString().split("T")[0],
+      };
+      setProducts([...products, newProduct]);
+      addActivity("新規製品が追加されました", `${productFormData.productCode} - ${productFormData.productName}`, Package, "text-green-500");
+    }
+    setProductValidationError("");
+    setShowProductModal(false);
+  };
+
+  const handleProductDeleteClick = (id: string): void => {
+    setDeleteProductTargetId(id);
+    setShowProductDeleteConfirm(true);
+  };
+
+  const handleProductDeleteConfirm = () => {
+    if (deleteProductTargetId) {
+      const deletedProduct = products.find((p) => p.id === deleteProductTargetId);
+      setProducts(products.filter((p) => p.id !== deleteProductTargetId));
+      if (deletedProduct) {
+        addActivity("製品が削除されました", `${deletedProduct.productCode} - ${deletedProduct.productName}`, Trash2, "text-red-500");
+      }
+      setShowProductDeleteConfirm(false);
+      setDeleteProductTargetId(null);
+    }
+  };
+
+  const handleProductDeleteCancel = () => {
+    setShowProductDeleteConfirm(false);
+    setDeleteProductTargetId(null);
+  };
+
   // 発注関連の関数
   // 発注関連の型定義
   interface Order {
@@ -1280,7 +1449,7 @@ const App = () => {
     incrementalId: number;
     orderDate: string;
     supplierId: string;
-    product: string;
+    productId: string;
     quantity: number;
     unitPrice: number;
     currency: "USD" | "JPY" | "VND";
@@ -1299,7 +1468,7 @@ const App = () => {
   interface OrderFormData {
     orderDate: string;
     supplierId: string;
-    product: string;
+    productId: string;
     quantity: number;
     unitPrice: number;
     currency: "USD" | "JPY" | "VND";
@@ -1320,7 +1489,7 @@ const App = () => {
     incrementalId: number;
     saleDate: string;
     customerId: string;
-    product: string;
+    productId: string;
     quantity: number;
     unitPrice: number;
     currency: "USD" | "JPY" | "VND";
@@ -1339,7 +1508,7 @@ const App = () => {
   interface SaleFormData {
     saleDate: string;
     customerId: string;
-    product: string;
+    productId: string;
     quantity: number;
     unitPrice: number;
     currency: "USD" | "JPY" | "VND";
@@ -1353,27 +1522,6 @@ const App = () => {
     purchaseOrderReceived: boolean;
     deliveryNoteSent: boolean;
     invoiceSent: boolean;
-  }
-
-  // 品目マスタ
-  interface ProductMaster {
-    id: string;
-    incrementalId: number;
-    productCode: string; // 品番
-    productName: string; // 品目名
-    unitPrice: number; // 単価
-    currency: "USD" | "JPY" | "VND";
-    description: string; // 説明
-    remarks: string;
-  }
-
-  interface ProductMasterFormData {
-    productCode: string;
-    productName: string;
-    unitPrice: number;
-    currency: "USD" | "JPY" | "VND";
-    description: string;
-    remarks: string;
   }
 
   // 支払いマスタ（毎月かかる経費のテンプレート）
@@ -1436,7 +1584,7 @@ const App = () => {
       setOrderFormData({
         orderDate: order.orderDate,
         supplierId: order.supplierId.toString(),
-        product: order.product,
+        productId: order.productId,
         quantity: order.quantity,
         unitPrice: order.unitPrice,
         currency: order.currency,
@@ -1455,7 +1603,7 @@ const App = () => {
       setOrderFormData({
         orderDate: today,
         supplierId: "",
-        product: "",
+        productId: "",
         quantity: 0,
         unitPrice: 0,
         currency: "USD",
@@ -1482,8 +1630,8 @@ const App = () => {
       setOrderValidationError(lang === "ja" ? "仕入先を選択してください" : "Vui lòng chọn nhà cung cấp");
       return;
     }
-    if (!orderFormData.product || !orderFormData.product.trim()) {
-      setOrderValidationError(lang === "ja" ? "品目/品番を入力してください" : "Vui lòng nhập sản phẩm/mã");
+    if (!orderFormData.productId) {
+      setOrderValidationError(lang === "ja" ? "製品を選択してください" : "Vui lòng chọn sản phẩm");
       return;
     }
     if (!orderFormData.quantity || orderFormData.quantity <= 0) {
@@ -1502,7 +1650,7 @@ const App = () => {
     const orderData = {
       orderDate: orderFormData.orderDate,
       supplierId: orderFormData.supplierId,
-      product: orderFormData.product.trim(),
+      productId: orderFormData.productId,
       quantity: Number(orderFormData.quantity),
       unitPrice: Number(orderFormData.unitPrice),
       currency: orderFormData.currency,
@@ -1520,7 +1668,8 @@ const App = () => {
     if (editingOrder) {
       setOrders(orders.map((o) => (o.id === editingOrder.id ? { ...o, ...orderData } : o)));
       const supplier = suppliers.find((s) => s.id === orderFormData.supplierId);
-      addActivity("発注が更新されました", `${supplier?.name || "取引先"} - ${orderFormData.product}`, Edit, "text-blue-500");
+      const product = products.find((p) => p.id === orderFormData.productId);
+      addActivity("発注が更新されました", `${supplier?.name || "取引先"} - ${product?.productName || "製品"}`, Edit, "text-blue-500");
     } else {
       const newOrder = {
         id: `o-${String(incrementalId).padStart(3, "0")}`,
@@ -1529,7 +1678,13 @@ const App = () => {
       };
       setOrders([...orders, newOrder]);
       const supplier = suppliers.find((s) => s.id === orderFormData.supplierId);
-      addActivity("新規発注が登録されました", `${supplier?.name || "取引先"} - ${orderFormData.product}`, ShoppingCart, "text-green-500");
+      const product = products.find((p) => p.id === orderFormData.productId);
+      addActivity(
+        "新規発注が登録されました",
+        `${supplier?.name || "取引先"} - ${product?.productName || "製品"}`,
+        ShoppingCart,
+        "text-green-500"
+      );
     }
     setOrderValidationError("");
     setShowOrderModal(false);
@@ -1546,7 +1701,8 @@ const App = () => {
       setOrders(orders.filter((o) => o.id !== deleteOrderTargetId));
       if (deletedOrder) {
         const supplier = suppliers.find((s) => s.id === deletedOrder.supplierId);
-        addActivity("発注が削除されました", `${supplier?.name || "取引先"} - ${deletedOrder.product}`, Trash2, "text-red-500");
+        const product = products.find((p) => p.id === deletedOrder.productId);
+        addActivity("発注が削除されました", `${supplier?.name || "取引先"} - ${product?.productName || "製品"}`, Trash2, "text-red-500");
       }
       setShowOrderDeleteConfirm(false);
       setDeleteOrderTargetId("");
@@ -1566,7 +1722,7 @@ const App = () => {
       setSaleFormData({
         saleDate: sale.saleDate,
         customerId: sale.customerId.toString(),
-        product: sale.product,
+        productId: sale.productId,
         quantity: sale.quantity,
         unitPrice: sale.unitPrice,
         currency: sale.currency,
@@ -1585,7 +1741,7 @@ const App = () => {
       setSaleFormData({
         saleDate: today,
         customerId: "",
-        product: "",
+        productId: "",
         quantity: 0,
         unitPrice: 0,
         currency: "JPY",
@@ -1612,8 +1768,8 @@ const App = () => {
       setSaleValidationError(lang === "ja" ? "顧客を選択してください" : "Vui lòng chọn khách hàng");
       return;
     }
-    if (!saleFormData.product || !saleFormData.product.trim()) {
-      setSaleValidationError(lang === "ja" ? "品目/品番を入力してください" : "Vui lòng nhập sản phẩm/mã");
+    if (!saleFormData.productId || !saleFormData.productId.trim()) {
+      setSaleValidationError(lang === "ja" ? "製品を選択してください" : "Vui lòng chọn sản phẩm");
       return;
     }
     if (!saleFormData.quantity || saleFormData.quantity <= 0) {
@@ -1632,7 +1788,7 @@ const App = () => {
     const saleData = {
       saleDate: saleFormData.saleDate,
       customerId: saleFormData.customerId,
-      product: saleFormData.product.trim(),
+      productId: saleFormData.productId,
       quantity: Number(saleFormData.quantity),
       unitPrice: Number(saleFormData.unitPrice),
       currency: saleFormData.currency,
@@ -1650,12 +1806,13 @@ const App = () => {
     if (editingSale) {
       setSales(sales.map((s) => (s.id === editingSale.id ? { ...s, ...saleData } : s)));
       const customer = suppliers.find((c) => c.id === saleFormData.customerId);
+      const product = products.find((p) => p.id === saleFormData.productId);
       const amount = saleFormData.quantity * saleFormData.unitPrice;
       const currencySymbol = saleFormData.currency === "JPY" ? "¥" : saleFormData.currency === "VND" ? "" : "$";
       const currencySuffix = saleFormData.currency === "VND" ? " VND" : "";
       addActivity(
         "売上が更新されました",
-        `${customer?.name || "顧客"} - ${currencySymbol}${amount.toLocaleString()}${currencySuffix}`,
+        `${customer?.name || "顧客"} - ${product?.productName || "製品"} - ${currencySymbol}${amount.toLocaleString()}${currencySuffix}`,
         Edit,
         "text-blue-500"
       );
@@ -1667,12 +1824,13 @@ const App = () => {
       };
       setSales([...sales, newSale]);
       const customer = suppliers.find((c) => c.id === saleFormData.customerId);
+      const product = products.find((p) => p.id === saleFormData.productId);
       const amount = saleFormData.quantity * saleFormData.unitPrice;
       const currencySymbol = saleFormData.currency === "JPY" ? "¥" : saleFormData.currency === "VND" ? "" : "$";
       const currencySuffix = saleFormData.currency === "VND" ? " VND" : "";
       addActivity(
         "売上が計上されました",
-        `${customer?.name || "顧客"} - ${currencySymbol}${amount.toLocaleString()}${currencySuffix}`,
+        `${customer?.name || "顧客"} - ${product?.productName || "製品"} - ${currencySymbol}${amount.toLocaleString()}${currencySuffix}`,
         TrendingUp,
         "text-purple-500"
       );
@@ -1692,7 +1850,8 @@ const App = () => {
       setSales(sales.filter((s) => s.id !== deleteSaleTargetId));
       if (deletedSale) {
         const customer = suppliers.find((c) => c.id === deletedSale.customerId);
-        addActivity("売上が削除されました", `${customer?.name || "顧客"} - ${deletedSale.product}`, Trash2, "text-red-500");
+        const product = products.find((p) => p.id === deletedSale.productId);
+        addActivity("売上が削除されました", `${customer?.name || "顧客"} - ${product?.productName || "製品"}`, Trash2, "text-red-500");
       }
       setShowSaleDeleteConfirm(false);
       setDeleteSaleTargetId("");
@@ -1825,102 +1984,6 @@ const App = () => {
   const handlePaymentDeleteCancel = () => {
     setShowPaymentDeleteConfirm(false);
     setDeletePaymentTargetId("");
-  };
-
-  // 支払いマスタ関連の関数
-  // 品目マスタのCRUD関数
-  const handleOpenProductMasterModal = (master: ProductMaster | null): void => {
-    setProductMasterValidationError("");
-    if (master) {
-      setEditingProductMaster(master);
-      setProductMasterFormData({
-        productCode: master.productCode,
-        productName: master.productName,
-        unitPrice: master.unitPrice,
-        currency: master.currency,
-        description: master.description,
-        remarks: master.remarks,
-      });
-    } else {
-      setEditingProductMaster(null);
-      setProductMasterFormData({
-        productCode: "",
-        productName: "",
-        unitPrice: 0,
-        currency: "USD",
-        description: "",
-        remarks: "",
-      });
-    }
-    setShowProductMasterModal(true);
-  };
-
-  const handleProductMasterSave = () => {
-    if (!productMasterFormData.productCode) {
-      setProductMasterValidationError("品番は必須です");
-      return;
-    }
-    if (!productMasterFormData.productName) {
-      setProductMasterValidationError("品目名は必須です");
-      return;
-    }
-
-    const masterData = {
-      productCode: productMasterFormData.productCode,
-      productName: productMasterFormData.productName,
-      unitPrice: Number(productMasterFormData.unitPrice),
-      currency: productMasterFormData.currency,
-      description: productMasterFormData.description,
-      remarks: productMasterFormData.remarks,
-    };
-
-    const incrementalId = productMasters.length > 0 ? Math.max(...productMasters.map((m) => m.incrementalId)) + 1 : 1;
-    if (editingProductMaster) {
-      setProductMasters(productMasters.map((m) => (m.id === editingProductMaster.id ? { ...m, ...masterData } : m)));
-      addActivity(
-        "品目マスタが更新されました",
-        `${productMasterFormData.productCode} - ${productMasterFormData.productName}`,
-        Edit,
-        "text-blue-500"
-      );
-    } else {
-      const newMaster = {
-        id: `prod-${String(incrementalId).padStart(3, "0")}`,
-        incrementalId,
-        ...masterData,
-      };
-      setProductMasters([...productMasters, newMaster]);
-      addActivity(
-        "新規品目マスタが登録されました",
-        `${productMasterFormData.productCode} - ${productMasterFormData.productName}`,
-        Package,
-        "text-green-500"
-      );
-    }
-    setProductMasterValidationError("");
-    setShowProductMasterModal(false);
-  };
-
-  const handleDeleteProductMaster = (id: string) => {
-    setDeleteProductMasterTargetId(id);
-    setShowProductMasterDeleteConfirm(true);
-  };
-
-  const handleProductMasterDeleteConfirm = () => {
-    if (deleteProductMasterTargetId) {
-      const deletedMaster = productMasters.find((m) => m.id === deleteProductMasterTargetId);
-      setProductMasters(productMasters.filter((m) => m.id !== deleteProductMasterTargetId));
-      if (deletedMaster) {
-        addActivity("品目マスタが削除されました", `${deletedMaster.productCode} - ${deletedMaster.productName}`, Trash2, "text-red-500");
-      }
-      setShowProductMasterDeleteConfirm(false);
-      setDeleteProductMasterTargetId("");
-    }
-  };
-
-  const handleProductMasterDeleteCancel = () => {
-    setShowProductMasterDeleteConfirm(false);
-    setDeleteProductMasterTargetId("");
   };
 
   // 支払いマスタのCRUD関数
@@ -2057,8 +2120,10 @@ const App = () => {
     orders.filter((order) => {
       const supplier = suppliers.find((s) => s.id === order.supplierId);
       const supplierName = supplier ? supplier.name : "";
+      const product = products.find((p) => p.id === order.productId);
+      const productName = product ? `${product.productCode} ${product.productName}` : "";
       const matchesSearch =
-        order.product.toLowerCase().includes(orderSearchQuery.toLowerCase()) ||
+        productName.toLowerCase().includes(orderSearchQuery.toLowerCase()) ||
         supplierName.toLowerCase().includes(orderSearchQuery.toLowerCase());
       const matchesFilter =
         orderFilterStatus === "all" ||
@@ -2081,8 +2146,10 @@ const App = () => {
     sales.filter((sale) => {
       const customer = suppliers.find((s) => s.id === sale.customerId);
       const customerName = customer ? customer.name : "";
+      const product = products.find((p) => p.id === sale.productId);
+      const productName = product ? `${product.productCode} ${product.productName}` : "";
       const matchesSearch =
-        sale.product.toLowerCase().includes(saleSearchQuery.toLowerCase()) ||
+        productName.toLowerCase().includes(saleSearchQuery.toLowerCase()) ||
         customerName.toLowerCase().includes(saleSearchQuery.toLowerCase());
       const matchesFilter =
         saleFilterStatus === "all" ||
@@ -2175,7 +2242,9 @@ const App = () => {
       const orderMonth = orderDate.getMonth();
       const orderYear = orderDate.getFullYear();
 
-      console.log(`発注ID ${order.id}: 日付=${order.orderDate}, 月=${orderMonth}, 年=${orderYear}, 発注済み=${order.ordered}, 納品済み=${order.delivered}`);
+      console.log(
+        `発注ID ${order.id}: 日付=${order.orderDate}, 月=${orderMonth}, 年=${orderYear}, 発注済み=${order.ordered}, 納品済み=${order.delivered}`
+      );
 
       const isCurrentMonth = orderMonth === targetMonth && orderYear === targetYear;
       const isValidStatus = order.ordered || order.delivered;
@@ -2312,6 +2381,180 @@ const App = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <SalesByCustomer data={salesData} title={t.salesByCustomer} colors={COLORS} />
         <CashFlow data={cashFlowData} title={t.cashFlow} />
+      </div>
+    </div>
+  );
+
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch =
+      product.productCode.toLowerCase().includes(productSearchQuery.toLowerCase()) ||
+      product.productName.toLowerCase().includes(productSearchQuery.toLowerCase());
+    const matchesFilter = productFilterCategory === "all" || product.category === productFilterCategory;
+    return matchesSearch && matchesFilter;
+  });
+
+  const productStats = {
+    total: products.length,
+    active: products.filter((p) => p.status === "active").length,
+    inactive: products.filter((p) => p.status === "inactive").length,
+  };
+
+  const renderProducts = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 mb-1">{t.totalProducts}</p>
+              <p className="text-3xl font-bold text-gray-800">{productStats.total}</p>
+            </div>
+            <div className="p-3 bg-blue-50 rounded-lg">
+              <Package className="text-blue-500" size={24} />
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 mb-1">{t.activeProducts}</p>
+              <p className="text-3xl font-bold text-green-600">{productStats.active}</p>
+            </div>
+            <div className="p-3 bg-green-50 rounded-lg">
+              <CheckCircle className="text-green-500" size={24} />
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 mb-1">{t.inactiveProducts}</p>
+              <p className="text-3xl font-bold text-gray-600">{productStats.inactive}</p>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <Clock className="text-gray-500" size={24} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div className="p-4 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex flex-col md:flex-row md:items-center gap-4 flex-1">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <input
+                type="text"
+                placeholder={t.search}
+                value={productSearchQuery}
+                onChange={(e) => setProductSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <select
+              value={productFilterCategory}
+              onChange={(e) => setProductFilterCategory(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">{t.all}</option>
+              <option value="raw_material">{t.raw_material}</option>
+              <option value="finished_goods">{t.finished_goods}</option>
+              <option value="semi_finished">{t.semi_finished}</option>
+              <option value="parts">{t.parts}</option>
+              <option value="other">{t.other}</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2 md:gap-3">
+            <button className="px-3 md:px-4 py-2 text-gray-700 hover:bg-gray-50 border border-gray-300 rounded-lg flex items-center gap-2 text-sm md:text-base">
+              <Download size={18} />
+              <span className="hidden sm:inline">{t.export}</span>
+            </button>
+            <button
+              onClick={() => handleOpenProductModal(null)}
+              className="px-4 md:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium text-sm md:text-base"
+            >
+              <Plus size={20} />
+              <span>{t.addProduct}</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-y border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.productCode}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.productName}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.productCategory}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.unit}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.standardPrice}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.status}</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t.actions}</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredProducts.map((product) => (
+                <tr key={product.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4">
+                    <p className="font-medium text-gray-800">{product.productCode}</p>
+                  </td>
+                  <td className="px-6 py-4">
+                    <p className="font-medium text-gray-800">{product.productName}</p>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-700">
+                    {lang === "ja"
+                      ? product.category === "raw_material"
+                        ? "原材料"
+                        : product.category === "finished_goods"
+                        ? "完成品"
+                        : product.category === "semi_finished"
+                        ? "半製品"
+                        : product.category === "parts"
+                        ? "部品"
+                        : "その他"
+                      : product.category === "raw_material"
+                      ? "Nguyên liệu"
+                      : product.category === "finished_goods"
+                      ? "Thành phẩm"
+                      : product.category === "semi_finished"
+                      ? "Bán thành phẩm"
+                      : product.category === "parts"
+                      ? "Linh kiện"
+                      : "Khác"}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-700">{t[product.unit as keyof typeof t] || product.unit}</td>
+                  <td className="px-6 py-4 text-sm text-gray-700">
+                    {product.currency} {product.standardPrice.toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                        product.status === "active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      {product.status === "active" ? t.active : t.inactive}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => handleOpenProductModal(product)}
+                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      >
+                        <Edit size={18} />
+                      </button>
+                      <button
+                        onClick={() => handleProductDeleteClick(product.id)}
+                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
@@ -2468,8 +2711,17 @@ const App = () => {
                       <p className="font-medium text-gray-800">{supplier?.name || "-"}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="font-medium text-gray-800 leading-tight">{order.product.split(" - ")[0]}</p>
-                      <p className="text-sm text-gray-600 leading-tight">{order.product.split(" - ")[1] || ""}</p>
+                      {(() => {
+                        const product = products.find((p) => p.id === order.productId);
+                        return product ? (
+                          <>
+                            <p className="font-medium text-gray-800 leading-tight">{product.productCode}</p>
+                            <p className="text-sm text-gray-600 leading-tight">{product.productName}</p>
+                          </>
+                        ) : (
+                          <p className="text-sm text-gray-500">-</p>
+                        );
+                      })()}
                     </td>
                     <td className="px-6 py-4 text-right text-sm text-gray-700">{order.quantity.toLocaleString()}</td>
                     <td className="px-6 py-4 text-right text-sm font-medium text-gray-800">
@@ -2875,11 +3127,7 @@ const App = () => {
                 const customer = suppliers.find((s) => s.id === sale.customerId);
                 const totalAmount = sale.quantity * sale.unitPrice;
                 return (
-                  <tr
-                    key={sale.id}
-                    className="hover:bg-gray-50 transition-colors cursor-pointer"
-                    onClick={() => handleOpenSaleModal(sale)}
-                  >
+                  <tr key={sale.id} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => handleOpenSaleModal(sale)}>
                     <td className="px-6 py-4 text-sm text-gray-700">{sale.saleDate}</td>
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-800">{customer?.name || "-"}</div>
@@ -2888,8 +3136,17 @@ const App = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="font-medium text-gray-800 leading-tight">{sale.product.split(" ")[0]}</p>
-                      <p className="text-sm text-gray-600 leading-tight">{sale.product.split(" ")[1] || ""}</p>
+                      {(() => {
+                        const product = products.find((p) => p.id === sale.productId);
+                        return product ? (
+                          <>
+                            <p className="font-medium text-gray-800 leading-tight">{product.productCode}</p>
+                            <p className="text-sm text-gray-600 leading-tight">{product.productName}</p>
+                          </>
+                        ) : (
+                          <p className="text-sm text-gray-500">-</p>
+                        );
+                      })()}
                     </td>
                     <td className="px-6 py-4 text-right text-sm text-gray-700">{sale.quantity.toLocaleString()}</td>
                     <td className="px-6 py-4 text-right text-sm font-medium text-gray-800">
@@ -3164,171 +3421,6 @@ const App = () => {
                         </button>
                         <button
                           onClick={() => handleDeletePayment(payment.id)}
-                          className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderProductMaster = () => (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 mb-1">{t.totalProductMasters}</p>
-              <p className="text-3xl font-bold text-gray-800">{productMasterStats.totalCount}</p>
-            </div>
-            <div className="p-3 bg-blue-50 rounded-lg">
-              <Package className="text-blue-500" size={24} />
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 mb-1">USD {t.productName}</p>
-              <p className="text-3xl font-bold text-green-600">{productMasterStats.usdCount}</p>
-            </div>
-            <div className="p-3 bg-green-50 rounded-lg">
-              <DollarSign className="text-green-500" size={24} />
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 mb-1">JPY {t.productName}</p>
-              <p className="text-3xl font-bold text-orange-600">{productMasterStats.jpyCount}</p>
-            </div>
-            <div className="p-3 bg-orange-50 rounded-lg">
-              <DollarSign className="text-orange-500" size={24} />
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 mb-1">{t.unitPrice} (USD平均)</p>
-              <p className="text-2xl font-bold text-purple-600">${productMasterStats.avgUnitPriceUSD.toFixed(0)}</p>
-            </div>
-            <div className="p-3 bg-purple-50 rounded-lg">
-              <TrendingUp className="text-purple-500" size={24} />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="p-4 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-4 flex-1">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-              <input
-                type="text"
-                placeholder={t.search}
-                value={productMasterSearchQuery}
-                onChange={(e) => setProductMasterSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-          <button
-            onClick={() => handleOpenProductMasterModal(null)}
-            className="px-4 md:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors text-sm md:text-base"
-          >
-            <Plus size={20} />
-            <span className="hidden sm:inline">{t.addProductMaster}</span>
-            <span className="sm:hidden">追加</span>
-          </button>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full table-auto">
-            <thead className="bg-gray-50 border-y border-gray-200">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">No.</th>
-                <SortableHeader
-                  label={t.productCode}
-                  sortKey="productCode"
-                  currentConfig={productMasterSortConfig}
-                  onClick={() => handleSort("productCode", productMasterSortConfig, setProductMasterSortConfig)}
-                />
-                <SortableHeader
-                  label={t.productName}
-                  sortKey="productName"
-                  currentConfig={productMasterSortConfig}
-                  onClick={() => handleSort("productName", productMasterSortConfig, setProductMasterSortConfig)}
-                />
-                <SortableHeader
-                  label={t.unitPrice}
-                  sortKey="unitPrice"
-                  currentConfig={productMasterSortConfig}
-                  onClick={() => handleSort("unitPrice", productMasterSortConfig, setProductMasterSortConfig)}
-                />
-                <SortableHeader
-                  label={t.description}
-                  sortKey="description"
-                  currentConfig={productMasterSortConfig}
-                  onClick={() => handleSort("description", productMasterSortConfig, setProductMasterSortConfig)}
-                />
-                <SortableHeader
-                  label={t.remarks}
-                  sortKey="remarks"
-                  currentConfig={productMasterSortConfig}
-                  onClick={() => handleSort("remarks", productMasterSortConfig, setProductMasterSortConfig)}
-                />
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  {t.actions}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredProductMasters.map((master) => {
-                return (
-                  <tr key={master.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{master.incrementalId}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{master.productCode}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">{master.productName}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-semibold text-gray-900">
-                        {master.currency === "JPY"
-                          ? `¥${master.unitPrice.toLocaleString()}`
-                          : master.currency === "VND"
-                          ? `${master.unitPrice.toLocaleString()} VND`
-                          : `$${master.unitPrice.toLocaleString()}`}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-600">{master.description || "-"}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-600">{master.remarks || "-"}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => handleOpenProductMasterModal(master)}
-                          className="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteProductMaster(master.id)}
                           className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
                         >
                           <Trash2 size={16} />
@@ -3712,10 +3804,10 @@ const App = () => {
         </header>
 
         {/* コンテンツエリア */}
-        <div className="p-4 md:p-6 lg:px-[80px] mx-auto">
+        <div className="p-4 md:p-6 lg:px-20 mx-auto">
           {currentPage === "dashboard" && renderDashboard()}
           {currentPage === "suppliers" && renderSuppliers()}
-          {currentPage === "productMaster" && renderProductMaster()}
+          {currentPage === "products" && renderProducts()}
           {currentPage === "orders" && renderOrders()}
           {currentPage === "sales" && renderSales()}
           {currentPage === "payments" && renderPayments()}
@@ -3951,28 +4043,30 @@ const App = () => {
                   {t.product} <span className="text-red-500">*</span>
                 </label>
                 <select
-                  value={orderFormData.product}
+                  value={orderFormData.productId}
                   onChange={(e) => {
-                    const selectedProduct = productMasters.find((pm) => `${pm.productCode} - ${pm.productName}` === e.target.value);
+                    const selectedProduct = products.find((p) => p.id === e.target.value);
                     if (selectedProduct) {
                       setOrderFormData({
                         ...orderFormData,
-                        product: e.target.value,
-                        unitPrice: selectedProduct.unitPrice,
+                        productId: e.target.value,
+                        unitPrice: selectedProduct.standardPrice,
                         currency: selectedProduct.currency,
                       });
                     } else {
-                      setOrderFormData({ ...orderFormData, product: e.target.value });
+                      setOrderFormData({ ...orderFormData, productId: e.target.value });
                     }
                   }}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">{lang === "ja" ? "品目を選択してください" : "Chọn sản phẩm"}</option>
-                  {productMasters.map((pm) => (
-                    <option key={pm.id} value={`${pm.productCode} - ${pm.productName}`}>
-                      {pm.productCode} - {pm.productName}
-                    </option>
-                  ))}
+                  <option value="">{lang === "ja" ? "製品を選択してください" : "Chọn sản phẩm"}</option>
+                  {products
+                    .filter((p) => p.status === "active")
+                    .map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.productCode} - {p.productName}
+                      </option>
+                    ))}
                 </select>
               </div>
 
@@ -4050,9 +4144,7 @@ const App = () => {
               </div>
 
               <div className="border-t pt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  {lang === "ja" ? "ステータス" : "Trạng thái"}
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-3">{lang === "ja" ? "ステータス" : "Trạng thái"}</label>
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -4085,9 +4177,7 @@ const App = () => {
               </div>
 
               <div className="border-t pt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  {lang === "ja" ? "書類状況" : "Trạng thái tài liệu"}
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-3">{lang === "ja" ? "書類状況" : "Trạng thái tài liệu"}</label>
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -4239,13 +4329,32 @@ const App = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {t.product} <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  value={saleFormData.product}
-                  onChange={(e) => setSaleFormData({ ...saleFormData, product: e.target.value })}
+                <select
+                  value={saleFormData.productId}
+                  onChange={(e) => {
+                    const selectedProduct = products.find((p) => p.id === e.target.value);
+                    if (selectedProduct) {
+                      setSaleFormData({
+                        ...saleFormData,
+                        productId: e.target.value,
+                        unitPrice: selectedProduct.standardPrice,
+                        currency: selectedProduct.currency,
+                      });
+                    } else {
+                      setSaleFormData({ ...saleFormData, productId: e.target.value });
+                    }
+                  }}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="例: ビニール製品 VP-100"
-                />
+                >
+                  <option value="">{lang === "ja" ? "製品を選択してください" : "Chọn sản phẩm"}</option>
+                  {products
+                    .filter((p) => p.status === "active")
+                    .map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.productCode} - {p.productName}
+                      </option>
+                    ))}
+                </select>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -4322,9 +4431,7 @@ const App = () => {
               </div>
 
               <div className="border-t pt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  {lang === "ja" ? "ステータス" : "Trạng thái"}
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-3">{lang === "ja" ? "ステータス" : "Trạng thái"}</label>
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -4357,9 +4464,7 @@ const App = () => {
               </div>
 
               <div className="border-t pt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  {lang === "ja" ? "書類状況" : "Trạng thái tài liệu"}
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-3">{lang === "ja" ? "書類状況" : "Trạng thái tài liệu"}</label>
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -4626,150 +4731,6 @@ const App = () => {
       )}
 
       {/* 支払いマスタ登録・編集モーダル */}
-      {/* 品目マスタ登録・編集モーダル */}
-      {showProductMasterModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-2xl">
-              <h2 className="text-2xl font-bold text-gray-800">{editingProductMaster ? t.editProductMaster : t.addProductMaster}</h2>
-            </div>
-
-            <div className="p-4 md:p-6 space-y-4 md:space-y-6">
-              {productMasterValidationError && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-                  <AlertCircle className="text-red-600 shrink-0 mt-0.5" size={20} />
-                  <p className="text-sm text-red-800">{productMasterValidationError}</p>
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.productCode}</label>
-                  <input
-                    type="text"
-                    value={productMasterFormData.productCode}
-                    onChange={(e) => setProductMasterFormData({ ...productMasterFormData, productCode: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder={t.productCode}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.productName}</label>
-                  <input
-                    type="text"
-                    value={productMasterFormData.productName}
-                    onChange={(e) => setProductMasterFormData({ ...productMasterFormData, productName: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder={t.productName}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.unitPrice}</label>
-                  <input
-                    type="number"
-                    value={productMasterFormData.unitPrice}
-                    onChange={(e) => setProductMasterFormData({ ...productMasterFormData, unitPrice: Number(e.target.value) })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    min="0"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.currency}</label>
-                  <select
-                    value={productMasterFormData.currency}
-                    onChange={(e) =>
-                      setProductMasterFormData({
-                        ...productMasterFormData,
-                        currency: e.target.value as "USD" | "JPY" | "VND",
-                      })
-                    }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="USD">USD</option>
-                    <option value="JPY">JPY</option>
-                    <option value="VND">VND</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">{t.description}</label>
-                <input
-                  type="text"
-                  value={productMasterFormData.description}
-                  onChange={(e) => setProductMasterFormData({ ...productMasterFormData, description: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder={t.description}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">{t.remarks}</label>
-                <textarea
-                  value={productMasterFormData.remarks}
-                  onChange={(e) => setProductMasterFormData({ ...productMasterFormData, remarks: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  rows={3}
-                  placeholder={t.remarks}
-                />
-              </div>
-            </div>
-
-            <div className="sticky bottom-0 bg-gray-50 px-6 py-4 rounded-b-2xl flex gap-3">
-              <button
-                onClick={() => setShowProductMasterModal(false)}
-                className="flex-1 px-6 py-3 text-gray-700 hover:bg-gray-200 border border-gray-300 rounded-lg font-medium transition-colors"
-              >
-                {t.cancel}
-              </button>
-              <button
-                onClick={handleProductMasterSave}
-                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
-              >
-                {t.save}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 品目マスタ削除確認モーダル */}
-      {showProductMasterDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-            <div className="p-6">
-              <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mx-auto mb-4">
-                <AlertCircle className="text-red-600" size={24} />
-              </div>
-              <h3 className="text-xl font-bold text-gray-800 text-center mb-2">{lang === "ja" ? "削除の確認" : "Xác nhận xóa"}</h3>
-              <p className="text-gray-600 text-center mb-6">
-                {lang === "ja" ? "この品目マスタを削除してもよろしいですか？" : "Bạn có chắc chắn muốn xóa master sản phẩm này?"}
-              </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={handleProductMasterDeleteCancel}
-                  className="flex-1 px-6 py-3 text-gray-700 hover:bg-gray-100 border border-gray-300 rounded-lg font-medium transition-colors"
-                >
-                  {t.cancel}
-                </button>
-                <button
-                  onClick={handleProductMasterDeleteConfirm}
-                  className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
-                >
-                  {t.delete}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 支払いマスタ登録・編集モーダル */}
       {showPaymentMasterModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -4987,6 +4948,168 @@ const App = () => {
                 </button>
                 <button
                   onClick={handleDeleteConfirm}
+                  className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
+                >
+                  {t.delete}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 製品マスタモーダル */}
+      {showProductModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-2 md:p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="p-4 md:p-6 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-800">{editingProduct ? t.editProduct : t.addProduct}</h2>
+              <button onClick={() => setShowProductModal(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+              {productValidationError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">{productValidationError}</div>
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t.productCode} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={productFormData.productCode}
+                    onChange={(e) => setProductFormData({ ...productFormData, productCode: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder={t.productCode}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t.productName} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={productFormData.productName}
+                    onChange={(e) => setProductFormData({ ...productFormData, productName: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder={t.productName}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.category}</label>
+                  <select
+                    value={productFormData.category}
+                    onChange={(e) =>
+                      setProductFormData({
+                        ...productFormData,
+                        category: e.target.value as ProductFormData["category"],
+                      })
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="raw_material">{t.raw_material}</option>
+                    <option value="finished_goods">{t.finished_goods}</option>
+                    <option value="semi_finished">{t.semi_finished}</option>
+                    <option value="parts">{t.parts}</option>
+                    <option value="other">{t.other}</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.unit}</label>
+                  <select
+                    value={productFormData.unit}
+                    onChange={(e) => setProductFormData({ ...productFormData, unit: e.target.value as ProductFormData["unit"] })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="kg">{t.kg}</option>
+                    <option value="ton">{t.ton}</option>
+                    <option value="piece">{t.piece}</option>
+                    <option value="box">{t.box}</option>
+                    <option value="liter">{t.liter}</option>
+                    <option value="meter">{t.meter}</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.standardPrice}</label>
+                  <input
+                    type="number"
+                    value={productFormData.standardPrice}
+                    onChange={(e) => setProductFormData({ ...productFormData, standardPrice: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    step="0.01"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.currency}</label>
+                  <select
+                    value={productFormData.currency}
+                    onChange={(e) => setProductFormData({ ...productFormData, currency: e.target.value as "USD" | "JPY" | "VND" })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="USD">USD</option>
+                    <option value="JPY">JPY</option>
+                    <option value="VND">VND</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t.status}</label>
+                <select
+                  value={productFormData.status}
+                  onChange={(e) => setProductFormData({ ...productFormData, status: e.target.value as "active" | "inactive" })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="active">{t.active}</option>
+                  <option value="inactive">{t.inactive}</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t.remarks}</label>
+                <textarea
+                  value={productFormData.remarks}
+                  onChange={(e) => setProductFormData({ ...productFormData, remarks: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder={t.remarks}
+                />
+              </div>
+            </div>
+            <div className="p-4 md:p-6 border-t border-gray-200 flex gap-3 sticky bottom-0 bg-white">
+              <button
+                onClick={() => setShowProductModal(false)}
+                className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+              >
+                {t.cancel}
+              </button>
+              <button
+                onClick={handleProductSave}
+                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+              >
+                {t.save}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 製品マスタ削除確認モーダル */}
+      {showProductDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">{t.deleteConfirmTitle}</h3>
+              <p className="text-gray-600 mb-6">{t.deleteConfirmMessage}</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleProductDeleteCancel}
+                  className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                >
+                  {t.cancel}
+                </button>
+                <button
+                  onClick={handleProductDeleteConfirm}
                   className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
                 >
                   {t.delete}
