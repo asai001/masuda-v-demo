@@ -89,7 +89,7 @@ const App = () => {
   const getCurrentYearMonth = () => {
     const now = new Date();
     const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, "0");
     return `${year}-${month}`;
   };
   const [selectedYearMonth, setSelectedYearMonth] = useState(getCurrentYearMonth()); // デフォルトは当月
@@ -110,7 +110,7 @@ const App = () => {
   // ソート機能用のstate
   type SortConfig = {
     key: string;
-    direction: 'asc' | 'desc';
+    direction: "asc" | "desc";
   } | null;
 
   const [supplierSortConfig, setSupplierSortConfig] = useState<SortConfig>(null);
@@ -132,15 +132,15 @@ const App = () => {
       if (aValue === bValue) return 0;
 
       // 数値の場合
-      if (typeof aValue === 'number' && typeof bValue === 'number') {
-        return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
+      if (typeof aValue === "number" && typeof bValue === "number") {
+        return sortConfig.direction === "asc" ? aValue - bValue : bValue - aValue;
       }
 
       // 文字列の場合
       const aStr = String(aValue).toLowerCase();
       const bStr = String(bValue).toLowerCase();
 
-      if (sortConfig.direction === 'asc') {
+      if (sortConfig.direction === "asc") {
         return aStr < bStr ? -1 : 1;
       } else {
         return aStr > bStr ? -1 : 1;
@@ -152,9 +152,9 @@ const App = () => {
 
   // ソートヘッダークリックハンドラー
   const handleSort = (key: string, currentConfig: SortConfig, setConfig: (config: SortConfig) => void) => {
-    let direction: 'asc' | 'desc' = 'asc';
-    if (currentConfig && currentConfig.key === key && currentConfig.direction === 'asc') {
-      direction = 'desc';
+    let direction: "asc" | "desc" = "asc";
+    if (currentConfig && currentConfig.key === key && currentConfig.direction === "asc") {
+      direction = "desc";
     }
     setConfig({ key, direction });
   };
@@ -164,7 +164,7 @@ const App = () => {
     label,
     sortKey,
     currentConfig,
-    onClick
+    onClick,
   }: {
     label: string;
     sortKey: string;
@@ -176,15 +176,15 @@ const App = () => {
 
     return (
       <th
-        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none whitespace-nowrap"
         onClick={onClick}
       >
         <div className="flex items-center gap-1">
           {label}
           <span className="text-gray-400">
-            {!isActive && '⇅'}
-            {isActive && direction === 'asc' && '↑'}
-            {isActive && direction === 'desc' && '↓'}
+            {!isActive && "⇅"}
+            {isActive && direction === "asc" && "↑"}
+            {isActive && direction === "desc" && "↓"}
           </span>
         </div>
       </th>
@@ -244,7 +244,7 @@ const App = () => {
   // アクティビティを追加する関数
   const addActivity = (action: string, details: string, icon: typeof CheckCircle, color: string) => {
     const newActivity: Activity = {
-      id: activities.length > 0 ? Math.max(...activities.map(a => a.id)) + 1 : 1,
+      id: activities.length > 0 ? Math.max(...activities.map((a) => a.id)) + 1 : 1,
       action,
       details,
       user: "システム",
@@ -260,7 +260,7 @@ const App = () => {
       dashboard: "ダッシュボード",
       suppliers: "取引先マスタ",
       orders: "発注登録",
-      sales: "売上計上",
+      sales: "受注管理",
       payments: "支払管理",
       reports: "レポート",
       settings: "設定",
@@ -351,15 +351,15 @@ const App = () => {
       totalOrders: "発注件数",
       pendingOrders: "発注済み",
       deliveredOrders: "納品済み",
-      saleMaster: "売上管理",
-      saleList: "売上一覧",
-      addSale: "新規売上",
-      editSale: "売上編集",
-      saleDate: "売上日",
+      saleMaster: "受注管理",
+      saleList: "受注一覧",
+      addSale: "新規受注",
+      editSale: "受注編集",
+      saleDate: "受注日",
       customerName: "顧客名",
       pending: "未出荷",
       shipped: "出荷済み",
-      totalSalesCount: "売上件数",
+      totalSalesCount: "受注件数",
       pendingSales: "未出荷",
       shippedSales: "出荷済み",
       deliveredSales: "納品済み",
@@ -411,7 +411,7 @@ const App = () => {
       dashboard: "Bảng điều khiển",
       suppliers: "Nhà cung cấp",
       orders: "Đặt hàng",
-      sales: "Doanh thu",
+      sales: "Đơn đặt hàng",
       payments: "Thanh toán",
       reports: "Báo cáo",
       settings: "Cài đặt",
@@ -502,16 +502,16 @@ const App = () => {
       totalOrders: "Tổng đơn hàng",
       pendingOrders: "Đã đặt hàng",
       deliveredOrders: "Đã giao hàng",
-      saleMaster: "Quản lý doanh thu",
-      saleList: "Danh sách doanh thu",
-      addSale: "Doanh thu mới",
-      editSale: "Chỉnh sửa doanh thu",
-      saleDate: "Ngày bán",
+      saleMaster: "Quản lý đơn hàng",
+      saleList: "Danh sách đơn hàng",
+      addSale: "Đơn hàng mới",
+      editSale: "Chỉnh sửa đơn hàng",
+      saleDate: "Ngày nhận đơn",
       customerName: "Tên khách hàng",
       pending: "Chưa giao",
       shipped: "Đã xuất",
-      totalSalesCount: "Số lượng doanh thu",
-      pendingSales: "Chưa giao",
+      totalSalesCount: "Số đơn hàng",
+      pendingSales: "Chưa xuất",
       shippedSales: "Đã xuất",
       deliveredSales: "Đã giao",
       usa: "Mỹ",
@@ -715,8 +715,13 @@ const App = () => {
       unitPrice: 150,
       currency: "USD",
       deliveryDate: "2025-11-25",
-      status: "ordered",
       remarks: "通常発注",
+      ordered: true,
+      delivered: false,
+      paid: false,
+      purchaseOrderSent: true,
+      deliveryNoteReceived: false,
+      invoiceReceived: false,
     },
     {
       id: "o-002",
@@ -728,8 +733,13 @@ const App = () => {
       unitPrice: 50,
       currency: "USD",
       deliveryDate: "2025-11-28",
-      status: "ordered",
       remarks: "急ぎ",
+      ordered: true,
+      delivered: false,
+      paid: false,
+      purchaseOrderSent: false,
+      deliveryNoteReceived: false,
+      invoiceReceived: false,
     },
     {
       id: "o-003",
@@ -741,8 +751,13 @@ const App = () => {
       unitPrice: 200,
       currency: "USD",
       deliveryDate: "2025-11-20",
-      status: "delivered",
       remarks: "納品完了",
+      ordered: true,
+      delivered: true,
+      paid: true,
+      purchaseOrderSent: true,
+      deliveryNoteReceived: true,
+      invoiceReceived: true,
     },
   ]);
 
@@ -754,11 +769,16 @@ const App = () => {
     unitPrice: 0,
     currency: "USD",
     deliveryDate: "",
-    status: "ordered",
     remarks: "",
+    ordered: true, // デフォルトでチェック
+    delivered: false,
+    paid: false,
+    purchaseOrderSent: false,
+    deliveryNoteReceived: false,
+    invoiceReceived: false,
   });
 
-  // 売上データ
+  // 受注データ
   const [sales, setSales] = useState<Sale[]>([
     {
       id: "sl-001",
@@ -770,8 +790,13 @@ const App = () => {
       unitPrice: 2200,
       currency: "JPY",
       deliveryDate: "2025-11-25",
-      status: "shipped",
       remarks: "定期取引",
+      shipped: true,
+      delivered: false,
+      paid: false,
+      purchaseOrderReceived: true,
+      deliveryNoteSent: true,
+      invoiceSent: false,
     },
     {
       id: "sl-002",
@@ -783,8 +808,13 @@ const App = () => {
       unitPrice: 1800,
       currency: "JPY",
       deliveryDate: "2025-11-28",
-      status: "pending",
       remarks: "急ぎ対応",
+      shipped: false,
+      delivered: false,
+      paid: false,
+      purchaseOrderReceived: true,
+      deliveryNoteSent: false,
+      invoiceSent: false,
     },
     {
       id: "sl-003",
@@ -796,8 +826,13 @@ const App = () => {
       unitPrice: 3500,
       currency: "JPY",
       deliveryDate: "2025-11-20",
-      status: "delivered",
       remarks: "納品完了",
+      shipped: true,
+      delivered: true,
+      paid: true,
+      purchaseOrderReceived: true,
+      deliveryNoteSent: true,
+      invoiceSent: true,
     },
   ]);
 
@@ -809,8 +844,13 @@ const App = () => {
     unitPrice: 0,
     currency: "JPY",
     deliveryDate: "",
-    status: "pending",
     remarks: "",
+    shipped: false,
+    delivered: false,
+    paid: false,
+    purchaseOrderReceived: false,
+    deliveryNoteSent: false,
+    invoiceSent: false,
   });
 
   // 品目マスタデータ
@@ -863,13 +903,12 @@ const App = () => {
   // 品目マスタの統計情報
   const productMasterStats = {
     totalCount: productMasters.length,
-    usdCount: productMasters.filter(pm => pm.currency === "USD").length,
-    jpyCount: productMasters.filter(pm => pm.currency === "JPY").length,
-    vndCount: productMasters.filter(pm => pm.currency === "VND").length,
-    avgUnitPriceUSD: productMasters
-      .filter(pm => pm.currency === "USD")
-      .reduce((sum, pm) => sum + pm.unitPrice, 0) /
-      (productMasters.filter(pm => pm.currency === "USD").length || 1),
+    usdCount: productMasters.filter((pm) => pm.currency === "USD").length,
+    jpyCount: productMasters.filter((pm) => pm.currency === "JPY").length,
+    vndCount: productMasters.filter((pm) => pm.currency === "VND").length,
+    avgUnitPriceUSD:
+      productMasters.filter((pm) => pm.currency === "USD").reduce((sum, pm) => sum + pm.unitPrice, 0) /
+      (productMasters.filter((pm) => pm.currency === "USD").length || 1),
   };
 
   // 支払いマスタデータ（毎月かかる経費のテンプレート）
@@ -1196,12 +1235,7 @@ const App = () => {
           (s) => (s.id === editingSupplier.id ? { ...s, ...formData, updatedAt: new Date().toISOString().split("T")[0] } : s) as Supplier
         )
       );
-      addActivity(
-        "取引先が更新されました",
-        `${formData.name}`,
-        Edit,
-        "text-blue-500"
-      );
+      addActivity("取引先が更新されました", `${formData.name}`, Edit, "text-blue-500");
     } else {
       const newSupplier = {
         id,
@@ -1211,12 +1245,7 @@ const App = () => {
         updatedAt: new Date().toISOString().split("T")[0],
       };
       setSuppliers([...suppliers, newSupplier]);
-      addActivity(
-        "新規取引先が追加されました",
-        `${formData.name}`,
-        Users,
-        "text-green-500"
-      );
+      addActivity("新規取引先が追加されました", `${formData.name}`, Users, "text-green-500");
     }
     setValidationError("");
     setShowModal(false);
@@ -1229,15 +1258,10 @@ const App = () => {
 
   const handleDeleteConfirm = () => {
     if (deleteTargetId) {
-      const deletedSupplier = suppliers.find(s => s.id === deleteTargetId);
+      const deletedSupplier = suppliers.find((s) => s.id === deleteTargetId);
       setSuppliers(suppliers.filter((s) => s.id !== deleteTargetId));
       if (deletedSupplier) {
-        addActivity(
-          "取引先が削除されました",
-          `${deletedSupplier.name}`,
-          Trash2,
-          "text-red-500"
-        );
+        addActivity("取引先が削除されました", `${deletedSupplier.name}`, Trash2, "text-red-500");
       }
       setShowDeleteConfirm(false);
       setDeleteTargetId(null);
@@ -1261,8 +1285,15 @@ const App = () => {
     unitPrice: number;
     currency: "USD" | "JPY" | "VND";
     deliveryDate: string;
-    status: "ordered" | "delivered" | "cancelled";
     remarks: string;
+    // ステータス（チェックボックス）
+    ordered: boolean; // 発注済み
+    delivered: boolean; // 納品済み
+    paid: boolean; // 支払い済み
+    // 書類ステータス
+    purchaseOrderSent: boolean; // 発注書送付
+    deliveryNoteReceived: boolean; // 納品書受領
+    invoiceReceived: boolean; // 請求書受領
   }
 
   interface OrderFormData {
@@ -1273,8 +1304,15 @@ const App = () => {
     unitPrice: number;
     currency: "USD" | "JPY" | "VND";
     deliveryDate: string;
-    status: "ordered" | "delivered" | "cancelled";
     remarks: string;
+    // ステータス（チェックボックス）
+    ordered: boolean;
+    delivered: boolean;
+    paid: boolean;
+    // 書類ステータス
+    purchaseOrderSent: boolean;
+    deliveryNoteReceived: boolean;
+    invoiceReceived: boolean;
   }
 
   interface Sale {
@@ -1287,8 +1325,15 @@ const App = () => {
     unitPrice: number;
     currency: "USD" | "JPY" | "VND";
     deliveryDate: string;
-    status: "pending" | "shipped" | "delivered" | "cancelled";
     remarks: string;
+    // ステータス（チェックボックス）
+    shipped: boolean; // 出荷済み
+    delivered: boolean; // 納品済み
+    paid: boolean; // 入金済み
+    // 書類ステータス
+    purchaseOrderReceived: boolean; // 発注書受領
+    deliveryNoteSent: boolean; // 納品書送付
+    invoiceSent: boolean; // 請求書送付
   }
 
   interface SaleFormData {
@@ -1299,8 +1344,15 @@ const App = () => {
     unitPrice: number;
     currency: "USD" | "JPY" | "VND";
     deliveryDate: string;
-    status: "pending" | "shipped" | "delivered" | "cancelled";
     remarks: string;
+    // ステータス（チェックボックス）
+    shipped: boolean;
+    delivered: boolean;
+    paid: boolean;
+    // 書類ステータス
+    purchaseOrderReceived: boolean;
+    deliveryNoteSent: boolean;
+    invoiceSent: boolean;
   }
 
   // 品目マスタ
@@ -1389,8 +1441,13 @@ const App = () => {
         unitPrice: order.unitPrice,
         currency: order.currency,
         deliveryDate: order.deliveryDate,
-        status: order.status,
         remarks: order.remarks,
+        ordered: order.ordered,
+        delivered: order.delivered,
+        paid: order.paid,
+        purchaseOrderSent: order.purchaseOrderSent,
+        deliveryNoteReceived: order.deliveryNoteReceived,
+        invoiceReceived: order.invoiceReceived,
       });
     } else {
       setEditingOrder(null);
@@ -1403,8 +1460,13 @@ const App = () => {
         unitPrice: 0,
         currency: "USD",
         deliveryDate: "",
-        status: "ordered",
         remarks: "",
+        ordered: true, // デフォルトでチェック
+        delivered: false,
+        paid: false,
+        purchaseOrderSent: false,
+        deliveryNoteReceived: false,
+        invoiceReceived: false,
       });
     }
     setShowOrderModal(true);
@@ -1445,20 +1507,20 @@ const App = () => {
       unitPrice: Number(orderFormData.unitPrice),
       currency: orderFormData.currency,
       deliveryDate: orderFormData.deliveryDate,
-      status: orderFormData.status,
       remarks: orderFormData.remarks,
+      ordered: orderFormData.ordered,
+      delivered: orderFormData.delivered,
+      paid: orderFormData.paid,
+      purchaseOrderSent: orderFormData.purchaseOrderSent,
+      deliveryNoteReceived: orderFormData.deliveryNoteReceived,
+      invoiceReceived: orderFormData.invoiceReceived,
     };
 
     const incrementalId = orders.length > 0 ? Math.max(...orders.map((o) => o.incrementalId)) + 1 : 1;
     if (editingOrder) {
       setOrders(orders.map((o) => (o.id === editingOrder.id ? { ...o, ...orderData } : o)));
-      const supplier = suppliers.find(s => s.id === orderFormData.supplierId);
-      addActivity(
-        "発注が更新されました",
-        `${supplier?.name || "取引先"} - ${orderFormData.product}`,
-        Edit,
-        "text-blue-500"
-      );
+      const supplier = suppliers.find((s) => s.id === orderFormData.supplierId);
+      addActivity("発注が更新されました", `${supplier?.name || "取引先"} - ${orderFormData.product}`, Edit, "text-blue-500");
     } else {
       const newOrder = {
         id: `o-${String(incrementalId).padStart(3, "0")}`,
@@ -1466,13 +1528,8 @@ const App = () => {
         ...orderData,
       };
       setOrders([...orders, newOrder]);
-      const supplier = suppliers.find(s => s.id === orderFormData.supplierId);
-      addActivity(
-        "新規発注が登録されました",
-        `${supplier?.name || "取引先"} - ${orderFormData.product}`,
-        ShoppingCart,
-        "text-green-500"
-      );
+      const supplier = suppliers.find((s) => s.id === orderFormData.supplierId);
+      addActivity("新規発注が登録されました", `${supplier?.name || "取引先"} - ${orderFormData.product}`, ShoppingCart, "text-green-500");
     }
     setOrderValidationError("");
     setShowOrderModal(false);
@@ -1485,16 +1542,11 @@ const App = () => {
 
   const handleOrderDeleteConfirm = () => {
     if (deleteOrderTargetId) {
-      const deletedOrder = orders.find(o => o.id === deleteOrderTargetId);
+      const deletedOrder = orders.find((o) => o.id === deleteOrderTargetId);
       setOrders(orders.filter((o) => o.id !== deleteOrderTargetId));
       if (deletedOrder) {
-        const supplier = suppliers.find(s => s.id === deletedOrder.supplierId);
-        addActivity(
-          "発注が削除されました",
-          `${supplier?.name || "取引先"} - ${deletedOrder.product}`,
-          Trash2,
-          "text-red-500"
-        );
+        const supplier = suppliers.find((s) => s.id === deletedOrder.supplierId);
+        addActivity("発注が削除されました", `${supplier?.name || "取引先"} - ${deletedOrder.product}`, Trash2, "text-red-500");
       }
       setShowOrderDeleteConfirm(false);
       setDeleteOrderTargetId("");
@@ -1519,8 +1571,13 @@ const App = () => {
         unitPrice: sale.unitPrice,
         currency: sale.currency,
         deliveryDate: sale.deliveryDate,
-        status: sale.status,
         remarks: sale.remarks,
+        shipped: sale.shipped,
+        delivered: sale.delivered,
+        paid: sale.paid,
+        purchaseOrderReceived: sale.purchaseOrderReceived,
+        deliveryNoteSent: sale.deliveryNoteSent,
+        invoiceSent: sale.invoiceSent,
       });
     } else {
       setEditingSale(null);
@@ -1533,8 +1590,13 @@ const App = () => {
         unitPrice: 0,
         currency: "JPY",
         deliveryDate: "",
-        status: "pending",
         remarks: "",
+        shipped: false,
+        delivered: false,
+        paid: false,
+        purchaseOrderReceived: false,
+        deliveryNoteSent: false,
+        invoiceSent: false,
       });
     }
     setShowSaleModal(true);
@@ -1575,14 +1637,19 @@ const App = () => {
       unitPrice: Number(saleFormData.unitPrice),
       currency: saleFormData.currency,
       deliveryDate: saleFormData.deliveryDate,
-      status: saleFormData.status,
       remarks: saleFormData.remarks,
+      shipped: saleFormData.shipped,
+      delivered: saleFormData.delivered,
+      paid: saleFormData.paid,
+      purchaseOrderReceived: saleFormData.purchaseOrderReceived,
+      deliveryNoteSent: saleFormData.deliveryNoteSent,
+      invoiceSent: saleFormData.invoiceSent,
     };
 
     const incrementalId = sales.length > 0 ? Math.max(...sales.map((s) => s.incrementalId)) + 1 : 1;
     if (editingSale) {
       setSales(sales.map((s) => (s.id === editingSale.id ? { ...s, ...saleData } : s)));
-      const customer = suppliers.find(c => c.id === saleFormData.customerId);
+      const customer = suppliers.find((c) => c.id === saleFormData.customerId);
       const amount = saleFormData.quantity * saleFormData.unitPrice;
       const currencySymbol = saleFormData.currency === "JPY" ? "¥" : saleFormData.currency === "VND" ? "" : "$";
       const currencySuffix = saleFormData.currency === "VND" ? " VND" : "";
@@ -1599,7 +1666,7 @@ const App = () => {
         ...saleData,
       };
       setSales([...sales, newSale]);
-      const customer = suppliers.find(c => c.id === saleFormData.customerId);
+      const customer = suppliers.find((c) => c.id === saleFormData.customerId);
       const amount = saleFormData.quantity * saleFormData.unitPrice;
       const currencySymbol = saleFormData.currency === "JPY" ? "¥" : saleFormData.currency === "VND" ? "" : "$";
       const currencySuffix = saleFormData.currency === "VND" ? " VND" : "";
@@ -1621,16 +1688,11 @@ const App = () => {
 
   const handleSaleDeleteConfirm = () => {
     if (deleteSaleTargetId) {
-      const deletedSale = sales.find(s => s.id === deleteSaleTargetId);
+      const deletedSale = sales.find((s) => s.id === deleteSaleTargetId);
       setSales(sales.filter((s) => s.id !== deleteSaleTargetId));
       if (deletedSale) {
-        const customer = suppliers.find(c => c.id === deletedSale.customerId);
-        addActivity(
-          "売上が削除されました",
-          `${customer?.name || "顧客"} - ${deletedSale.product}`,
-          Trash2,
-          "text-red-500"
-        );
+        const customer = suppliers.find((c) => c.id === deletedSale.customerId);
+        addActivity("売上が削除されました", `${customer?.name || "顧客"} - ${deletedSale.product}`, Trash2, "text-red-500");
       }
       setShowSaleDeleteConfirm(false);
       setDeleteSaleTargetId("");
@@ -1750,15 +1812,10 @@ const App = () => {
 
   const handlePaymentDeleteConfirm = () => {
     if (deletePaymentTargetId) {
-      const deletedPayment = payments.find(p => p.id === deletePaymentTargetId);
+      const deletedPayment = payments.find((p) => p.id === deletePaymentTargetId);
       setPayments(payments.filter((p) => p.id !== deletePaymentTargetId));
       if (deletedPayment) {
-        addActivity(
-          "支払が削除されました",
-          `${deletedPayment.description}`,
-          Trash2,
-          "text-red-500"
-        );
+        addActivity("支払が削除されました", `${deletedPayment.description}`, Trash2, "text-red-500");
       }
       setShowPaymentDeleteConfirm(false);
       setDeletePaymentTargetId("");
@@ -1851,15 +1908,10 @@ const App = () => {
 
   const handleProductMasterDeleteConfirm = () => {
     if (deleteProductMasterTargetId) {
-      const deletedMaster = productMasters.find(m => m.id === deleteProductMasterTargetId);
+      const deletedMaster = productMasters.find((m) => m.id === deleteProductMasterTargetId);
       setProductMasters(productMasters.filter((m) => m.id !== deleteProductMasterTargetId));
       if (deletedMaster) {
-        addActivity(
-          "品目マスタが削除されました",
-          `${deletedMaster.productCode} - ${deletedMaster.productName}`,
-          Trash2,
-          "text-red-500"
-        );
+        addActivity("品目マスタが削除されました", `${deletedMaster.productCode} - ${deletedMaster.productName}`, Trash2, "text-red-500");
       }
       setShowProductMasterDeleteConfirm(false);
       setDeleteProductMasterTargetId("");
@@ -1922,12 +1974,7 @@ const App = () => {
     const incrementalId = paymentMasters.length > 0 ? Math.max(...paymentMasters.map((m) => m.incrementalId)) + 1 : 1;
     if (editingPaymentMaster) {
       setPaymentMasters(paymentMasters.map((m) => (m.id === editingPaymentMaster.id ? { ...m, ...masterData } : m)));
-      addActivity(
-        "支払いマスタが更新されました",
-        `${paymentMasterFormData.description}`,
-        Edit,
-        "text-blue-500"
-      );
+      addActivity("支払いマスタが更新されました", `${paymentMasterFormData.description}`, Edit, "text-blue-500");
     } else {
       const newMaster = {
         id: `pmst-${String(incrementalId).padStart(3, "0")}`,
@@ -1935,12 +1982,7 @@ const App = () => {
         ...masterData,
       };
       setPaymentMasters([...paymentMasters, newMaster]);
-      addActivity(
-        "新規支払いマスタが登録されました",
-        `${paymentMasterFormData.description}`,
-        DollarSign,
-        "text-green-500"
-      );
+      addActivity("新規支払いマスタが登録されました", `${paymentMasterFormData.description}`, DollarSign, "text-green-500");
     }
     setPaymentMasterValidationError("");
     setShowPaymentMasterModal(false);
@@ -1953,15 +1995,10 @@ const App = () => {
 
   const handlePaymentMasterDeleteConfirm = () => {
     if (deletePaymentMasterTargetId) {
-      const deletedMaster = paymentMasters.find(m => m.id === deletePaymentMasterTargetId);
+      const deletedMaster = paymentMasters.find((m) => m.id === deletePaymentMasterTargetId);
       setPaymentMasters(paymentMasters.filter((m) => m.id !== deletePaymentMasterTargetId));
       if (deletedMaster) {
-        addActivity(
-          "支払いマスタが削除されました",
-          `${deletedMaster.description}`,
-          Trash2,
-          "text-red-500"
-        );
+        addActivity("支払いマスタが削除されました", `${deletedMaster.description}`, Trash2, "text-red-500");
       }
       setShowPaymentMasterDeleteConfirm(false);
       setDeletePaymentMasterTargetId("");
@@ -2023,7 +2060,11 @@ const App = () => {
       const matchesSearch =
         order.product.toLowerCase().includes(orderSearchQuery.toLowerCase()) ||
         supplierName.toLowerCase().includes(orderSearchQuery.toLowerCase());
-      const matchesFilter = orderFilterStatus === "all" || order.status === orderFilterStatus;
+      const matchesFilter =
+        orderFilterStatus === "all" ||
+        (orderFilterStatus === "ordered" && order.ordered) ||
+        (orderFilterStatus === "delivered" && order.delivered) ||
+        (orderFilterStatus === "paid" && order.paid);
       return matchesSearch && matchesFilter;
     }),
     orderSortConfig
@@ -2031,8 +2072,8 @@ const App = () => {
 
   const orderStats = {
     total: orders.length,
-    ordered: orders.filter((o) => o.status === "ordered").length,
-    delivered: orders.filter((o) => o.status === "delivered").length,
+    ordered: orders.filter((o) => o.ordered).length,
+    delivered: orders.filter((o) => o.delivered).length,
   };
 
   // 売上のフィルタリングと統計
@@ -2043,7 +2084,11 @@ const App = () => {
       const matchesSearch =
         sale.product.toLowerCase().includes(saleSearchQuery.toLowerCase()) ||
         customerName.toLowerCase().includes(saleSearchQuery.toLowerCase());
-      const matchesFilter = saleFilterStatus === "all" || sale.status === saleFilterStatus;
+      const matchesFilter =
+        saleFilterStatus === "all" ||
+        (saleFilterStatus === "shipped" && sale.shipped) ||
+        (saleFilterStatus === "delivered" && sale.delivered) ||
+        (saleFilterStatus === "paid" && sale.paid);
       return matchesSearch && matchesFilter;
     }),
     saleSortConfig
@@ -2051,9 +2096,9 @@ const App = () => {
 
   const saleStats = {
     total: sales.length,
-    pending: sales.filter((s) => s.status === "pending").length,
-    shipped: sales.filter((s) => s.status === "shipped").length,
-    delivered: sales.filter((s) => s.status === "delivered").length,
+    shipped: sales.filter((s) => s.shipped).length,
+    delivered: sales.filter((s) => s.delivered).length,
+    paid: sales.filter((s) => s.paid).length,
   };
 
   // 支払いのフィルタリングと統計
@@ -2130,10 +2175,10 @@ const App = () => {
       const orderMonth = orderDate.getMonth();
       const orderYear = orderDate.getFullYear();
 
-      console.log(`発注ID ${order.id}: 日付=${order.orderDate}, 月=${orderMonth}, 年=${orderYear}, ステータス=${order.status}`);
+      console.log(`発注ID ${order.id}: 日付=${order.orderDate}, 月=${orderMonth}, 年=${orderYear}, 発注済み=${order.ordered}, 納品済み=${order.delivered}`);
 
       const isCurrentMonth = orderMonth === targetMonth && orderYear === targetYear;
-      const isValidStatus = order.status === "ordered" || order.status === "delivered";
+      const isValidStatus = order.ordered || order.delivered;
 
       const result = isCurrentMonth && isValidStatus;
       console.log(`  → 今月判定=${isCurrentMonth}, ステータス判定=${isValidStatus}, 結果=${result}`);
@@ -2174,8 +2219,8 @@ const App = () => {
     // 今月の発注件数
     const orderCount = currentMonthOrders.length;
 
-    // 今月の未納入件数（発注済みのみカウント）
-    const pendingCount = currentMonthOrders.filter((order) => order.status === "ordered").length;
+    // 今月の未納入件数（発注済みだが納品されていないものをカウント）
+    const pendingCount = currentMonthOrders.filter((order) => order.ordered && !order.delivered).length;
 
     return {
       total: usdEquivalent,
@@ -2249,11 +2294,7 @@ const App = () => {
 
       <div>
         <h3 className="text-lg font-semibold text-gray-800 mb-4">{t.quickActions}</h3>
-        <QuickActions
-          actions={quickActions}
-          translations={{ createNew: t.createNew }}
-          onActionClick={setCurrentPage}
-        />
+        <QuickActions actions={quickActions} translations={{ createNew: t.createNew }} onActionClick={setCurrentPage} />
       </div>
 
       <Alerts alerts={alerts} title={t.alerts} />
@@ -2334,7 +2375,7 @@ const App = () => {
               <option value="all">{t.all}</option>
               <option value="ordered">{t.ordered}</option>
               <option value="delivered">{t.delivered}</option>
-              <option value="cancelled">{t.cancelled}</option>
+              <option value="paid">{lang === "ja" ? "支払い済み" : "Đã thanh toán"}</option>
             </select>
           </div>
           <div className="flex items-center gap-2 md:gap-3">
@@ -2356,33 +2397,79 @@ const App = () => {
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full table-auto">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <SortableHeader label={t.orderDate} sortKey="orderDate" currentConfig={orderSortConfig} onClick={() => handleSort('orderDate', orderSortConfig, setOrderSortConfig)} />
-                <SortableHeader label={t.supplierName} sortKey="supplierId" currentConfig={orderSortConfig} onClick={() => handleSort('supplierId', orderSortConfig, setOrderSortConfig)} />
-                <SortableHeader label={t.product} sortKey="product" currentConfig={orderSortConfig} onClick={() => handleSort('product', orderSortConfig, setOrderSortConfig)} />
-                <SortableHeader label={t.quantity} sortKey="quantity" currentConfig={orderSortConfig} onClick={() => handleSort('quantity', orderSortConfig, setOrderSortConfig)} />
-                <SortableHeader label={t.unitPrice} sortKey="unitPrice" currentConfig={orderSortConfig} onClick={() => handleSort('unitPrice', orderSortConfig, setOrderSortConfig)} />
-                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.amount}</th>
-                <SortableHeader label={t.deliveryDate} sortKey="deliveryDate" currentConfig={orderSortConfig} onClick={() => handleSort('deliveryDate', orderSortConfig, setOrderSortConfig)} />
-                <SortableHeader label={t.status} sortKey="status" currentConfig={orderSortConfig} onClick={() => handleSort('status', orderSortConfig, setOrderSortConfig)} />
-                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.actions}</th>
+                <SortableHeader
+                  label={t.orderDate}
+                  sortKey="orderDate"
+                  currentConfig={orderSortConfig}
+                  onClick={() => handleSort("orderDate", orderSortConfig, setOrderSortConfig)}
+                />
+                <SortableHeader
+                  label={t.supplierName}
+                  sortKey="supplierId"
+                  currentConfig={orderSortConfig}
+                  onClick={() => handleSort("supplierId", orderSortConfig, setOrderSortConfig)}
+                />
+                <SortableHeader
+                  label={t.product}
+                  sortKey="product"
+                  currentConfig={orderSortConfig}
+                  onClick={() => handleSort("product", orderSortConfig, setOrderSortConfig)}
+                />
+                <SortableHeader
+                  label={t.quantity}
+                  sortKey="quantity"
+                  currentConfig={orderSortConfig}
+                  onClick={() => handleSort("quantity", orderSortConfig, setOrderSortConfig)}
+                />
+                <SortableHeader
+                  label={t.unitPrice}
+                  sortKey="unitPrice"
+                  currentConfig={orderSortConfig}
+                  onClick={() => handleSort("unitPrice", orderSortConfig, setOrderSortConfig)}
+                />
+                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                  {t.amount}
+                </th>
+                <SortableHeader
+                  label={t.deliveryDate}
+                  sortKey="deliveryDate"
+                  currentConfig={orderSortConfig}
+                  onClick={() => handleSort("deliveryDate", orderSortConfig, setOrderSortConfig)}
+                />
+                <SortableHeader
+                  label={t.status}
+                  sortKey="status"
+                  currentConfig={orderSortConfig}
+                  onClick={() => handleSort("status", orderSortConfig, setOrderSortConfig)}
+                />
+                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                  {lang === "ja" ? "書類状況" : "Tài liệu"}
+                </th>
+                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                  {t.actions}
+                </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200 [&_td]:whitespace-nowrap">
               {filteredOrders.map((order) => {
                 const supplier = suppliers.find((s) => s.id === order.supplierId);
                 const totalAmount = order.quantity * order.unitPrice;
                 return (
-                  <tr key={order.id} className="hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={order.id}
+                    className="hover:bg-gray-50 transition-colors cursor-pointer"
+                    onClick={() => handleOpenOrderModal(order)}
+                  >
                     <td className="px-6 py-4 text-sm text-gray-700">{order.orderDate}</td>
                     <td className="px-6 py-4">
                       <p className="font-medium text-gray-800">{supplier?.name || "-"}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="font-medium text-gray-800">{order.product}</p>
-                      {order.remarks && <p className="text-sm text-gray-500">{order.remarks}</p>}
+                      <p className="font-medium text-gray-800 leading-tight">{order.product.split(" - ")[0]}</p>
+                      <p className="text-sm text-gray-600 leading-tight">{order.product.split(" - ")[1] || ""}</p>
                     </td>
                     <td className="px-6 py-4 text-right text-sm text-gray-700">{order.quantity.toLocaleString()}</td>
                     <td className="px-6 py-4 text-right text-sm font-medium text-gray-800">
@@ -2401,27 +2488,39 @@ const App = () => {
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">{order.deliveryDate}</td>
                     <td className="px-6 py-4">
-                      <span
-                        className={`px-3 py-1 text-xs font-medium rounded-full ${
-                          order.status === "ordered"
-                            ? "bg-orange-50 text-orange-700"
-                            : order.status === "delivered"
-                            ? "bg-green-50 text-green-700"
-                            : "bg-gray-100 text-gray-600"
-                        }`}
-                      >
-                        {t[order.status]}
-                      </span>
+                      <div className="flex flex-col gap-1 text-xs">
+                        <div className="flex items-center gap-1">
+                          <span className={`w-2 h-2 rounded-full ${order.ordered ? "bg-green-500" : "bg-gray-300"}`}></span>
+                          <span className="text-gray-600">{lang === "ja" ? "発注済み" : "Đặt hàng"}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className={`w-2 h-2 rounded-full ${order.delivered ? "bg-green-500" : "bg-gray-300"}`}></span>
+                          <span className="text-gray-600">{lang === "ja" ? "納品済み" : "Giao hàng"}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className={`w-2 h-2 rounded-full ${order.paid ? "bg-green-500" : "bg-gray-300"}`}></span>
+                          <span className="text-gray-600">{lang === "ja" ? "支払い済み" : "Thanh toán"}</span>
+                        </div>
+                      </div>
                     </td>
                     <td className="px-6 py-4">
+                      <div className="flex flex-col gap-1 text-xs">
+                        <div className="flex items-center gap-1">
+                          <span className={`w-2 h-2 rounded-full ${order.purchaseOrderSent ? "bg-green-500" : "bg-gray-300"}`}></span>
+                          <span className="text-gray-600">{lang === "ja" ? "発注書送付" : "Gửi đơn"}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className={`w-2 h-2 rounded-full ${order.deliveryNoteReceived ? "bg-green-500" : "bg-gray-300"}`}></span>
+                          <span className="text-gray-600">{lang === "ja" ? "納品書受領" : "Nhận giao"}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className={`w-2 h-2 rounded-full ${order.invoiceReceived ? "bg-green-500" : "bg-gray-300"}`}></span>
+                          <span className="text-gray-600">{lang === "ja" ? "請求書受領" : "Nhận hóa đơn"}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => handleOpenOrderModal(order)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title={t.edit}
-                        >
-                          <Edit size={18} />
-                        </button>
                         <button
                           onClick={() => handleOrderDeleteClick(order.id)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -2528,49 +2627,51 @@ const App = () => {
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full table-auto">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <SortableHeader
                   label={t.supplierName}
                   sortKey="name"
                   currentConfig={supplierSortConfig}
-                  onClick={() => handleSort('name', supplierSortConfig, setSupplierSortConfig)}
+                  onClick={() => handleSort("name", supplierSortConfig, setSupplierSortConfig)}
                 />
                 <SortableHeader
                   label={t.type}
                   sortKey="type"
                   currentConfig={supplierSortConfig}
-                  onClick={() => handleSort('type', supplierSortConfig, setSupplierSortConfig)}
+                  onClick={() => handleSort("type", supplierSortConfig, setSupplierSortConfig)}
                 />
                 <SortableHeader
                   label={t.region}
                   sortKey="region"
                   currentConfig={supplierSortConfig}
-                  onClick={() => handleSort('region', supplierSortConfig, setSupplierSortConfig)}
+                  onClick={() => handleSort("region", supplierSortConfig, setSupplierSortConfig)}
                 />
                 <SortableHeader
                   label={t.currency}
                   sortKey="currency"
                   currentConfig={supplierSortConfig}
-                  onClick={() => handleSort('currency', supplierSortConfig, setSupplierSortConfig)}
+                  onClick={() => handleSort("currency", supplierSortConfig, setSupplierSortConfig)}
                 />
                 <SortableHeader
                   label={t.paymentTerms}
                   sortKey="paymentTerms"
                   currentConfig={supplierSortConfig}
-                  onClick={() => handleSort('paymentTerms', supplierSortConfig, setSupplierSortConfig)}
+                  onClick={() => handleSort("paymentTerms", supplierSortConfig, setSupplierSortConfig)}
                 />
                 <SortableHeader
                   label={t.status}
                   sortKey="status"
                   currentConfig={supplierSortConfig}
-                  onClick={() => handleSort('status', supplierSortConfig, setSupplierSortConfig)}
+                  onClick={() => handleSort("status", supplierSortConfig, setSupplierSortConfig)}
                 />
-                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.actions}</th>
+                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                  {t.actions}
+                </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200 [&_td]:whitespace-nowrap">
               {filteredSuppliers.map((supplier) => (
                 <tr key={supplier.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
@@ -2638,8 +2739,8 @@ const App = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">{t.pendingSales}</p>
-              <p className="text-3xl font-bold text-orange-600">{saleStats.pending}</p>
+              <p className="text-sm text-gray-600 mb-1">{t.shippedSales}</p>
+              <p className="text-3xl font-bold text-orange-600">{saleStats.shipped}</p>
             </div>
             <div className="p-3 bg-orange-50 rounded-lg">
               <Clock className="text-orange-500" size={24} />
@@ -2649,8 +2750,8 @@ const App = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">{t.shippedSales}</p>
-              <p className="text-3xl font-bold text-purple-600">{saleStats.shipped}</p>
+              <p className="text-sm text-gray-600 mb-1">{t.deliveredSales}</p>
+              <p className="text-3xl font-bold text-purple-600">{saleStats.delivered}</p>
             </div>
             <div className="p-3 bg-purple-50 rounded-lg">
               <Package className="text-purple-500" size={24} />
@@ -2660,8 +2761,8 @@ const App = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">{t.deliveredSales}</p>
-              <p className="text-3xl font-bold text-green-600">{saleStats.delivered}</p>
+              <p className="text-sm text-gray-600 mb-1">{lang === "ja" ? "入金済み" : "Đã thanh toán"}</p>
+              <p className="text-3xl font-bold text-green-600">{saleStats.paid}</p>
             </div>
             <div className="p-3 bg-green-50 rounded-lg">
               <CheckCircle className="text-green-500" size={24} />
@@ -2689,10 +2790,9 @@ const App = () => {
               className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">{t.all}</option>
-              <option value="pending">{t.pending}</option>
               <option value="shipped">{t.shipped}</option>
               <option value="delivered">{t.delivered}</option>
-              <option value="cancelled">{t.cancelled}</option>
+              <option value="paid">{lang === "ja" ? "入金済み" : "Đã thanh toán"}</option>
             </select>
           </div>
           <div className="flex items-center gap-2 md:gap-3">
@@ -2714,34 +2814,82 @@ const App = () => {
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full table-auto">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <SortableHeader label={t.saleDate} sortKey="saleDate" currentConfig={saleSortConfig} onClick={() => handleSort('saleDate', saleSortConfig, setSaleSortConfig)} />
-                <SortableHeader label={t.customerName} sortKey="customerId" currentConfig={saleSortConfig} onClick={() => handleSort('customerId', saleSortConfig, setSaleSortConfig)} />
-                <SortableHeader label={t.product} sortKey="product" currentConfig={saleSortConfig} onClick={() => handleSort('product', saleSortConfig, setSaleSortConfig)} />
-                <SortableHeader label={t.quantity} sortKey="quantity" currentConfig={saleSortConfig} onClick={() => handleSort('quantity', saleSortConfig, setSaleSortConfig)} />
-                <SortableHeader label={t.unitPrice} sortKey="unitPrice" currentConfig={saleSortConfig} onClick={() => handleSort('unitPrice', saleSortConfig, setSaleSortConfig)} />
-                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.amount}</th>
-                <SortableHeader label={t.deliveryDate} sortKey="deliveryDate" currentConfig={saleSortConfig} onClick={() => handleSort('deliveryDate', saleSortConfig, setSaleSortConfig)} />
-                <SortableHeader label={t.status} sortKey="status" currentConfig={saleSortConfig} onClick={() => handleSort('status', saleSortConfig, setSaleSortConfig)} />
-                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">{t.actions}</th>
+                <SortableHeader
+                  label={t.saleDate}
+                  sortKey="saleDate"
+                  currentConfig={saleSortConfig}
+                  onClick={() => handleSort("saleDate", saleSortConfig, setSaleSortConfig)}
+                />
+                <SortableHeader
+                  label={t.customerName}
+                  sortKey="customerId"
+                  currentConfig={saleSortConfig}
+                  onClick={() => handleSort("customerId", saleSortConfig, setSaleSortConfig)}
+                />
+                <SortableHeader
+                  label={t.product}
+                  sortKey="product"
+                  currentConfig={saleSortConfig}
+                  onClick={() => handleSort("product", saleSortConfig, setSaleSortConfig)}
+                />
+                <SortableHeader
+                  label={t.quantity}
+                  sortKey="quantity"
+                  currentConfig={saleSortConfig}
+                  onClick={() => handleSort("quantity", saleSortConfig, setSaleSortConfig)}
+                />
+                <SortableHeader
+                  label={t.unitPrice}
+                  sortKey="unitPrice"
+                  currentConfig={saleSortConfig}
+                  onClick={() => handleSort("unitPrice", saleSortConfig, setSaleSortConfig)}
+                />
+                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                  {t.amount}
+                </th>
+                <SortableHeader
+                  label={t.deliveryDate}
+                  sortKey="deliveryDate"
+                  currentConfig={saleSortConfig}
+                  onClick={() => handleSort("deliveryDate", saleSortConfig, setSaleSortConfig)}
+                />
+                <SortableHeader
+                  label={t.status}
+                  sortKey="status"
+                  currentConfig={saleSortConfig}
+                  onClick={() => handleSort("status", saleSortConfig, setSaleSortConfig)}
+                />
+                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                  {lang === "ja" ? "書類状況" : "Tài liệu"}
+                </th>
+                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                  {t.actions}
+                </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200 [&_td]:whitespace-nowrap">
               {filteredSales.map((sale) => {
                 const customer = suppliers.find((s) => s.id === sale.customerId);
                 const totalAmount = sale.quantity * sale.unitPrice;
                 return (
-                  <tr key={sale.id} className="hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={sale.id}
+                    className="hover:bg-gray-50 transition-colors cursor-pointer"
+                    onClick={() => handleOpenSaleModal(sale)}
+                  >
                     <td className="px-6 py-4 text-sm text-gray-700">{sale.saleDate}</td>
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-800">{customer?.name || "-"}</div>
-                      <div className="text-xs text-gray-500">{customer?.region ? t[customer.region as keyof typeof t] as string : "-"}</div>
+                      <div className="text-xs text-gray-500">
+                        {customer?.region ? (t[customer.region as keyof typeof t] as string) : "-"}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-800">{sale.product}</div>
-                      {sale.remarks && <p className="text-sm text-gray-500">{sale.remarks}</p>}
+                      <p className="font-medium text-gray-800 leading-tight">{sale.product.split(" ")[0]}</p>
+                      <p className="text-sm text-gray-600 leading-tight">{sale.product.split(" ")[1] || ""}</p>
                     </td>
                     <td className="px-6 py-4 text-right text-sm text-gray-700">{sale.quantity.toLocaleString()}</td>
                     <td className="px-6 py-4 text-right text-sm font-medium text-gray-800">
@@ -2760,34 +2908,39 @@ const App = () => {
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">{sale.deliveryDate}</td>
                     <td className="px-6 py-4">
-                      <span
-                        className={`px-3 py-1 text-xs font-medium rounded-full ${
-                          sale.status === "pending"
-                            ? "bg-orange-50 text-orange-700"
-                            : sale.status === "shipped"
-                            ? "bg-purple-50 text-purple-700"
-                            : sale.status === "delivered"
-                            ? "bg-green-50 text-green-700"
-                            : "bg-gray-50 text-gray-700"
-                        }`}
-                      >
-                        {sale.status === "pending"
-                          ? t.pending
-                          : sale.status === "shipped"
-                          ? t.shipped
-                          : sale.status === "delivered"
-                          ? t.delivered
-                          : t.cancelled}
-                      </span>
+                      <div className="flex flex-col gap-1 text-xs">
+                        <div className="flex items-center gap-1">
+                          <span className={`w-2 h-2 rounded-full ${sale.shipped ? "bg-green-500" : "bg-gray-300"}`}></span>
+                          <span className="text-gray-600">{lang === "ja" ? "出荷済み" : "Xuất hàng"}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className={`w-2 h-2 rounded-full ${sale.delivered ? "bg-green-500" : "bg-gray-300"}`}></span>
+                          <span className="text-gray-600">{lang === "ja" ? "納品済み" : "Giao hàng"}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className={`w-2 h-2 rounded-full ${sale.paid ? "bg-green-500" : "bg-gray-300"}`}></span>
+                          <span className="text-gray-600">{lang === "ja" ? "入金済み" : "Nhận tiền"}</span>
+                        </div>
+                      </div>
                     </td>
                     <td className="px-6 py-4">
+                      <div className="flex flex-col gap-1 text-xs">
+                        <div className="flex items-center gap-1">
+                          <span className={`w-2 h-2 rounded-full ${sale.purchaseOrderReceived ? "bg-green-500" : "bg-gray-300"}`}></span>
+                          <span className="text-gray-600">{lang === "ja" ? "発注書受領" : "Nhận đơn"}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className={`w-2 h-2 rounded-full ${sale.deliveryNoteSent ? "bg-green-500" : "bg-gray-300"}`}></span>
+                          <span className="text-gray-600">{lang === "ja" ? "納品書送付" : "Gửi giao"}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className={`w-2 h-2 rounded-full ${sale.invoiceSent ? "bg-green-500" : "bg-gray-300"}`}></span>
+                          <span className="text-gray-600">{lang === "ja" ? "請求書送付" : "Gửi hóa đơn"}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => handleOpenSaleModal(sale)}
-                          className="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                        >
-                          <Edit size={16} />
-                        </button>
                         <button
                           onClick={() => handleDeleteSale(sale.id)}
                           className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
@@ -2904,17 +3057,49 @@ const App = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full table-auto">
             <thead className="bg-gray-50 border-y border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No.</th>
-                <SortableHeader label={t.category} sortKey="category" currentConfig={paymentSortConfig} onClick={() => handleSort('category', paymentSortConfig, setPaymentSortConfig)} />
-                <SortableHeader label={t.description} sortKey="description" currentConfig={paymentSortConfig} onClick={() => handleSort('description', paymentSortConfig, setPaymentSortConfig)} />
-                <SortableHeader label={t.amount} sortKey="amount" currentConfig={paymentSortConfig} onClick={() => handleSort('amount', paymentSortConfig, setPaymentSortConfig)} />
-                <SortableHeader label={t.paymentMethod} sortKey="paymentMethod" currentConfig={paymentSortConfig} onClick={() => handleSort('paymentMethod', paymentSortConfig, setPaymentSortConfig)} />
-                <SortableHeader label={t.paymentDate} sortKey="paymentDate" currentConfig={paymentSortConfig} onClick={() => handleSort('paymentDate', paymentSortConfig, setPaymentSortConfig)} />
-                <SortableHeader label={t.status} sortKey="status" currentConfig={paymentSortConfig} onClick={() => handleSort('status', paymentSortConfig, setPaymentSortConfig)} />
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t.actions}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">No.</th>
+                <SortableHeader
+                  label={t.category}
+                  sortKey="category"
+                  currentConfig={paymentSortConfig}
+                  onClick={() => handleSort("category", paymentSortConfig, setPaymentSortConfig)}
+                />
+                <SortableHeader
+                  label={t.description}
+                  sortKey="description"
+                  currentConfig={paymentSortConfig}
+                  onClick={() => handleSort("description", paymentSortConfig, setPaymentSortConfig)}
+                />
+                <SortableHeader
+                  label={t.amount}
+                  sortKey="amount"
+                  currentConfig={paymentSortConfig}
+                  onClick={() => handleSort("amount", paymentSortConfig, setPaymentSortConfig)}
+                />
+                <SortableHeader
+                  label={t.paymentMethod}
+                  sortKey="paymentMethod"
+                  currentConfig={paymentSortConfig}
+                  onClick={() => handleSort("paymentMethod", paymentSortConfig, setPaymentSortConfig)}
+                />
+                <SortableHeader
+                  label={t.paymentDate}
+                  sortKey="paymentDate"
+                  currentConfig={paymentSortConfig}
+                  onClick={() => handleSort("paymentDate", paymentSortConfig, setPaymentSortConfig)}
+                />
+                <SortableHeader
+                  label={t.status}
+                  sortKey="status"
+                  currentConfig={paymentSortConfig}
+                  onClick={() => handleSort("status", paymentSortConfig, setPaymentSortConfig)}
+                />
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                  {t.actions}
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -2945,9 +3130,7 @@ const App = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-900">{payment.description}</div>
-                      {payment.isFixed && (
-                        <div className="text-xs text-blue-600 mt-1">{t.fixedCost}</div>
-                      )}
+                      {payment.isFixed && <div className="text-xs text-blue-600 mt-1">{t.fixedCost}</div>}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-semibold text-gray-900">
@@ -2959,21 +3142,13 @@ const App = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {payment.paymentMethod === "bank"
-                        ? t.bank
-                        : payment.paymentMethod === "cash"
-                        ? t.cash
-                        : t.card}
+                      {payment.paymentMethod === "bank" ? t.bank : payment.paymentMethod === "cash" ? t.cash : t.card}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {payment.paymentDate || "-"}
-                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{payment.paymentDate || "-"}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <span
                         className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          payment.status === "paid"
-                            ? "bg-green-50 text-green-700"
-                            : "bg-orange-50 text-orange-700"
+                          payment.status === "paid" ? "bg-green-50 text-green-700" : "bg-orange-50 text-orange-700"
                         }`}
                       >
                         {payment.status === "paid" ? t.paymentStatusPaid : t.paymentStatusPending}
@@ -3079,16 +3254,43 @@ const App = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full table-auto">
             <thead className="bg-gray-50 border-y border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No.</th>
-                <SortableHeader label={t.productCode} sortKey="productCode" currentConfig={productMasterSortConfig} onClick={() => handleSort('productCode', productMasterSortConfig, setProductMasterSortConfig)} />
-                <SortableHeader label={t.productName} sortKey="productName" currentConfig={productMasterSortConfig} onClick={() => handleSort('productName', productMasterSortConfig, setProductMasterSortConfig)} />
-                <SortableHeader label={t.unitPrice} sortKey="unitPrice" currentConfig={productMasterSortConfig} onClick={() => handleSort('unitPrice', productMasterSortConfig, setProductMasterSortConfig)} />
-                <SortableHeader label={t.description} sortKey="description" currentConfig={productMasterSortConfig} onClick={() => handleSort('description', productMasterSortConfig, setProductMasterSortConfig)} />
-                <SortableHeader label={t.remarks} sortKey="remarks" currentConfig={productMasterSortConfig} onClick={() => handleSort('remarks', productMasterSortConfig, setProductMasterSortConfig)} />
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t.actions}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">No.</th>
+                <SortableHeader
+                  label={t.productCode}
+                  sortKey="productCode"
+                  currentConfig={productMasterSortConfig}
+                  onClick={() => handleSort("productCode", productMasterSortConfig, setProductMasterSortConfig)}
+                />
+                <SortableHeader
+                  label={t.productName}
+                  sortKey="productName"
+                  currentConfig={productMasterSortConfig}
+                  onClick={() => handleSort("productName", productMasterSortConfig, setProductMasterSortConfig)}
+                />
+                <SortableHeader
+                  label={t.unitPrice}
+                  sortKey="unitPrice"
+                  currentConfig={productMasterSortConfig}
+                  onClick={() => handleSort("unitPrice", productMasterSortConfig, setProductMasterSortConfig)}
+                />
+                <SortableHeader
+                  label={t.description}
+                  sortKey="description"
+                  currentConfig={productMasterSortConfig}
+                  onClick={() => handleSort("description", productMasterSortConfig, setProductMasterSortConfig)}
+                />
+                <SortableHeader
+                  label={t.remarks}
+                  sortKey="remarks"
+                  currentConfig={productMasterSortConfig}
+                  onClick={() => handleSort("remarks", productMasterSortConfig, setProductMasterSortConfig)}
+                />
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                  {t.actions}
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -3217,16 +3419,43 @@ const App = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full table-auto">
             <thead className="bg-gray-50 border-y border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No.</th>
-                <SortableHeader label={t.category} sortKey="category" currentConfig={paymentMasterSortConfig} onClick={() => handleSort('category', paymentMasterSortConfig, setPaymentMasterSortConfig)} />
-                <SortableHeader label={t.description} sortKey="description" currentConfig={paymentMasterSortConfig} onClick={() => handleSort('description', paymentMasterSortConfig, setPaymentMasterSortConfig)} />
-                <SortableHeader label={t.fixedAmount} sortKey="fixedAmount" currentConfig={paymentMasterSortConfig} onClick={() => handleSort('fixedAmount', paymentMasterSortConfig, setPaymentMasterSortConfig)} />
-                <SortableHeader label={t.paymentMethod} sortKey="paymentMethod" currentConfig={paymentMasterSortConfig} onClick={() => handleSort('paymentMethod', paymentMasterSortConfig, setPaymentMasterSortConfig)} />
-                <SortableHeader label={t.paymentDay} sortKey="paymentDay" currentConfig={paymentMasterSortConfig} onClick={() => handleSort('paymentDay', paymentMasterSortConfig, setPaymentMasterSortConfig)} />
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t.actions}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">No.</th>
+                <SortableHeader
+                  label={t.category}
+                  sortKey="category"
+                  currentConfig={paymentMasterSortConfig}
+                  onClick={() => handleSort("category", paymentMasterSortConfig, setPaymentMasterSortConfig)}
+                />
+                <SortableHeader
+                  label={t.description}
+                  sortKey="description"
+                  currentConfig={paymentMasterSortConfig}
+                  onClick={() => handleSort("description", paymentMasterSortConfig, setPaymentMasterSortConfig)}
+                />
+                <SortableHeader
+                  label={t.fixedAmount}
+                  sortKey="fixedAmount"
+                  currentConfig={paymentMasterSortConfig}
+                  onClick={() => handleSort("fixedAmount", paymentMasterSortConfig, setPaymentMasterSortConfig)}
+                />
+                <SortableHeader
+                  label={t.paymentMethod}
+                  sortKey="paymentMethod"
+                  currentConfig={paymentMasterSortConfig}
+                  onClick={() => handleSort("paymentMethod", paymentMasterSortConfig, setPaymentMasterSortConfig)}
+                />
+                <SortableHeader
+                  label={t.paymentDay}
+                  sortKey="paymentDay"
+                  currentConfig={paymentMasterSortConfig}
+                  onClick={() => handleSort("paymentDay", paymentMasterSortConfig, setPaymentMasterSortConfig)}
+                />
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                  {t.actions}
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -3273,9 +3502,7 @@ const App = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {master.paymentMethod === "bank" ? t.bank : master.paymentMethod === "cash" ? t.cash : t.card}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {master.paymentDay}日
-                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{master.paymentDay}日</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
                         <button
@@ -3310,9 +3537,7 @@ const App = () => {
 
         <div className="space-y-6 max-w-2xl">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t.jpyRate}
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t.jpyRate}</label>
             <div className="flex items-center gap-3">
               <span className="text-gray-600">1 USD =</span>
               <input
@@ -3328,9 +3553,7 @@ const App = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t.vndRate}
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t.vndRate}</label>
             <div className="flex items-center gap-3">
               <span className="text-gray-600">1 USD =</span>
               <input
@@ -3364,19 +3587,14 @@ const App = () => {
   return (
     <div className="flex h-screen bg-gray-50">
       {/* モバイル用オーバーレイ */}
-      {mobileMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-          onClick={() => setMobileMenuOpen(false)}
-        />
-      )}
+      {mobileMenuOpen && <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={() => setMobileMenuOpen(false)} />}
 
       {/* サイドバー */}
-      <aside className={`${
-        mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-      } lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50 ${
-        sidebarOpen ? "w-64" : "w-20"
-      } bg-white border-r border-gray-200 transition-all duration-300 flex flex-col`}>
+      <aside
+        className={`${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50 ${
+          sidebarOpen ? "w-64" : "w-20"
+        } bg-white border-r border-gray-200 transition-all duration-300 flex flex-col`}
+      >
         <div className="p-6 border-b border-gray-200 flex items-center justify-between">
           {sidebarOpen && (
             <div>
@@ -3437,10 +3655,7 @@ const App = () => {
         <header className="bg-white border-b border-gray-200 px-4 md:px-8 py-4 sticky top-0 z-10">
           <div className="flex items-center justify-between">
             {/* モバイル用ハンバーガーメニュー */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 hover:bg-gray-100 rounded-lg mr-4"
-            >
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="lg:hidden p-2 hover:bg-gray-100 rounded-lg mr-4">
               <Menu size={24} />
             </button>
 
@@ -3497,7 +3712,7 @@ const App = () => {
         </header>
 
         {/* コンテンツエリア */}
-        <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
+        <div className="p-4 md:p-6 lg:px-[80px] mx-auto">
           {currentPage === "dashboard" && renderDashboard()}
           {currentPage === "suppliers" && renderSuppliers()}
           {currentPage === "productMaster" && renderProductMaster()}
@@ -3738,7 +3953,7 @@ const App = () => {
                 <select
                   value={orderFormData.product}
                   onChange={(e) => {
-                    const selectedProduct = productMasters.find(pm => `${pm.productCode} - ${pm.productName}` === e.target.value);
+                    const selectedProduct = productMasters.find((pm) => `${pm.productCode} - ${pm.productName}` === e.target.value);
                     if (selectedProduct) {
                       setOrderFormData({
                         ...orderFormData,
@@ -3824,19 +4039,6 @@ const App = () => {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">{t.status}</label>
-                <select
-                  value={orderFormData.status}
-                  onChange={(e) => setOrderFormData({ ...orderFormData, status: e.target.value as "ordered" | "delivered" | "cancelled" })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="ordered">{t.ordered}</option>
-                  <option value="delivered">{t.delivered}</option>
-                  <option value="cancelled">{t.cancelled}</option>
-                </select>
-              </div>
-
-              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">{t.remarks}</label>
                 <textarea
                   value={orderFormData.remarks}
@@ -3845,6 +4047,76 @@ const App = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="備考を入力してください"
                 />
+              </div>
+
+              <div className="border-t pt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  {lang === "ja" ? "ステータス" : "Trạng thái"}
+                </label>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={orderFormData.ordered}
+                      onChange={(e) => setOrderFormData({ ...orderFormData, ordered: e.target.checked })}
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">{lang === "ja" ? "発注済み" : "Đã đặt hàng"}</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={orderFormData.delivered}
+                      onChange={(e) => setOrderFormData({ ...orderFormData, delivered: e.target.checked })}
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">{lang === "ja" ? "納品済み" : "Đã giao hàng"}</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={orderFormData.paid}
+                      onChange={(e) => setOrderFormData({ ...orderFormData, paid: e.target.checked })}
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">{lang === "ja" ? "支払い済み" : "Đã thanh toán"}</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  {lang === "ja" ? "書類状況" : "Trạng thái tài liệu"}
+                </label>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={orderFormData.purchaseOrderSent}
+                      onChange={(e) => setOrderFormData({ ...orderFormData, purchaseOrderSent: e.target.checked })}
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">{lang === "ja" ? "発注書送付" : "Gửi đơn hàng"}</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={orderFormData.deliveryNoteReceived}
+                      onChange={(e) => setOrderFormData({ ...orderFormData, deliveryNoteReceived: e.target.checked })}
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">{lang === "ja" ? "納品書受領" : "Nhận giao hàng"}</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={orderFormData.invoiceReceived}
+                      onChange={(e) => setOrderFormData({ ...orderFormData, invoiceReceived: e.target.checked })}
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">{lang === "ja" ? "請求書受領" : "Nhận hóa đơn"}</span>
+                  </label>
+                </div>
               </div>
             </div>
 
@@ -4039,20 +4311,6 @@ const App = () => {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">{t.status}</label>
-                <select
-                  value={saleFormData.status}
-                  onChange={(e) => setSaleFormData({ ...saleFormData, status: e.target.value as "pending" | "shipped" | "delivered" | "cancelled" })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="pending">{t.pending}</option>
-                  <option value="shipped">{t.shipped}</option>
-                  <option value="delivered">{t.delivered}</option>
-                  <option value="cancelled">{t.cancelled}</option>
-                </select>
-              </div>
-
-              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">{t.remarks}</label>
                 <textarea
                   value={saleFormData.remarks}
@@ -4061,6 +4319,76 @@ const App = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="備考を入力してください"
                 />
+              </div>
+
+              <div className="border-t pt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  {lang === "ja" ? "ステータス" : "Trạng thái"}
+                </label>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={saleFormData.shipped}
+                      onChange={(e) => setSaleFormData({ ...saleFormData, shipped: e.target.checked })}
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">{lang === "ja" ? "出荷済み" : "Đã xuất hàng"}</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={saleFormData.delivered}
+                      onChange={(e) => setSaleFormData({ ...saleFormData, delivered: e.target.checked })}
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">{lang === "ja" ? "納品済み" : "Đã giao hàng"}</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={saleFormData.paid}
+                      onChange={(e) => setSaleFormData({ ...saleFormData, paid: e.target.checked })}
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">{lang === "ja" ? "入金済み" : "Đã nhận tiền"}</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  {lang === "ja" ? "書類状況" : "Trạng thái tài liệu"}
+                </label>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={saleFormData.purchaseOrderReceived}
+                      onChange={(e) => setSaleFormData({ ...saleFormData, purchaseOrderReceived: e.target.checked })}
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">{lang === "ja" ? "発注書受領" : "Nhận đơn hàng"}</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={saleFormData.deliveryNoteSent}
+                      onChange={(e) => setSaleFormData({ ...saleFormData, deliveryNoteSent: e.target.checked })}
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">{lang === "ja" ? "納品書送付" : "Gửi phiếu giao hàng"}</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={saleFormData.invoiceSent}
+                      onChange={(e) => setSaleFormData({ ...saleFormData, invoiceSent: e.target.checked })}
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">{lang === "ja" ? "請求書送付" : "Gửi hóa đơn"}</span>
+                  </label>
+                </div>
               </div>
             </div>
 
@@ -4117,9 +4445,7 @@ const App = () => {
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-2xl">
-              <h2 className="text-2xl font-bold text-gray-800">
-                {editingPayment ? t.editPayment : t.addPayment}
-              </h2>
+              <h2 className="text-2xl font-bold text-gray-800">{editingPayment ? t.editPayment : t.addPayment}</h2>
             </div>
 
             <div className="p-4 md:p-6 space-y-4 md:space-y-6">
@@ -4305,9 +4631,7 @@ const App = () => {
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-2xl">
-              <h2 className="text-2xl font-bold text-gray-800">
-                {editingProductMaster ? t.editProductMaster : t.addProductMaster}
-              </h2>
+              <h2 className="text-2xl font-bold text-gray-800">{editingProductMaster ? t.editProductMaster : t.addProductMaster}</h2>
             </div>
 
             <div className="p-4 md:p-6 space-y-4 md:space-y-6">
@@ -4348,9 +4672,7 @@ const App = () => {
                   <input
                     type="number"
                     value={productMasterFormData.unitPrice}
-                    onChange={(e) =>
-                      setProductMasterFormData({ ...productMasterFormData, unitPrice: Number(e.target.value) })
-                    }
+                    onChange={(e) => setProductMasterFormData({ ...productMasterFormData, unitPrice: Number(e.target.value) })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     min="0"
                   />
@@ -4424,13 +4746,9 @@ const App = () => {
               <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mx-auto mb-4">
                 <AlertCircle className="text-red-600" size={24} />
               </div>
-              <h3 className="text-xl font-bold text-gray-800 text-center mb-2">
-                {lang === "ja" ? "削除の確認" : "Xác nhận xóa"}
-              </h3>
+              <h3 className="text-xl font-bold text-gray-800 text-center mb-2">{lang === "ja" ? "削除の確認" : "Xác nhận xóa"}</h3>
               <p className="text-gray-600 text-center mb-6">
-                {lang === "ja"
-                  ? "この品目マスタを削除してもよろしいですか？"
-                  : "Bạn có chắc chắn muốn xóa master sản phẩm này?"}
+                {lang === "ja" ? "この品目マスタを削除してもよろしいですか？" : "Bạn có chắc chắn muốn xóa master sản phẩm này?"}
               </p>
               <div className="flex gap-3">
                 <button
@@ -4456,9 +4774,7 @@ const App = () => {
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-2xl">
-              <h2 className="text-2xl font-bold text-gray-800">
-                {editingPaymentMaster ? t.editPaymentMaster : t.addPaymentMaster}
-              </h2>
+              <h2 className="text-2xl font-bold text-gray-800">{editingPaymentMaster ? t.editPaymentMaster : t.addPaymentMaster}</h2>
             </div>
 
             <div className="p-4 md:p-6 space-y-4 md:space-y-6">
@@ -4527,9 +4843,7 @@ const App = () => {
                     <input
                       type="number"
                       value={paymentMasterFormData.fixedAmount}
-                      onChange={(e) =>
-                        setPaymentMasterFormData({ ...paymentMasterFormData, fixedAmount: Number(e.target.value) })
-                      }
+                      onChange={(e) => setPaymentMasterFormData({ ...paymentMasterFormData, fixedAmount: Number(e.target.value) })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       min="0"
                     />
@@ -4579,9 +4893,7 @@ const App = () => {
                   <input
                     type="number"
                     value={paymentMasterFormData.paymentDay}
-                    onChange={(e) =>
-                      setPaymentMasterFormData({ ...paymentMasterFormData, paymentDay: Number(e.target.value) })
-                    }
+                    onChange={(e) => setPaymentMasterFormData({ ...paymentMasterFormData, paymentDay: Number(e.target.value) })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     min="1"
                     max="31"
@@ -4627,9 +4939,7 @@ const App = () => {
               <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mx-auto mb-4">
                 <AlertCircle className="text-red-600" size={24} />
               </div>
-              <h3 className="text-xl font-bold text-gray-800 text-center mb-2">
-                {lang === "ja" ? "削除の確認" : "Xác nhận xóa"}
-              </h3>
+              <h3 className="text-xl font-bold text-gray-800 text-center mb-2">{lang === "ja" ? "削除の確認" : "Xác nhận xóa"}</h3>
               <p className="text-gray-600 text-center mb-6">
                 {lang === "ja"
                   ? "本当に削除しますか？この操作は取り消せません。"

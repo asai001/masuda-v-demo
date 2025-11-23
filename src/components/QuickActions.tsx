@@ -18,12 +18,12 @@ interface QuickActionsProps {
 
 export const QuickActions = ({ actions, translations, onActionClick }: QuickActionsProps) => {
   return (
-    <div className="grid grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
       {actions.map((action, index) => (
         <button
           key={index}
           onClick={() => onActionClick(action.page)}
-          className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all hover:-translate-y-1 group text-left"
+          className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6 hover:shadow-md transition-all hover:-translate-y-1 group text-left"
         >
           <div
             className={`${action.color} w-12 h-12 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}
