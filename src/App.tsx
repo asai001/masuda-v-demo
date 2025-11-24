@@ -2713,6 +2713,99 @@ const App = () => {
     };
   };
 
+  // レポート用：顧客別売上集計
+  const calculateSalesByCustomer = () => {
+    const customerSales: { [key: string]: { name: string; total: number } } = {};
+
+    sales.forEach((sale) => {
+      const supplier = suppliers.find((s) => s.id === sale.customerId);
+      const customerName = supplier?.name || "不明";
+
+      const quantity = Number(sale.quantity) || 0;
+      const unitPrice = Number(sale.unitPrice) || 0;
+      let amount = quantity * unitPrice;
+
+      // USD換算
+      if (sale.currency === "JPY") {
+        amount = amount / exchangeRates.jpy;
+      } else if (sale.currency === "VND") {
+        amount = amount / exchangeRates.vnd;
+      }
+
+      if (!customerSales[sale.customerId]) {
+        customerSales[sale.customerId] = { name: customerName, total: 0 };
+      }
+      customerSales[sale.customerId].total += amount;
+    });
+
+    return Object.values(customerSales)
+      .sort((a, b) => b.total - a.total)
+      .map((item, index) => ({
+        rank: index + 1,
+        name: item.name,
+        amount: item.total,
+      }));
+  };
+
+  // レポート用：仕入先別仕入集計
+  const calculatePurchaseBySupplier = () => {
+    const supplierPurchases: { [key: string]: { name: string; total: number; count: number } } = {};
+
+    orders.forEach((order) => {
+      const supplier = suppliers.find((s) => s.id === order.supplierId);
+      const supplierName = supplier?.name || "不明";
+
+      const quantity = Number(order.quantity) || 0;
+      const unitPrice = Number(order.unitPrice) || 0;
+      let amount = quantity * unitPrice;
+
+      // USD換算
+      if (order.currency === "JPY") {
+        amount = amount / exchangeRates.jpy;
+      } else if (order.currency === "VND") {
+        amount = amount / exchangeRates.vnd;
+      }
+
+      if (!supplierPurchases[order.supplierId]) {
+        supplierPurchases[order.supplierId] = { name: supplierName, total: 0, count: 0 };
+      }
+      supplierPurchases[order.supplierId].total += amount;
+      supplierPurchases[order.supplierId].count += 1;
+    });
+
+    return Object.values(supplierPurchases).sort((a, b) => b.total - a.total);
+  };
+
+  // レポート用：製品別売上集計
+  const calculateSalesByProduct = () => {
+    const productSales: { [key: string]: { name: string; total: number } } = {};
+
+    sales.forEach((sale) => {
+      const product = products.find((p) => p.id === sale.productId);
+      const productName = product?.productName || "不明";
+
+      const quantity = Number(sale.quantity) || 0;
+      const unitPrice = Number(sale.unitPrice) || 0;
+      let amount = quantity * unitPrice;
+
+      // USD換算
+      if (sale.currency === "JPY") {
+        amount = amount / exchangeRates.jpy;
+      } else if (sale.currency === "VND") {
+        amount = amount / exchangeRates.vnd;
+      }
+
+      if (!productSales[sale.productId]) {
+        productSales[sale.productId] = { name: productName, total: 0 };
+      }
+      productSales[sale.productId].total += amount;
+    });
+
+    return Object.values(productSales)
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 5);
+  };
+
   const renderDashboard = () => (
     <div className="space-y-6">
       <div>
@@ -4493,27 +4586,50 @@ const App = () => {
               {/* レポートコンテンツ */}
               {reportTab === "sales" && (
                 <div className="space-y-6">
+                  {/* サマリーカード */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
+                      <p className="text-sm text-gray-600 mb-1">総売上</p>
+                      <p className="text-2xl font-bold text-gray-800">
+                        ${calculateMonthlySales().total.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                      </p>
+                      <p className="text-xs text-gray-600 mt-1">今月の売上合計</p>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-500">
+                      <p className="text-sm text-gray-600 mb-1">受注件数</p>
+                      <p className="text-2xl font-bold text-gray-800">{calculateMonthlySales().salesCount}件</p>
+                      <p className="text-xs text-gray-600 mt-1">今月の受注数</p>
+                    </div>
+                    <div className="bg-orange-50 p-4 rounded-lg border-l-4 border-orange-500">
+                      <p className="text-sm text-gray-600 mb-1">未出荷</p>
+                      <p className="text-2xl font-bold text-gray-800">{calculateMonthlySales().pendingSalesCount}件</p>
+                      <p className="text-xs text-orange-600 mt-1">出荷待ち</p>
+                    </div>
+                    <div className="bg-purple-50 p-4 rounded-lg border-l-4 border-purple-500">
+                      <p className="text-sm text-gray-600 mb-1">出荷済み</p>
+                      <p className="text-2xl font-bold text-gray-800">{calculateMonthlySales().shippedSalesCount}件</p>
+                      <p className="text-xs text-green-600 mt-1">完了</p>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <CashFlow
-                      data={[
-                        { month: "1月", sales: 45000, purchase: 32000, balance: 13000 },
-                        { month: "2月", sales: 52000, purchase: 38000, balance: 14000 },
-                        { month: "3月", sales: 48000, purchase: 35000, balance: 13000 },
-                        { month: "4月", sales: 61000, purchase: 42000, balance: 19000 },
-                        { month: "5月", sales: 55000, purchase: 40000, balance: 15000 },
-                        { month: "6月", sales: 67000, purchase: 48000, balance: 19000 },
-                      ]}
-                      title={t.salesTrend}
+                    <SalesByCustomer
+                      data={calculateSalesByProduct().map((item) => ({
+                        name: item.name,
+                        value: item.total,
+                        currency: "USD",
+                      }))}
+                      title={t.salesByProduct}
+                      colors={["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"]}
                     />
                     <SalesByCustomer
-                      data={[
-                        { name: "顧客A", value: 45000, currency: "USD" },
-                        { name: "顧客B", value: 35000, currency: "USD" },
-                        { name: "顧客C", value: 25000, currency: "USD" },
-                        { name: "顧客D", value: 20000, currency: "USD" },
-                      ]}
-                      title={t.salesByProduct}
-                      colors={["#0088FE", "#00C49F", "#FFBB28", "#FF8042"]}
+                      data={calculateSalesByCustomer().slice(0, 5).map((item) => ({
+                        name: item.name,
+                        value: item.amount,
+                        currency: "USD",
+                      }))}
+                      title={t.salesByCustomer}
+                      colors={["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"]}
                     />
                   </div>
 
@@ -4527,28 +4643,33 @@ const App = () => {
                             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">{t.rank}</th>
                             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">{t.customerName}</th>
                             <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">{t.salesAmount}</th>
-                            <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">{t.count}</th>
+                            <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">{t.percentage}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
-                          <tr>
-                            <td className="px-4 py-3 text-sm">1</td>
-                            <td className="px-4 py-3 text-sm">顧客A</td>
-                            <td className="px-4 py-3 text-sm text-right font-medium">$45,000</td>
-                            <td className="px-4 py-3 text-sm text-right">12</td>
-                          </tr>
-                          <tr>
-                            <td className="px-4 py-3 text-sm">2</td>
-                            <td className="px-4 py-3 text-sm">顧客B</td>
-                            <td className="px-4 py-3 text-sm text-right font-medium">$35,000</td>
-                            <td className="px-4 py-3 text-sm text-right">8</td>
-                          </tr>
-                          <tr>
-                            <td className="px-4 py-3 text-sm">3</td>
-                            <td className="px-4 py-3 text-sm">顧客C</td>
-                            <td className="px-4 py-3 text-sm text-right font-medium">$25,000</td>
-                            <td className="px-4 py-3 text-sm text-right">6</td>
-                          </tr>
+                          {calculateSalesByCustomer().slice(0, 10).map((customer, index) => {
+                            const totalSales = calculateMonthlySales().total;
+                            const percentage = totalSales > 0 ? (customer.amount / totalSales) * 100 : 0;
+                            return (
+                              <tr key={index} className="hover:bg-gray-50">
+                                <td className="px-4 py-3 text-sm font-medium text-gray-900">{customer.rank}</td>
+                                <td className="px-4 py-3 text-sm text-gray-700">{customer.name}</td>
+                                <td className="px-4 py-3 text-sm text-right font-medium text-gray-900">
+                                  ${customer.amount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-right text-gray-600">
+                                  {percentage.toFixed(1)}%
+                                </td>
+                              </tr>
+                            );
+                          })}
+                          {calculateSalesByCustomer().length === 0 && (
+                            <tr>
+                              <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
+                                売上データがありません
+                              </td>
+                            </tr>
+                          )}
                         </tbody>
                       </table>
                     </div>
@@ -4558,56 +4679,104 @@ const App = () => {
 
               {reportTab === "purchase" && (
                 <div className="space-y-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <CashFlow
-                      data={[
-                        { month: "1月", sales: 32000, purchase: 0, balance: 0 },
-                        { month: "2月", sales: 38000, purchase: 0, balance: 0 },
-                        { month: "3月", sales: 35000, purchase: 0, balance: 0 },
-                        { month: "4月", sales: 42000, purchase: 0, balance: 0 },
-                        { month: "5月", sales: 40000, purchase: 0, balance: 0 },
-                        { month: "6月", sales: 48000, purchase: 0, balance: 0 },
-                      ]}
-                      title={t.purchaseTrend}
-                    />
-                    <SalesByCustomer
-                      data={[
-                        { name: t.panasonic, value: 28000, currency: "USD" },
-                        { name: t.riken, value: 22000, currency: "USD" },
-                        { name: t.nidec, value: 18000, currency: "USD" },
-                        { name: t.morimura, value: 15000, currency: "USD" },
-                      ]}
-                      title={t.purchaseBySupplierReport}
-                      colors={["#0088FE", "#00C49F", "#FFBB28", "#FF8042"]}
-                    />
+                  {/* サマリーカード */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-500">
+                      <p className="text-sm text-gray-600 mb-1">総仕入</p>
+                      <p className="text-2xl font-bold text-gray-800">
+                        ${calculateMonthlyPurchase().total.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                      </p>
+                      <p className="text-xs text-gray-600 mt-1">今月の仕入合計</p>
+                    </div>
+                    <div className="bg-purple-50 p-4 rounded-lg border-l-4 border-purple-500">
+                      <p className="text-sm text-gray-600 mb-1">発注件数</p>
+                      <p className="text-2xl font-bold text-gray-800">{calculateMonthlyPurchase().orderCount}件</p>
+                      <p className="text-xs text-gray-600 mt-1">今月の発注数</p>
+                    </div>
+                    <div className="bg-orange-50 p-4 rounded-lg border-l-4 border-orange-500">
+                      <p className="text-sm text-gray-600 mb-1">未納入</p>
+                      <p className="text-2xl font-bold text-gray-800">{calculateMonthlyPurchase().pendingCount}件</p>
+                      <p className="text-xs text-orange-600 mt-1">納品待ち</p>
+                    </div>
+                    <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
+                      <p className="text-sm text-gray-600 mb-1">仕入先数</p>
+                      <p className="text-2xl font-bold text-gray-800">{calculatePurchaseBySupplier().length}社</p>
+                      <p className="text-xs text-gray-600 mt-1">取引仕入先</p>
+                    </div>
                   </div>
 
-                  {/* 納品状況テーブル */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <SalesByCustomer
+                      data={calculatePurchaseBySupplier().slice(0, 5).map((item) => ({
+                        name: item.name,
+                        value: item.total,
+                        currency: "USD",
+                      }))}
+                      title={t.purchaseBySupplierReport}
+                      colors={["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"]}
+                    />
+                    <div className="bg-white p-4 md:p-6 rounded-lg shadow">
+                      <h3 className="text-base md:text-lg font-bold mb-4">仕入先別発注件数</h3>
+                      <div className="space-y-3">
+                        {calculatePurchaseBySupplier().slice(0, 5).map((supplier, index) => {
+                          const totalPurchase = calculateMonthlyPurchase().total;
+                          const percentage = totalPurchase > 0 ? (supplier.total / totalPurchase) * 100 : 0;
+                          return (
+                            <div key={index} className="flex items-center justify-between">
+                              <div className="flex items-center gap-3 flex-1">
+                                <div className={`w-3 h-3 rounded-full`} style={{ backgroundColor: ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"][index % 5] }}></div>
+                                <span className="text-sm text-gray-700">{supplier.name}</span>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-sm font-medium text-gray-900">{supplier.count}件</p>
+                                <p className="text-xs text-gray-500">{percentage.toFixed(1)}%</p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 仕入先別詳細テーブル */}
                   <div className="bg-white p-4 md:p-6 rounded-lg shadow">
-                    <h3 className="text-base md:text-lg font-bold mb-4">{t.deliveryStatus}</h3>
+                    <h3 className="text-base md:text-lg font-bold mb-4">仕入先別詳細</h3>
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead className="bg-gray-50">
                           <tr>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">{t.rank}</th>
                             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">{t.supplierName}</th>
-                            <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">{t.totalOrders}</th>
-                            <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">{t.deliveredOrders}</th>
-                            <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">{t.pendingOrders}</th>
+                            <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">{t.purchaseAmount}</th>
+                            <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">{t.count}</th>
+                            <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">{t.percentage}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
-                          <tr>
-                            <td className="px-4 py-3 text-sm">{t.panasonic}</td>
-                            <td className="px-4 py-3 text-sm text-right">15</td>
-                            <td className="px-4 py-3 text-sm text-right text-green-600 font-medium">12</td>
-                            <td className="px-4 py-3 text-sm text-right text-orange-600 font-medium">3</td>
-                          </tr>
-                          <tr>
-                            <td className="px-4 py-3 text-sm">{t.riken}</td>
-                            <td className="px-4 py-3 text-sm text-right">10</td>
-                            <td className="px-4 py-3 text-sm text-right text-green-600 font-medium">8</td>
-                            <td className="px-4 py-3 text-sm text-right text-orange-600 font-medium">2</td>
-                          </tr>
+                          {calculatePurchaseBySupplier().map((supplier, index) => {
+                            const totalPurchase = calculateMonthlyPurchase().total;
+                            const percentage = totalPurchase > 0 ? (supplier.total / totalPurchase) * 100 : 0;
+                            return (
+                              <tr key={index} className="hover:bg-gray-50">
+                                <td className="px-4 py-3 text-sm font-medium text-gray-900">{index + 1}</td>
+                                <td className="px-4 py-3 text-sm text-gray-700">{supplier.name}</td>
+                                <td className="px-4 py-3 text-sm text-right font-medium text-gray-900">
+                                  ${supplier.total.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-right text-gray-600">{supplier.count}件</td>
+                                <td className="px-4 py-3 text-sm text-right text-gray-600">
+                                  {percentage.toFixed(1)}%
+                                </td>
+                              </tr>
+                            );
+                          })}
+                          {calculatePurchaseBySupplier().length === 0 && (
+                            <tr>
+                              <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                                仕入データがありません
+                              </td>
+                            </tr>
+                          )}
                         </tbody>
                       </table>
                     </div>
@@ -4615,62 +4784,126 @@ const App = () => {
                 </div>
               )}
 
-              {reportTab === "financial" && (
-                <div className="space-y-6">
-                  {/* 損益概算 */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-blue-50 p-6 rounded-lg border-l-4 border-blue-500">
-                      <p className="text-sm text-gray-600 mb-2">{t.revenue}</p>
-                      <p className="text-2xl font-bold text-gray-800">$125,000</p>
+              {reportTab === "financial" && (() => {
+                const salesData = calculateMonthlySales();
+                const purchaseData = calculateMonthlyPurchase();
+                const paymentData = calculateMonthlyPayments();
+                const revenue = salesData.total;
+                const cost = purchaseData.total;
+                const profit = revenue - cost;
+                const profitMargin = revenue > 0 ? (profit / revenue) * 100 : 0;
+
+                return (
+                  <div className="space-y-6">
+                    {/* 損益概算 */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div className="bg-blue-50 p-6 rounded-lg border-l-4 border-blue-500">
+                        <p className="text-sm text-gray-600 mb-2">{t.revenue}</p>
+                        <p className="text-2xl font-bold text-gray-800">
+                          ${revenue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                        </p>
+                        <p className="text-xs text-gray-600 mt-1">{salesData.salesCount}件の受注</p>
+                      </div>
+                      <div className="bg-orange-50 p-6 rounded-lg border-l-4 border-orange-500">
+                        <p className="text-sm text-gray-600 mb-2">{t.cost}</p>
+                        <p className="text-2xl font-bold text-gray-800">
+                          ${cost.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                        </p>
+                        <p className="text-xs text-gray-600 mt-1">{purchaseData.orderCount}件の発注</p>
+                      </div>
+                      <div className={`p-6 rounded-lg border-l-4 ${profit >= 0 ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'}`}>
+                        <p className="text-sm text-gray-600 mb-2">{t.profit}</p>
+                        <p className={`text-2xl font-bold ${profit >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                          ${profit.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                        </p>
+                        <p className={`text-xs mt-1 ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {t.profitMargin}: {profitMargin.toFixed(1)}%
+                        </p>
+                      </div>
+                      <div className="bg-purple-50 p-6 rounded-lg border-l-4 border-purple-500">
+                        <p className="text-sm text-gray-600 mb-2">キャッシュバランス</p>
+                        <p className="text-2xl font-bold text-gray-800">
+                          ${(revenue - paymentData.total).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                        </p>
+                        <p className="text-xs text-gray-600 mt-1">売上 - 支払</p>
+                      </div>
                     </div>
-                    <div className="bg-orange-50 p-6 rounded-lg border-l-4 border-orange-500">
-                      <p className="text-sm text-gray-600 mb-2">{t.cost}</p>
-                      <p className="text-2xl font-bold text-gray-800">$83,000</p>
-                    </div>
-                    <div className="bg-green-50 p-6 rounded-lg border-l-4 border-green-500">
-                      <p className="text-sm text-gray-600 mb-2">{t.profit}</p>
-                      <p className="text-2xl font-bold text-gray-800">$42,000</p>
-                      <p className="text-xs text-green-600 mt-1">{t.profitMargin}: 33.6%</p>
+
+                    {/* キャッシュフロー */}
+                    <CashFlow
+                      data={cashFlowData}
+                      title={t.cashFlowSummary}
+                    />
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* 支払状況 */}
+                      <div className="bg-white p-4 md:p-6 rounded-lg shadow">
+                        <h3 className="text-base md:text-lg font-bold mb-4">{t.paymentStatusReport}</h3>
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                            <span className="text-sm text-gray-600">{t.totalPayments}</span>
+                            <span className="text-xl font-bold text-gray-800">{paymentData.paymentCount}件</span>
+                          </div>
+                          <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                            <span className="text-sm text-gray-600">{t.paidPayments}</span>
+                            <span className="text-xl font-bold text-green-600">{paymentData.paidCount}件</span>
+                          </div>
+                          <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg">
+                            <span className="text-sm text-gray-600">{t.pendingPayments}</span>
+                            <span className="text-xl font-bold text-orange-600">{paymentData.paymentCount - paymentData.paidCount}件</span>
+                          </div>
+                          <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                            <span className="text-sm text-gray-600">{t.totalAmount}</span>
+                            <span className="text-xl font-bold text-gray-800">
+                              ${paymentData.total.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 財務健全性指標 */}
+                      <div className="bg-white p-4 md:p-6 rounded-lg shadow">
+                        <h3 className="text-base md:text-lg font-bold mb-4">財務健全性指標</h3>
+                        <div className="space-y-4">
+                          <div>
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="text-sm text-gray-600">利益率</span>
+                              <span className={`text-sm font-semibold ${profitMargin >= 20 ? 'text-green-600' : profitMargin >= 10 ? 'text-orange-600' : 'text-red-600'}`}>
+                                {profitMargin.toFixed(1)}%
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div className={`h-2 rounded-full ${profitMargin >= 20 ? 'bg-green-500' : profitMargin >= 10 ? 'bg-orange-500' : 'bg-red-500'}`} style={{ width: `${Math.min(profitMargin, 100)}%` }}></div>
+                            </div>
+                          </div>
+                          <div>
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="text-sm text-gray-600">支払完了率</span>
+                              <span className={`text-sm font-semibold ${paymentData.paymentCount > 0 && (paymentData.paidCount / paymentData.paymentCount) >= 0.8 ? 'text-green-600' : 'text-orange-600'}`}>
+                                {paymentData.paymentCount > 0 ? ((paymentData.paidCount / paymentData.paymentCount) * 100).toFixed(1) : 0}%
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div className={`h-2 rounded-full ${paymentData.paymentCount > 0 && (paymentData.paidCount / paymentData.paymentCount) >= 0.8 ? 'bg-green-500' : 'bg-orange-500'}`} style={{ width: `${paymentData.paymentCount > 0 ? (paymentData.paidCount / paymentData.paymentCount) * 100 : 0}%` }}></div>
+                            </div>
+                          </div>
+                          <div>
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="text-sm text-gray-600">出荷完了率</span>
+                              <span className={`text-sm font-semibold ${salesData.salesCount > 0 && (salesData.shippedSalesCount / salesData.salesCount) >= 0.8 ? 'text-green-600' : 'text-orange-600'}`}>
+                                {salesData.salesCount > 0 ? ((salesData.shippedSalesCount / salesData.salesCount) * 100).toFixed(1) : 0}%
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div className={`h-2 rounded-full ${salesData.salesCount > 0 && (salesData.shippedSalesCount / salesData.salesCount) >= 0.8 ? 'bg-green-500' : 'bg-orange-500'}`} style={{ width: `${salesData.salesCount > 0 ? (salesData.shippedSalesCount / salesData.salesCount) * 100 : 0}%` }}></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-
-                  {/* キャッシュフロー */}
-                  <CashFlow
-                    data={[
-                      { month: "1月", sales: 45000, purchase: 32000, balance: 13000 },
-                      { month: "2月", sales: 52000, purchase: 38000, balance: 14000 },
-                      { month: "3月", sales: 48000, purchase: 35000, balance: 13000 },
-                      { month: "4月", sales: 61000, purchase: 42000, balance: 19000 },
-                      { month: "5月", sales: 55000, purchase: 40000, balance: 15000 },
-                      { month: "6月", sales: 67000, purchase: 48000, balance: 19000 },
-                    ]}
-                    title={t.cashFlowSummary}
-                  />
-
-                  {/* 支払状況 */}
-                  <div className="bg-white p-4 md:p-6 rounded-lg shadow">
-                    <h3 className="text-base md:text-lg font-bold mb-4">{t.paymentStatusReport}</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="text-center">
-                        <p className="text-sm text-gray-600">{t.totalPayments}</p>
-                        <p className="text-xl font-bold text-gray-800">24件</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-sm text-gray-600">{t.paidPayments}</p>
-                        <p className="text-xl font-bold text-green-600">18件</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-sm text-gray-600">{t.pendingPayments}</p>
-                        <p className="text-xl font-bold text-orange-600">6件</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-sm text-gray-600">{t.totalAmount}</p>
-                        <p className="text-xl font-bold text-gray-800">$83,000</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
           )}
           {currentPage === "systemSettings" && renderSystemSettings()}
