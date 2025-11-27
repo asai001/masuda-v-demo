@@ -78,6 +78,7 @@ const App = () => {
   const [saleValidationError, setSaleValidationError] = useState("");
   const [saleSearchQuery, setSaleSearchQuery] = useState("");
   const [saleFilterStatus, setSaleFilterStatus] = useState("all");
+  const [saleFilterCustomer, setSaleFilterCustomer] = useState("all");
 
   // 支払いマスタ関連のstate
   const [showPaymentMasterModal, setShowPaymentMasterModal] = useState(false);
@@ -112,9 +113,7 @@ const App = () => {
 
   // レポート画面関連のstate
   const [reportTab, setReportTab] = useState<"sales" | "purchase" | "financial">("sales");
-  const [reportPeriod, setReportPeriod] = useState<"thisMonth" | "lastMonth" | "thisQuarter" | "thisYear" | "custom">(
-    "thisMonth",
-  );
+  const [reportPeriod, setReportPeriod] = useState<"thisMonth" | "lastMonth" | "thisQuarter" | "thisYear" | "custom">("thisMonth");
 
   // ソート機能用のstate
   type SortConfig = {
@@ -351,6 +350,7 @@ const App = () => {
       addOrder: "新規発注",
       editOrder: "発注編集",
       orderDate: "発注日",
+      supplier: "仕入先",
       deliveryDate: "納品予定日",
       product: "品目/品番",
       quantity: "数量",
@@ -378,11 +378,11 @@ const App = () => {
       usa: "米国",
       deleteConfirmTitle: "削除の確認",
       deleteConfirmMessage: "本当に削除しますか?この操作は取り消せません。",
-      purchaseItemMasterMenu: "発注品目マスタ",
-      purchaseItemMaster: "発注品目マスタ",
-      purchaseItemList: "発注品目一覧",
-      addPurchaseItem: "新規発注品目",
-      editPurchaseItem: "発注品目編集",
+      purchaseItemMasterMenu: "材料マスタ",
+      purchaseItemMaster: "材料マスタ",
+      purchaseItemList: "材料一覧",
+      addPurchaseItem: "新規材料",
+      editPurchaseItem: "材料編集",
       productMasterMenu: "製品マスタ",
       productMaster: "製品マスタ",
       productList: "製品一覧",
@@ -411,6 +411,20 @@ const App = () => {
       addProductMaster: "新規品目登録",
       editProductMaster: "品目編集",
       totalProductMasters: "品目件数",
+      materials: "使用材料",
+      weight: "重量",
+      weightUnit: "g",
+      lengthField: "長さ",
+      lengthUnit: "mm",
+      speed: "分速",
+      speedUnit: "m/min",
+      selectMaterials: "材料を選択",
+      poNumber: "PO No.",
+      orderQuantity: "注数",
+      requiredMaterialAmount: "必要材料量",
+      requiredMaterialUnit: "kg",
+      moldingTime: "成形時間",
+      timeUnit: "時間",
       paymentMasterMenu: "支払マスタ",
       paymentMasterTitle: "支払マスタ管理",
       paymentMasterList: "支払マスタ一覧",
@@ -557,6 +571,7 @@ const App = () => {
       riken: "Riken",
       nidec: "Nidec",
       morimura: "Morimura",
+      supplier: "Nhà cung cấp",
       orderMaster: "Quản lý đặt hàng",
       orderList: "Danh sách đơn hàng",
       addOrder: "Đặt hàng mới",
@@ -589,11 +604,11 @@ const App = () => {
       usa: "Mỹ",
       deleteConfirmTitle: "Xác nhận xóa",
       deleteConfirmMessage: "Bạn có chắc muốn xóa? Thao tác này không thể hoàn tác.",
-      purchaseItemMasterMenu: "Master hàng mua",
-      purchaseItemMaster: "Master hàng mua",
-      purchaseItemList: "Danh sách hàng mua",
-      addPurchaseItem: "Hàng mua mới",
-      editPurchaseItem: "Chỉnh sửa hàng mua",
+      purchaseItemMasterMenu: "Master nguyên liệu",
+      purchaseItemMaster: "Master nguyên liệu",
+      purchaseItemList: "Danh sách nguyên liệu",
+      addPurchaseItem: "Nguyên liệu mới",
+      editPurchaseItem: "Chỉnh sửa nguyên liệu",
       productMasterMenu: "Master sản phẩm",
       productMaster: "Sản phẩm master",
       productList: "Danh sách sản phẩm",
@@ -622,6 +637,20 @@ const App = () => {
       addProductMaster: "Thêm sản phẩm mới",
       editProductMaster: "Chỉnh sửa sản phẩm",
       totalProductMasters: "Tổng số sản phẩm",
+      materials: "Vật liệu sử dụng",
+      weight: "Trọng lượng",
+      weightUnit: "g",
+      lengthField: "Chiều dài",
+      lengthUnit: "mm",
+      speed: "Tốc độ",
+      speedUnit: "m/phút",
+      selectMaterials: "Chọn vật liệu",
+      poNumber: "Số PO",
+      orderQuantity: "Số lượng đơn",
+      requiredMaterialAmount: "Lượng vật liệu cần",
+      requiredMaterialUnit: "kg",
+      moldingTime: "Thời gian đúc",
+      timeUnit: "giờ",
       paymentMasterMenu: "Master thanh toán",
       paymentMasterTitle: "Quản lý master thanh toán",
       paymentMasterList: "Danh sách master",
@@ -836,6 +865,10 @@ const App = () => {
       currency: "USD",
       remarks: "標準電子部品",
       status: "active",
+      materialIds: ["pi-001", "pi-002"],
+      weight: 50,
+      length: 100,
+      speed: 0.6,
       createdAt: "2024-01-15",
       updatedAt: "2025-11-20",
     },
@@ -850,6 +883,10 @@ const App = () => {
       currency: "USD",
       remarks: "汎用樹脂",
       status: "active",
+      materialIds: [],
+      weight: 1000,
+      length: 0,
+      speed: 0,
       createdAt: "2024-02-01",
       updatedAt: "2025-11-18",
     },
@@ -864,6 +901,10 @@ const App = () => {
       currency: "USD",
       remarks: "特殊添加剤",
       status: "active",
+      materialIds: [],
+      weight: 1000,
+      length: 0,
+      speed: 0,
       createdAt: "2024-02-10",
       updatedAt: "2025-11-15",
     },
@@ -878,6 +919,10 @@ const App = () => {
       currency: "JPY",
       remarks: "完成品",
       status: "active",
+      materialIds: ["pi-003"],
+      weight: 80,
+      length: 150,
+      speed: 0.6,
       createdAt: "2024-03-01",
       updatedAt: "2025-11-22",
     },
@@ -892,6 +937,10 @@ const App = () => {
       currency: "USD",
       remarks: "中間製品",
       status: "active",
+      materialIds: ["pi-001"],
+      weight: 60,
+      length: 120,
+      speed: 0.6,
       createdAt: "2024-03-15",
       updatedAt: "2025-11-19",
     },
@@ -907,6 +956,7 @@ const App = () => {
       unit: "kg",
       standardPrice: 3.5,
       currency: "USD",
+      supplierId: "s-001",
       remarks: "発注用鋼材",
       status: "active",
       createdAt: "2024-01-15",
@@ -921,6 +971,7 @@ const App = () => {
       unit: "kg",
       standardPrice: 4.2,
       currency: "USD",
+      supplierId: "s-002",
       remarks: "発注用アルミニウム",
       status: "active",
       createdAt: "2024-02-01",
@@ -935,6 +986,7 @@ const App = () => {
       unit: "piece",
       standardPrice: 0.5,
       currency: "USD",
+      supplierId: "s-001",
       remarks: "標準ボルト",
       status: "active",
       createdAt: "2024-02-10",
@@ -949,6 +1001,7 @@ const App = () => {
       unit: "box",
       standardPrice: 12,
       currency: "USD",
+      supplierId: "s-003",
       remarks: "発注用包装材",
       status: "active",
       createdAt: "2024-03-01",
@@ -963,6 +1016,7 @@ const App = () => {
       unit: "piece",
       standardPrice: 85,
       currency: "USD",
+      supplierId: "s-002",
       remarks: "発注用工具",
       status: "active",
       createdAt: "2024-03-15",
@@ -989,6 +1043,10 @@ const App = () => {
     currency: "USD",
     remarks: "",
     status: "active",
+    materialIds: [],
+    weight: 0,
+    length: 0,
+    speed: 0,
   });
 
   const [purchaseItemFormData, setPurchaseItemFormData] = useState<PurchaseItemFormData>({
@@ -998,6 +1056,7 @@ const App = () => {
     unit: "kg",
     standardPrice: 0,
     currency: "USD",
+    supplierId: "",
     remarks: "",
     status: "active",
   });
@@ -1081,6 +1140,7 @@ const App = () => {
     {
       id: "sl-001",
       incrementalId: 1,
+      poNumber: "PO-2025-001",
       saleDate: "2025-11-15",
       customerId: "s-006",
       productId: "p-004",
@@ -1089,6 +1149,9 @@ const App = () => {
       currency: "JPY",
       deliveryDate: "2025-11-25",
       remarks: "定期取引",
+      materialIds: ["pi-003"], // p-004の使用材料
+      requiredMaterialAmount: 160, // 2000 * 80g / 1000 = 160kg
+      moldingTime: 8.33, // (2000 * 150mm / 1000) / 0.6m/min / 60 = 8.33時間
       shipped: true,
       delivered: false,
       paid: false,
@@ -1099,6 +1162,7 @@ const App = () => {
     {
       id: "sl-002",
       incrementalId: 2,
+      poNumber: "PO-2025-002",
       saleDate: "2025-11-18",
       customerId: "s-007",
       productId: "p-005",
@@ -1107,6 +1171,9 @@ const App = () => {
       currency: "USD",
       deliveryDate: "2025-11-28",
       remarks: "急ぎ対応",
+      materialIds: ["pi-001"], // p-005の使用材料
+      requiredMaterialAmount: 90, // 1500 * 60g / 1000 = 90kg
+      moldingTime: 5.00, // (1500 * 120mm / 1000) / 0.6m/min / 60 = 5.00時間
       shipped: false,
       delivered: false,
       paid: false,
@@ -1117,6 +1184,7 @@ const App = () => {
     {
       id: "sl-003",
       incrementalId: 3,
+      poNumber: "PO-2025-003",
       saleDate: "2025-11-10",
       customerId: "s-008",
       productId: "p-004",
@@ -1125,6 +1193,9 @@ const App = () => {
       currency: "JPY",
       deliveryDate: "2025-11-20",
       remarks: "納品完了",
+      materialIds: ["pi-003"], // p-004の使用材料
+      requiredMaterialAmount: 64, // 800 * 80g / 1000 = 64kg
+      moldingTime: 3.33, // (800 * 150mm / 1000) / 0.6m/min / 60 = 3.33時間
       shipped: true,
       delivered: true,
       paid: true,
@@ -1135,6 +1206,7 @@ const App = () => {
   ]);
 
   const [saleFormData, setSaleFormData] = useState<SaleFormData>({
+    poNumber: "",
     saleDate: "",
     customerId: "",
     productId: "",
@@ -1143,6 +1215,9 @@ const App = () => {
     currency: "JPY",
     deliveryDate: "",
     remarks: "",
+    materialIds: [],
+    requiredMaterialAmount: 0,
+    moldingTime: 0,
     shipped: false,
     delivered: false,
     paid: false,
@@ -1408,6 +1483,10 @@ const App = () => {
     currency: "USD" | "JPY" | "VND";
     remarks: string;
     status: "active" | "inactive";
+    materialIds: string[]; // 使用材料（発注品目マスタのID）
+    weight: number; // 重量（g）
+    length: number; // 長さ（mm）
+    speed: number; // 分速（m/min）
     createdAt: string;
     updatedAt: string;
   }
@@ -1421,6 +1500,10 @@ const App = () => {
     currency: "USD" | "JPY" | "VND";
     remarks: string;
     status: "active" | "inactive";
+    materialIds: string[]; // 使用材料（発注品目マスタのID）
+    weight: number; // 重量（g）
+    length: number; // 長さ（mm）
+    speed: number; // 分速（m/min）
   }
 
   interface PurchaseItem {
@@ -1432,6 +1515,7 @@ const App = () => {
     unit: "kg" | "ton" | "piece" | "box" | "liter" | "meter";
     standardPrice: number;
     currency: "USD" | "JPY" | "VND";
+    supplierId: string; // 仕入先ID
     remarks: string;
     status: "active" | "inactive";
     createdAt: string;
@@ -1445,6 +1529,7 @@ const App = () => {
     unit: "kg" | "ton" | "piece" | "box" | "liter" | "meter";
     standardPrice: number;
     currency: "USD" | "JPY" | "VND";
+    supplierId: string; // 仕入先ID
     remarks: string;
     status: "active" | "inactive";
   }
@@ -1579,6 +1664,10 @@ const App = () => {
         currency: product.currency,
         remarks: product.remarks,
         status: product.status,
+        materialIds: product.materialIds,
+        weight: product.weight,
+        length: product.length,
+        speed: product.speed,
       });
     } else {
       setEditingProduct(null);
@@ -1591,6 +1680,10 @@ const App = () => {
         currency: "USD",
         remarks: "",
         status: "active",
+        materialIds: [],
+        weight: 0,
+        length: 0,
+        speed: 0,
       });
     }
     setProductValidationError("");
@@ -1660,6 +1753,7 @@ const App = () => {
         unit: purchaseItem.unit,
         standardPrice: purchaseItem.standardPrice,
         currency: purchaseItem.currency,
+        supplierId: purchaseItem.supplierId,
         remarks: purchaseItem.remarks,
         status: purchaseItem.status,
       });
@@ -1672,6 +1766,7 @@ const App = () => {
         unit: "kg",
         standardPrice: 0,
         currency: "USD",
+        supplierId: "",
         remarks: "",
         status: "active",
       });
@@ -1792,14 +1887,19 @@ const App = () => {
   interface Sale {
     id: string;
     incrementalId: number;
-    saleDate: string;
+    poNumber: string; // PO No. (Purchase Order Number)
+    saleDate: string; // 売上日（旧：受注日）
     customerId: string;
     productId: string;
-    quantity: number;
+    quantity: number; // 注数（旧：数量）
     unitPrice: number;
     currency: "USD" | "JPY" | "VND";
     deliveryDate: string;
     remarks: string;
+    // 自動計算項目
+    materialIds: string[]; // 使用材料（製品マスタから自動入力）
+    requiredMaterialAmount: number; // 必要材料量（数量 * 重量）
+    moldingTime: number; // 成形時間（（数量 * 長さ）/ 分速）
     // ステータス（チェックボックス）
     shipped: boolean; // 出荷済み
     delivered: boolean; // 納品済み
@@ -1811,14 +1911,19 @@ const App = () => {
   }
 
   interface SaleFormData {
-    saleDate: string;
+    poNumber: string; // PO No.
+    saleDate: string; // 売上日
     customerId: string;
     productId: string;
-    quantity: number;
+    quantity: number; // 注数
     unitPrice: number;
     currency: "USD" | "JPY" | "VND";
     deliveryDate: string;
     remarks: string;
+    // 自動計算項目（表示のみ）
+    materialIds: string[];
+    requiredMaterialAmount: number;
+    moldingTime: number;
     // ステータス（チェックボックス）
     shipped: boolean;
     delivered: boolean;
@@ -2030,6 +2135,7 @@ const App = () => {
     if (sale) {
       setEditingSale(sale);
       setSaleFormData({
+        poNumber: sale.poNumber,
         saleDate: sale.saleDate,
         customerId: sale.customerId.toString(),
         productId: sale.productId,
@@ -2038,6 +2144,9 @@ const App = () => {
         currency: sale.currency,
         deliveryDate: sale.deliveryDate,
         remarks: sale.remarks,
+        materialIds: sale.materialIds,
+        requiredMaterialAmount: sale.requiredMaterialAmount,
+        moldingTime: sale.moldingTime,
         shipped: sale.shipped,
         delivered: sale.delivered,
         paid: sale.paid,
@@ -2049,6 +2158,7 @@ const App = () => {
       setEditingSale(null);
       const today = new Date().toISOString().split("T")[0];
       setSaleFormData({
+        poNumber: "",
         saleDate: today,
         customerId: "",
         productId: "",
@@ -2057,6 +2167,9 @@ const App = () => {
         currency: "JPY",
         deliveryDate: "",
         remarks: "",
+        materialIds: [],
+        requiredMaterialAmount: 0,
+        moldingTime: 0,
         shipped: false,
         delivered: false,
         paid: false,
@@ -2095,15 +2208,29 @@ const App = () => {
       return;
     }
 
+    // 選択された製品から自動計算
+    const selectedProduct = products.find((p) => p.id === saleFormData.productId);
+    const quantity = Number(saleFormData.quantity);
+    const materialIds = selectedProduct?.materialIds || [];
+    const requiredMaterialAmount = selectedProduct && selectedProduct.weight > 0 ? (quantity * selectedProduct.weight) / 1000 : 0;
+    const moldingTime =
+      selectedProduct && selectedProduct.length > 0 && selectedProduct.speed > 0
+        ? (quantity * selectedProduct.length) / 1000 / selectedProduct.speed / 60
+        : 0;
+
     const saleData = {
+      poNumber: saleFormData.poNumber,
       saleDate: saleFormData.saleDate,
       customerId: saleFormData.customerId,
       productId: saleFormData.productId,
-      quantity: Number(saleFormData.quantity),
+      quantity: quantity,
       unitPrice: Number(saleFormData.unitPrice),
       currency: saleFormData.currency,
       deliveryDate: saleFormData.deliveryDate,
       remarks: saleFormData.remarks,
+      materialIds: materialIds,
+      requiredMaterialAmount: requiredMaterialAmount,
+      moldingTime: moldingTime,
       shipped: saleFormData.shipped,
       delivered: saleFormData.delivered,
       paid: saleFormData.paid,
@@ -2466,7 +2593,8 @@ const App = () => {
         (saleFilterStatus === "shipped" && sale.shipped) ||
         (saleFilterStatus === "delivered" && sale.delivered) ||
         (saleFilterStatus === "paid" && sale.paid);
-      return matchesSearch && matchesFilter;
+      const matchesCustomer = saleFilterCustomer === "all" || sale.customerId === saleFilterCustomer;
+      return matchesSearch && matchesFilter && matchesCustomer;
     }),
     saleSortConfig
   );
@@ -2991,6 +3119,25 @@ const App = () => {
                   currentConfig={productSortConfig}
                   onClick={() => handleSort("standardPrice", productSortConfig, setProductSortConfig)}
                 />
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.materials}</th>
+                <SortableHeader
+                  label={t.weight}
+                  sortKey="weight"
+                  currentConfig={productSortConfig}
+                  onClick={() => handleSort("weight", productSortConfig, setProductSortConfig)}
+                />
+                <SortableHeader
+                  label={t.lengthField}
+                  sortKey="length"
+                  currentConfig={productSortConfig}
+                  onClick={() => handleSort("length", productSortConfig, setProductSortConfig)}
+                />
+                <SortableHeader
+                  label={t.speed}
+                  sortKey="speed"
+                  currentConfig={productSortConfig}
+                  onClick={() => handleSort("speed", productSortConfig, setProductSortConfig)}
+                />
                 <SortableHeader
                   label={t.status}
                   sortKey="status"
@@ -3037,6 +3184,31 @@ const App = () => {
                   <td className="px-6 py-4 text-sm text-gray-700">{t[product.unit as keyof typeof t] || product.unit}</td>
                   <td className="px-6 py-4 text-sm text-gray-700">
                     {product.currency} {product.standardPrice.toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-700">
+                    {product.materialIds.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {product.materialIds.map((matId) => {
+                          const material = purchaseItems.find((item) => item.id === matId);
+                          return material ? (
+                            <span key={matId} className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                              {material.productCode}
+                            </span>
+                          ) : null;
+                        })}
+                      </div>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-700">
+                    {product.weight > 0 ? `${product.weight} ${t.weightUnit}` : <span className="text-gray-400">-</span>}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-700">
+                    {product.length > 0 ? `${product.length} ${t.lengthUnit}` : <span className="text-gray-400">-</span>}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-700">
+                    {product.speed > 0 ? `${product.speed} ${t.speedUnit}` : <span className="text-gray-400">-</span>}
                   </td>
                   <td className="px-6 py-4">
                     <span
@@ -3162,6 +3334,12 @@ const App = () => {
                   onClick={() => handleSort("productName", purchaseItemSortConfig, setPurchaseItemSortConfig)}
                 />
                 <SortableHeader
+                  label={t.supplier}
+                  sortKey="supplierId"
+                  currentConfig={purchaseItemSortConfig}
+                  onClick={() => handleSort("supplierId", purchaseItemSortConfig, setPurchaseItemSortConfig)}
+                />
+                <SortableHeader
                   label={t.productCategory}
                   sortKey="category"
                   currentConfig={purchaseItemSortConfig}
@@ -3189,64 +3367,68 @@ const App = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredPurchaseItems.map((item) => (
-                <tr
-                  key={item.id}
-                  onClick={() => handleOpenPurchaseItemModal(item)}
-                  className="hover:bg-gray-50 transition-colors cursor-pointer"
-                >
-                  <td className="px-6 py-4">
-                    <p className="font-medium text-gray-800">{item.productCode}</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="font-medium text-gray-800">{item.productName}</p>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-700">
-                    {lang === "ja"
-                      ? item.category === "raw_material"
-                        ? "原材料"
+              {filteredPurchaseItems.map((item) => {
+                const supplier = suppliers.find((s) => s.id === item.supplierId);
+                return (
+                  <tr
+                    key={item.id}
+                    onClick={() => handleOpenPurchaseItemModal(item)}
+                    className="hover:bg-gray-50 transition-colors cursor-pointer"
+                  >
+                    <td className="px-6 py-4">
+                      <p className="font-medium text-gray-800">{item.productCode}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="font-medium text-gray-800">{item.productName}</p>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">{supplier?.name || "未設定"}</td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      {lang === "ja"
+                        ? item.category === "raw_material"
+                          ? "原材料"
+                          : item.category === "finished_goods"
+                          ? "完成品"
+                          : item.category === "semi_finished"
+                          ? "半製品"
+                          : item.category === "parts"
+                          ? "部品"
+                          : "その他"
+                        : item.category === "raw_material"
+                        ? "Nguyên liệu"
                         : item.category === "finished_goods"
-                        ? "完成品"
+                        ? "Thành phẩm"
                         : item.category === "semi_finished"
-                        ? "半製品"
+                        ? "Bán thành phẩm"
                         : item.category === "parts"
-                        ? "部品"
-                        : "その他"
-                      : item.category === "raw_material"
-                      ? "Nguyên liệu"
-                      : item.category === "finished_goods"
-                      ? "Thành phẩm"
-                      : item.category === "semi_finished"
-                      ? "Bán thành phẩm"
-                      : item.category === "parts"
-                      ? "Linh kiện"
-                      : "Khác"}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-700">{t[item.unit as keyof typeof t] || item.unit}</td>
-                  <td className="px-6 py-4 text-sm text-gray-700">
-                    {item.currency} {item.standardPrice.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                        item.status === "active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      {item.status === "active" ? t.active : t.inactive}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex items-center justify-center">
-                      <button
-                        onClick={() => handlePurchaseItemDeleteClick(item.id)}
-                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        ? "Linh kiện"
+                        : "Khác"}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">{t[item.unit as keyof typeof t] || item.unit}</td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      {item.currency} {item.standardPrice.toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                          item.status === "active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"
+                        }`}
                       >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                        {item.status === "active" ? t.active : t.inactive}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center justify-center">
+                        <button
+                          onClick={() => handlePurchaseItemDeleteClick(item.id)}
+                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -3345,7 +3527,7 @@ const App = () => {
                   onClick={() => handleSort("orderDate", orderSortConfig, setOrderSortConfig)}
                 />
                 <SortableHeader
-                  label={t.supplierName}
+                  label={t.supplier}
                   sortKey="supplierId"
                   currentConfig={orderSortConfig}
                   onClick={() => handleSort("supplierId", orderSortConfig, setOrderSortConfig)}
@@ -3578,7 +3760,7 @@ const App = () => {
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <SortableHeader
-                  label={t.supplierName}
+                  label={t.supplier}
                   sortKey="name"
                   currentConfig={supplierSortConfig}
                   onClick={() => handleSort("name", supplierSortConfig, setSupplierSortConfig)}
@@ -3738,6 +3920,21 @@ const App = () => {
               <option value="delivered">{t.delivered}</option>
               <option value="paid">{lang === "ja" ? "入金済み" : "Đã thanh toán"}</option>
             </select>
+            <select
+              value={saleFilterCustomer}
+              onChange={(e) => setSaleFilterCustomer(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">{lang === "ja" ? "全ての顧客" : "Tất cả khách hàng"}</option>
+              {suppliers
+                .filter((s) => s.type === "customer")
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map((customer) => (
+                  <option key={customer.id} value={customer.id}>
+                    {customer.name}
+                  </option>
+                ))}
+            </select>
           </div>
           <div className="flex items-center gap-2 md:gap-3">
             <button className="px-3 md:px-4 py-2 text-gray-700 hover:bg-gray-50 border border-gray-300 rounded-lg flex items-center gap-2 text-sm md:text-base">
@@ -3762,6 +3959,12 @@ const App = () => {
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <SortableHeader
+                  label={t.poNumber}
+                  sortKey="poNumber"
+                  currentConfig={saleSortConfig}
+                  onClick={() => handleSort("poNumber", saleSortConfig, setSaleSortConfig)}
+                />
+                <SortableHeader
                   label={t.saleDate}
                   sortKey="saleDate"
                   currentConfig={saleSortConfig}
@@ -3780,7 +3983,7 @@ const App = () => {
                   onClick={() => handleSort("product", saleSortConfig, setSaleSortConfig)}
                 />
                 <SortableHeader
-                  label={t.quantity}
+                  label={t.orderQuantity}
                   sortKey="quantity"
                   currentConfig={saleSortConfig}
                   onClick={() => handleSort("quantity", saleSortConfig, setSaleSortConfig)}
@@ -3793,6 +3996,12 @@ const App = () => {
                 />
                 <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
                   {t.amount}
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                  {t.requiredMaterialAmount}
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                  {t.moldingTime}
                 </th>
                 <SortableHeader
                   label={t.deliveryDate}
@@ -3820,6 +4029,7 @@ const App = () => {
                 const totalAmount = sale.quantity * sale.unitPrice;
                 return (
                   <tr key={sale.id} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => handleOpenSaleModal(sale)}>
+                    <td className="px-6 py-4 text-sm font-medium text-blue-600">{sale.poNumber}</td>
                     <td className="px-6 py-4 text-sm text-gray-700">{sale.saleDate}</td>
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-800">{customer?.name || "-"}</div>
@@ -3854,6 +4064,24 @@ const App = () => {
                         : sale.currency === "JPY"
                         ? `¥${totalAmount.toLocaleString()}`
                         : `$${totalAmount.toLocaleString()}`}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      {sale.requiredMaterialAmount > 0 ? (
+                        <span>
+                          {sale.requiredMaterialAmount.toLocaleString()} {t.requiredMaterialUnit}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      {sale.moldingTime > 0 ? (
+                        <span>
+                          {sale.moldingTime.toFixed(2)} {t.timeUnit}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">{sale.deliveryDate}</td>
                     <td className="px-6 py-4">
@@ -4515,9 +4743,7 @@ const App = () => {
                   <button
                     onClick={() => setReportTab("sales")}
                     className={`px-4 py-2 font-medium transition-colors ${
-                      reportTab === "sales"
-                        ? "text-blue-600 border-b-2 border-blue-600"
-                        : "text-gray-600 hover:text-gray-800"
+                      reportTab === "sales" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-600 hover:text-gray-800"
                     }`}
                   >
                     {t.salesReport}
@@ -4525,9 +4751,7 @@ const App = () => {
                   <button
                     onClick={() => setReportTab("purchase")}
                     className={`px-4 py-2 font-medium transition-colors ${
-                      reportTab === "purchase"
-                        ? "text-blue-600 border-b-2 border-blue-600"
-                        : "text-gray-600 hover:text-gray-800"
+                      reportTab === "purchase" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-600 hover:text-gray-800"
                     }`}
                   >
                     {t.purchaseReport}
@@ -4535,9 +4759,7 @@ const App = () => {
                   <button
                     onClick={() => setReportTab("financial")}
                     className={`px-4 py-2 font-medium transition-colors ${
-                      reportTab === "financial"
-                        ? "text-blue-600 border-b-2 border-blue-600"
-                        : "text-gray-600 hover:text-gray-800"
+                      reportTab === "financial" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-600 hover:text-gray-800"
                     }`}
                   >
                     {t.financialReport}
@@ -4565,9 +4787,7 @@ const App = () => {
                   <button
                     onClick={() => setReportPeriod("thisQuarter")}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                      reportPeriod === "thisQuarter"
-                        ? "bg-blue-500 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      reportPeriod === "thisQuarter" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
                   >
                     {t.thisQuarter}
@@ -4623,11 +4843,13 @@ const App = () => {
                       colors={["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"]}
                     />
                     <SalesByCustomer
-                      data={calculateSalesByCustomer().slice(0, 5).map((item) => ({
-                        name: item.name,
-                        value: item.amount,
-                        currency: "USD",
-                      }))}
+                      data={calculateSalesByCustomer()
+                        .slice(0, 5)
+                        .map((item) => ({
+                          name: item.name,
+                          value: item.amount,
+                          currency: "USD",
+                        }))}
                       title={t.salesByCustomer}
                       colors={["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"]}
                     />
@@ -4647,22 +4869,22 @@ const App = () => {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
-                          {calculateSalesByCustomer().slice(0, 10).map((customer, index) => {
-                            const totalSales = calculateMonthlySales().total;
-                            const percentage = totalSales > 0 ? (customer.amount / totalSales) * 100 : 0;
-                            return (
-                              <tr key={index} className="hover:bg-gray-50">
-                                <td className="px-4 py-3 text-sm font-medium text-gray-900">{customer.rank}</td>
-                                <td className="px-4 py-3 text-sm text-gray-700">{customer.name}</td>
-                                <td className="px-4 py-3 text-sm text-right font-medium text-gray-900">
-                                  ${customer.amount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                                </td>
-                                <td className="px-4 py-3 text-sm text-right text-gray-600">
-                                  {percentage.toFixed(1)}%
-                                </td>
-                              </tr>
-                            );
-                          })}
+                          {calculateSalesByCustomer()
+                            .slice(0, 10)
+                            .map((customer, index) => {
+                              const totalSales = calculateMonthlySales().total;
+                              const percentage = totalSales > 0 ? (customer.amount / totalSales) * 100 : 0;
+                              return (
+                                <tr key={index} className="hover:bg-gray-50">
+                                  <td className="px-4 py-3 text-sm font-medium text-gray-900">{customer.rank}</td>
+                                  <td className="px-4 py-3 text-sm text-gray-700">{customer.name}</td>
+                                  <td className="px-4 py-3 text-sm text-right font-medium text-gray-900">
+                                    ${customer.amount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                                  </td>
+                                  <td className="px-4 py-3 text-sm text-right text-gray-600">{percentage.toFixed(1)}%</td>
+                                </tr>
+                              );
+                            })}
                           {calculateSalesByCustomer().length === 0 && (
                             <tr>
                               <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
@@ -4684,7 +4906,8 @@ const App = () => {
                     <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-500">
                       <p className="text-sm text-gray-600 mb-1">総仕入</p>
                       <p className="text-2xl font-bold text-gray-800">
-                        ${calculateMonthlyPurchase().total.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                        $
+                        {calculateMonthlyPurchase().total.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                       </p>
                       <p className="text-xs text-gray-600 mt-1">今月の仕入合計</p>
                     </div>
@@ -4707,33 +4930,40 @@ const App = () => {
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <SalesByCustomer
-                      data={calculatePurchaseBySupplier().slice(0, 5).map((item) => ({
-                        name: item.name,
-                        value: item.total,
-                        currency: "USD",
-                      }))}
+                      data={calculatePurchaseBySupplier()
+                        .slice(0, 5)
+                        .map((item) => ({
+                          name: item.name,
+                          value: item.total,
+                          currency: "USD",
+                        }))}
                       title={t.purchaseBySupplierReport}
                       colors={["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"]}
                     />
                     <div className="bg-white p-4 md:p-6 rounded-lg shadow">
                       <h3 className="text-base md:text-lg font-bold mb-4">仕入先別発注件数</h3>
                       <div className="space-y-3">
-                        {calculatePurchaseBySupplier().slice(0, 5).map((supplier, index) => {
-                          const totalPurchase = calculateMonthlyPurchase().total;
-                          const percentage = totalPurchase > 0 ? (supplier.total / totalPurchase) * 100 : 0;
-                          return (
-                            <div key={index} className="flex items-center justify-between">
-                              <div className="flex items-center gap-3 flex-1">
-                                <div className={`w-3 h-3 rounded-full`} style={{ backgroundColor: ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"][index % 5] }}></div>
-                                <span className="text-sm text-gray-700">{supplier.name}</span>
+                        {calculatePurchaseBySupplier()
+                          .slice(0, 5)
+                          .map((supplier, index) => {
+                            const totalPurchase = calculateMonthlyPurchase().total;
+                            const percentage = totalPurchase > 0 ? (supplier.total / totalPurchase) * 100 : 0;
+                            return (
+                              <div key={index} className="flex items-center justify-between">
+                                <div className="flex items-center gap-3 flex-1">
+                                  <div
+                                    className={`w-3 h-3 rounded-full`}
+                                    style={{ backgroundColor: ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"][index % 5] }}
+                                  ></div>
+                                  <span className="text-sm text-gray-700">{supplier.name}</span>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-sm font-medium text-gray-900">{supplier.count}件</p>
+                                  <p className="text-xs text-gray-500">{percentage.toFixed(1)}%</p>
+                                </div>
                               </div>
-                              <div className="text-right">
-                                <p className="text-sm font-medium text-gray-900">{supplier.count}件</p>
-                                <p className="text-xs text-gray-500">{percentage.toFixed(1)}%</p>
-                              </div>
-                            </div>
-                          );
-                        })}
+                            );
+                          })}
                       </div>
                     </div>
                   </div>
@@ -4746,7 +4976,7 @@ const App = () => {
                         <thead className="bg-gray-50">
                           <tr>
                             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">{t.rank}</th>
-                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">{t.supplierName}</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">{t.supplier}</th>
                             <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">{t.purchaseAmount}</th>
                             <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">{t.count}</th>
                             <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">{t.percentage}</th>
@@ -4764,9 +4994,7 @@ const App = () => {
                                   ${supplier.total.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                                 </td>
                                 <td className="px-4 py-3 text-sm text-right text-gray-600">{supplier.count}件</td>
-                                <td className="px-4 py-3 text-sm text-right text-gray-600">
-                                  {percentage.toFixed(1)}%
-                                </td>
+                                <td className="px-4 py-3 text-sm text-right text-gray-600">{percentage.toFixed(1)}%</td>
                               </tr>
                             );
                           })}
@@ -4784,126 +5012,176 @@ const App = () => {
                 </div>
               )}
 
-              {reportTab === "financial" && (() => {
-                const salesData = calculateMonthlySales();
-                const purchaseData = calculateMonthlyPurchase();
-                const paymentData = calculateMonthlyPayments();
-                const revenue = salesData.total;
-                const cost = purchaseData.total;
-                const profit = revenue - cost;
-                const profitMargin = revenue > 0 ? (profit / revenue) * 100 : 0;
+              {reportTab === "financial" &&
+                (() => {
+                  const salesData = calculateMonthlySales();
+                  const purchaseData = calculateMonthlyPurchase();
+                  const paymentData = calculateMonthlyPayments();
+                  const revenue = salesData.total;
+                  const cost = purchaseData.total;
+                  const profit = revenue - cost;
+                  const profitMargin = revenue > 0 ? (profit / revenue) * 100 : 0;
 
-                return (
-                  <div className="space-y-6">
-                    {/* 損益概算 */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      <div className="bg-blue-50 p-6 rounded-lg border-l-4 border-blue-500">
-                        <p className="text-sm text-gray-600 mb-2">{t.revenue}</p>
-                        <p className="text-2xl font-bold text-gray-800">
-                          ${revenue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                        </p>
-                        <p className="text-xs text-gray-600 mt-1">{salesData.salesCount}件の受注</p>
-                      </div>
-                      <div className="bg-orange-50 p-6 rounded-lg border-l-4 border-orange-500">
-                        <p className="text-sm text-gray-600 mb-2">{t.cost}</p>
-                        <p className="text-2xl font-bold text-gray-800">
-                          ${cost.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                        </p>
-                        <p className="text-xs text-gray-600 mt-1">{purchaseData.orderCount}件の発注</p>
-                      </div>
-                      <div className={`p-6 rounded-lg border-l-4 ${profit >= 0 ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'}`}>
-                        <p className="text-sm text-gray-600 mb-2">{t.profit}</p>
-                        <p className={`text-2xl font-bold ${profit >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                          ${profit.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                        </p>
-                        <p className={`text-xs mt-1 ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {t.profitMargin}: {profitMargin.toFixed(1)}%
-                        </p>
-                      </div>
-                      <div className="bg-purple-50 p-6 rounded-lg border-l-4 border-purple-500">
-                        <p className="text-sm text-gray-600 mb-2">キャッシュバランス</p>
-                        <p className="text-2xl font-bold text-gray-800">
-                          ${(revenue - paymentData.total).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                        </p>
-                        <p className="text-xs text-gray-600 mt-1">売上 - 支払</p>
-                      </div>
-                    </div>
-
-                    {/* キャッシュフロー */}
-                    <CashFlow
-                      data={cashFlowData}
-                      title={t.cashFlowSummary}
-                    />
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      {/* 支払状況 */}
-                      <div className="bg-white p-4 md:p-6 rounded-lg shadow">
-                        <h3 className="text-base md:text-lg font-bold mb-4">{t.paymentStatusReport}</h3>
-                        <div className="space-y-4">
-                          <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                            <span className="text-sm text-gray-600">{t.totalPayments}</span>
-                            <span className="text-xl font-bold text-gray-800">{paymentData.paymentCount}件</span>
-                          </div>
-                          <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                            <span className="text-sm text-gray-600">{t.paidPayments}</span>
-                            <span className="text-xl font-bold text-green-600">{paymentData.paidCount}件</span>
-                          </div>
-                          <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg">
-                            <span className="text-sm text-gray-600">{t.pendingPayments}</span>
-                            <span className="text-xl font-bold text-orange-600">{paymentData.paymentCount - paymentData.paidCount}件</span>
-                          </div>
-                          <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-                            <span className="text-sm text-gray-600">{t.totalAmount}</span>
-                            <span className="text-xl font-bold text-gray-800">
-                              ${paymentData.total.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                            </span>
-                          </div>
+                  return (
+                    <div className="space-y-6">
+                      {/* 損益概算 */}
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div className="bg-blue-50 p-6 rounded-lg border-l-4 border-blue-500">
+                          <p className="text-sm text-gray-600 mb-2">{t.revenue}</p>
+                          <p className="text-2xl font-bold text-gray-800">
+                            ${revenue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                          </p>
+                          <p className="text-xs text-gray-600 mt-1">{salesData.salesCount}件の受注</p>
+                        </div>
+                        <div className="bg-orange-50 p-6 rounded-lg border-l-4 border-orange-500">
+                          <p className="text-sm text-gray-600 mb-2">{t.cost}</p>
+                          <p className="text-2xl font-bold text-gray-800">
+                            ${cost.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                          </p>
+                          <p className="text-xs text-gray-600 mt-1">{purchaseData.orderCount}件の発注</p>
+                        </div>
+                        <div
+                          className={`p-6 rounded-lg border-l-4 ${
+                            profit >= 0 ? "bg-green-50 border-green-500" : "bg-red-50 border-red-500"
+                          }`}
+                        >
+                          <p className="text-sm text-gray-600 mb-2">{t.profit}</p>
+                          <p className={`text-2xl font-bold ${profit >= 0 ? "text-green-700" : "text-red-700"}`}>
+                            ${profit.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                          </p>
+                          <p className={`text-xs mt-1 ${profit >= 0 ? "text-green-600" : "text-red-600"}`}>
+                            {t.profitMargin}: {profitMargin.toFixed(1)}%
+                          </p>
+                        </div>
+                        <div className="bg-purple-50 p-6 rounded-lg border-l-4 border-purple-500">
+                          <p className="text-sm text-gray-600 mb-2">キャッシュバランス</p>
+                          <p className="text-2xl font-bold text-gray-800">
+                            $
+                            {(revenue - paymentData.total).toLocaleString(undefined, {
+                              minimumFractionDigits: 0,
+                              maximumFractionDigits: 0,
+                            })}
+                          </p>
+                          <p className="text-xs text-gray-600 mt-1">売上 - 支払</p>
                         </div>
                       </div>
 
-                      {/* 財務健全性指標 */}
-                      <div className="bg-white p-4 md:p-6 rounded-lg shadow">
-                        <h3 className="text-base md:text-lg font-bold mb-4">財務健全性指標</h3>
-                        <div className="space-y-4">
-                          <div>
-                            <div className="flex justify-between items-center mb-2">
-                              <span className="text-sm text-gray-600">利益率</span>
-                              <span className={`text-sm font-semibold ${profitMargin >= 20 ? 'text-green-600' : profitMargin >= 10 ? 'text-orange-600' : 'text-red-600'}`}>
-                                {profitMargin.toFixed(1)}%
+                      {/* キャッシュフロー */}
+                      <CashFlow data={cashFlowData} title={t.cashFlowSummary} />
+
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* 支払状況 */}
+                        <div className="bg-white p-4 md:p-6 rounded-lg shadow">
+                          <h3 className="text-base md:text-lg font-bold mb-4">{t.paymentStatusReport}</h3>
+                          <div className="space-y-4">
+                            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                              <span className="text-sm text-gray-600">{t.totalPayments}</span>
+                              <span className="text-xl font-bold text-gray-800">{paymentData.paymentCount}件</span>
+                            </div>
+                            <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                              <span className="text-sm text-gray-600">{t.paidPayments}</span>
+                              <span className="text-xl font-bold text-green-600">{paymentData.paidCount}件</span>
+                            </div>
+                            <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg">
+                              <span className="text-sm text-gray-600">{t.pendingPayments}</span>
+                              <span className="text-xl font-bold text-orange-600">
+                                {paymentData.paymentCount - paymentData.paidCount}件
                               </span>
                             </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div className={`h-2 rounded-full ${profitMargin >= 20 ? 'bg-green-500' : profitMargin >= 10 ? 'bg-orange-500' : 'bg-red-500'}`} style={{ width: `${Math.min(profitMargin, 100)}%` }}></div>
+                            <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                              <span className="text-sm text-gray-600">{t.totalAmount}</span>
+                              <span className="text-xl font-bold text-gray-800">
+                                ${paymentData.total.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                              </span>
                             </div>
                           </div>
-                          <div>
-                            <div className="flex justify-between items-center mb-2">
-                              <span className="text-sm text-gray-600">支払完了率</span>
-                              <span className={`text-sm font-semibold ${paymentData.paymentCount > 0 && (paymentData.paidCount / paymentData.paymentCount) >= 0.8 ? 'text-green-600' : 'text-orange-600'}`}>
-                                {paymentData.paymentCount > 0 ? ((paymentData.paidCount / paymentData.paymentCount) * 100).toFixed(1) : 0}%
-                              </span>
+                        </div>
+
+                        {/* 財務健全性指標 */}
+                        <div className="bg-white p-4 md:p-6 rounded-lg shadow">
+                          <h3 className="text-base md:text-lg font-bold mb-4">財務健全性指標</h3>
+                          <div className="space-y-4">
+                            <div>
+                              <div className="flex justify-between items-center mb-2">
+                                <span className="text-sm text-gray-600">利益率</span>
+                                <span
+                                  className={`text-sm font-semibold ${
+                                    profitMargin >= 20 ? "text-green-600" : profitMargin >= 10 ? "text-orange-600" : "text-red-600"
+                                  }`}
+                                >
+                                  {profitMargin.toFixed(1)}%
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div
+                                  className={`h-2 rounded-full ${
+                                    profitMargin >= 20 ? "bg-green-500" : profitMargin >= 10 ? "bg-orange-500" : "bg-red-500"
+                                  }`}
+                                  style={{ width: `${Math.min(profitMargin, 100)}%` }}
+                                ></div>
+                              </div>
                             </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div className={`h-2 rounded-full ${paymentData.paymentCount > 0 && (paymentData.paidCount / paymentData.paymentCount) >= 0.8 ? 'bg-green-500' : 'bg-orange-500'}`} style={{ width: `${paymentData.paymentCount > 0 ? (paymentData.paidCount / paymentData.paymentCount) * 100 : 0}%` }}></div>
+                            <div>
+                              <div className="flex justify-between items-center mb-2">
+                                <span className="text-sm text-gray-600">支払完了率</span>
+                                <span
+                                  className={`text-sm font-semibold ${
+                                    paymentData.paymentCount > 0 && paymentData.paidCount / paymentData.paymentCount >= 0.8
+                                      ? "text-green-600"
+                                      : "text-orange-600"
+                                  }`}
+                                >
+                                  {paymentData.paymentCount > 0 ? ((paymentData.paidCount / paymentData.paymentCount) * 100).toFixed(1) : 0}
+                                  %
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div
+                                  className={`h-2 rounded-full ${
+                                    paymentData.paymentCount > 0 && paymentData.paidCount / paymentData.paymentCount >= 0.8
+                                      ? "bg-green-500"
+                                      : "bg-orange-500"
+                                  }`}
+                                  style={{
+                                    width: `${
+                                      paymentData.paymentCount > 0 ? (paymentData.paidCount / paymentData.paymentCount) * 100 : 0
+                                    }%`,
+                                  }}
+                                ></div>
+                              </div>
                             </div>
-                          </div>
-                          <div>
-                            <div className="flex justify-between items-center mb-2">
-                              <span className="text-sm text-gray-600">出荷完了率</span>
-                              <span className={`text-sm font-semibold ${salesData.salesCount > 0 && (salesData.shippedSalesCount / salesData.salesCount) >= 0.8 ? 'text-green-600' : 'text-orange-600'}`}>
-                                {salesData.salesCount > 0 ? ((salesData.shippedSalesCount / salesData.salesCount) * 100).toFixed(1) : 0}%
-                              </span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div className={`h-2 rounded-full ${salesData.salesCount > 0 && (salesData.shippedSalesCount / salesData.salesCount) >= 0.8 ? 'bg-green-500' : 'bg-orange-500'}`} style={{ width: `${salesData.salesCount > 0 ? (salesData.shippedSalesCount / salesData.salesCount) * 100 : 0}%` }}></div>
+                            <div>
+                              <div className="flex justify-between items-center mb-2">
+                                <span className="text-sm text-gray-600">出荷完了率</span>
+                                <span
+                                  className={`text-sm font-semibold ${
+                                    salesData.salesCount > 0 && salesData.shippedSalesCount / salesData.salesCount >= 0.8
+                                      ? "text-green-600"
+                                      : "text-orange-600"
+                                  }`}
+                                >
+                                  {salesData.salesCount > 0 ? ((salesData.shippedSalesCount / salesData.salesCount) * 100).toFixed(1) : 0}%
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div
+                                  className={`h-2 rounded-full ${
+                                    salesData.salesCount > 0 && salesData.shippedSalesCount / salesData.salesCount >= 0.8
+                                      ? "bg-green-500"
+                                      : "bg-orange-500"
+                                  }`}
+                                  style={{
+                                    width: `${salesData.salesCount > 0 ? (salesData.shippedSalesCount / salesData.salesCount) * 100 : 0}%`,
+                                  }}
+                                ></div>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })()}
+                  );
+                })()}
             </div>
           )}
           {currentPage === "systemSettings" && renderSystemSettings()}
@@ -4933,7 +5211,7 @@ const App = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t.supplierName} <span className="text-red-500">*</span>
+                  {t.supplier} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -5108,26 +5386,6 @@ const App = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t.supplierName} <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={orderFormData.supplierId}
-                  onChange={(e) => setOrderFormData({ ...orderFormData, supplierId: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">{lang === "ja" ? "選択してください" : "Chọn nhà cung cấp"}</option>
-                  {suppliers
-                    .filter((s) => s.status === "active")
-                    .map((supplier) => (
-                      <option key={supplier.id} value={supplier.id}>
-                        {supplier.name}
-                      </option>
-                    ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
                   {t.product} <span className="text-red-500">*</span>
                 </label>
                 <select
@@ -5140,6 +5398,7 @@ const App = () => {
                         productId: e.target.value,
                         unitPrice: selectedItem.standardPrice,
                         currency: selectedItem.currency,
+                        supplierId: selectedItem.supplierId,
                       });
                     } else {
                       setOrderFormData({ ...orderFormData, productId: e.target.value });
@@ -5149,12 +5408,64 @@ const App = () => {
                 >
                   <option value="">{lang === "ja" ? "品目を選択してください" : "Chọn hàng mua"}</option>
                   {purchaseItems
-                    .filter((p) => p.status === "active")
+                    .filter((p) => {
+                      if (!orderFormData.supplierId) return p.status === "active";
+                      return p.status === "active" && p.supplierId === orderFormData.supplierId;
+                    })
                     .map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.productCode} - {p.productName}
                       </option>
                     ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t.supplier} <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={orderFormData.supplierId}
+                  onChange={(e) => {
+                    const newSupplierId = e.target.value;
+                    setOrderFormData({
+                      ...orderFormData,
+                      supplierId: newSupplierId,
+                      // 仕入先を変更したら、品目が新しい仕入先と一致しない場合はクリア
+                      productId: orderFormData.productId
+                        ? (() => {
+                            const currentItem = purchaseItems.find((p) => p.id === orderFormData.productId);
+                            return currentItem && currentItem.supplierId === newSupplierId ? orderFormData.productId : "";
+                          })()
+                        : "",
+                    });
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">{lang === "ja" ? "選択してください" : "Chọn nhà cung cấp"}</option>
+                  {(() => {
+                    // 品目が選択されている場合は、その品目の仕入先のみを表示
+                    if (orderFormData.productId) {
+                      const selectedItem = purchaseItems.find((p) => p.id === orderFormData.productId);
+                      if (!selectedItem) return null;
+                      return suppliers
+                        .filter((s) => s.id === selectedItem.supplierId && s.status === "active")
+                        .map((supplier) => (
+                          <option key={supplier.id} value={supplier.id}>
+                            {supplier.name}
+                          </option>
+                        ));
+                    }
+                    // 品目が未選択の場合は、材料・加工の仕入先をすべて表示
+                    return suppliers
+                      .filter((s) => (s.type === "material" || s.type === "processing") && s.status === "active")
+                      .sort((a, b) => a.name.localeCompare(b.name))
+                      .map((supplier) => (
+                        <option key={supplier.id} value={supplier.id}>
+                          {supplier.name}
+                        </option>
+                      ));
+                  })()}
                 </select>
               </div>
 
@@ -5367,6 +5678,19 @@ const App = () => {
                 </div>
               )}
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t.poNumber} <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={saleFormData.poNumber}
+                  onChange={(e) => setSaleFormData({ ...saleFormData, poNumber: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="PO-2025-001"
+                />
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -5448,7 +5772,7 @@ const App = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t.quantity} <span className="text-red-500">*</span>
+                    {t.orderQuantity} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
@@ -5506,6 +5830,57 @@ const App = () => {
                   </div>
                 </div>
               )}
+
+              {/* 自動計算項目の表示 */}
+              {saleFormData.productId &&
+                saleFormData.quantity > 0 &&
+                (() => {
+                  const selectedProduct = products.find((p) => p.id === saleFormData.productId);
+                  if (!selectedProduct) return null;
+
+                  const requiredMaterialAmount = selectedProduct.weight > 0 ? (saleFormData.quantity * selectedProduct.weight) / 1000 : 0;
+                  const moldingTime =
+                    selectedProduct.length > 0 && selectedProduct.speed > 0
+                      ? (saleFormData.quantity * selectedProduct.length) / 1000 / selectedProduct.speed / 60
+                      : 0;
+
+                  return (
+                    <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg space-y-3">
+                      <h4 className="text-sm font-semibold text-gray-700">自動計算項目</h4>
+
+                      {selectedProduct.materialIds.length > 0 && (
+                        <div>
+                          <p className="text-xs text-gray-600 mb-1">{t.materials}</p>
+                          <div className="flex flex-wrap gap-2">
+                            {selectedProduct.materialIds.map((matId) => {
+                              const material = purchaseItems.find((item) => item.id === matId);
+                              return material ? (
+                                <span key={matId} className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                                  {material.productCode} - {material.productName}
+                                </span>
+                              ) : null;
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-xs text-gray-600">{t.requiredMaterialAmount}</p>
+                          <p className="text-lg font-semibold text-gray-900">
+                            {requiredMaterialAmount.toLocaleString()} {t.requiredMaterialUnit}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-600">{t.moldingTime}</p>
+                          <p className="text-lg font-semibold text-gray-900">
+                            {moldingTime.toFixed(2)} {t.timeUnit}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">{t.remarks}</label>
@@ -6149,6 +6524,26 @@ const App = () => {
                 </div>
               </div>
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {lang === "ja" ? "仕入先" : "Nhà cung cấp"} <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={purchaseItemFormData.supplierId}
+                  onChange={(e) => setPurchaseItemFormData({ ...purchaseItemFormData, supplierId: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">{lang === "ja" ? "仕入先を選択" : "Chọn nhà cung cấp"}</option>
+                  {suppliers
+                    .filter((s) => s.type === "material" || s.type === "processing")
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((supplier) => (
+                      <option key={supplier.id} value={supplier.id}>
+                        {supplier.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">{t.status}</label>
                 <select
                   value={purchaseItemFormData.status}
@@ -6330,6 +6725,84 @@ const App = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder={t.remarks}
                 />
+              </div>
+
+              {/* 製品詳細情報 */}
+              <div className="border-t border-gray-200 pt-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">製品詳細</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t.weight} ({t.weightUnit})
+                    </label>
+                    <input
+                      type="number"
+                      value={productFormData.weight}
+                      onChange={(e) => setProductFormData({ ...productFormData, weight: parseFloat(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      step="0.01"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t.lengthField} ({t.lengthUnit})
+                    </label>
+                    <input
+                      type="number"
+                      value={productFormData.length}
+                      onChange={(e) => setProductFormData({ ...productFormData, length: parseFloat(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      step="0.01"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t.speed} ({t.speedUnit})
+                    </label>
+                    <input
+                      type="number"
+                      value={productFormData.speed}
+                      onChange={(e) => setProductFormData({ ...productFormData, speed: parseFloat(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      step="0.01"
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t.materials}</label>
+                  <div className="space-y-2">
+                    {purchaseItems.map((item) => (
+                      <label key={item.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={productFormData.materialIds.includes(item.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setProductFormData({
+                                ...productFormData,
+                                materialIds: [...productFormData.materialIds, item.id],
+                              });
+                            } else {
+                              setProductFormData({
+                                ...productFormData,
+                                materialIds: productFormData.materialIds.filter((id) => id !== item.id),
+                              });
+                            }
+                          }}
+                          className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">
+                          {item.productCode} - {item.productName}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  {productFormData.materialIds.length === 0 && <p className="text-sm text-gray-500 mt-2">材料が選択されていません</p>}
+                </div>
               </div>
             </div>
             <div className="p-4 md:p-6 border-t border-gray-200 flex gap-3 sticky bottom-0 bg-white">
