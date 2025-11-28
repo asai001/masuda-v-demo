@@ -3982,6 +3982,9 @@ const App = () => {
                   currentConfig={saleSortConfig}
                   onClick={() => handleSort("product", saleSortConfig, setSaleSortConfig)}
                 />
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                  {t.materials}
+                </th>
                 <SortableHeader
                   label={t.orderQuantity}
                   sortKey="quantity"
@@ -4049,6 +4052,25 @@ const App = () => {
                           <p className="text-sm text-gray-500">-</p>
                         );
                       })()}
+                    </td>
+                    <td className="px-6 py-4">
+                      {sale.materialIds && sale.materialIds.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {sale.materialIds.map((materialId) => {
+                            const material = purchaseItems.find((p) => p.id === materialId);
+                            return material ? (
+                              <span
+                                key={materialId}
+                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200"
+                              >
+                                {material.productName}
+                              </span>
+                            ) : null;
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500">-</p>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-right text-sm text-gray-700">{sale.quantity.toLocaleString()}</td>
                     <td className="px-6 py-4 text-right text-sm font-medium text-gray-800">
@@ -5751,9 +5773,10 @@ const App = () => {
                         productId: e.target.value,
                         unitPrice: selectedProduct.standardPrice,
                         currency: selectedProduct.currency,
+                        materialIds: selectedProduct.materialIds || [],
                       });
                     } else {
-                      setSaleFormData({ ...saleFormData, productId: e.target.value });
+                      setSaleFormData({ ...saleFormData, productId: e.target.value, materialIds: [] });
                     }
                   }}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
