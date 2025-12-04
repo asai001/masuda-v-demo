@@ -5839,7 +5839,7 @@ const App = () => {
                 </div>
               </div>
 
-              {saleFormData.quantity && saleFormData.unitPrice && (
+              {saleFormData.quantity > 0 && saleFormData.unitPrice > 0 && (
                 <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-blue-700">{t.totalAmount}:</span>
