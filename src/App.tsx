@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+﻿import { useState, useMemo } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -24,6 +24,7 @@ import {
   Menu,
 } from "lucide-react";
 import { DashboardSummary } from "./components/DashboardSummary";
+import { BacklogModal } from "./components/BacklogModal";
 import { QuickActions } from "./components/QuickActions";
 import { Alerts } from "./components/Alerts";
 import { TodayTasks } from "./components/TodayTasks";
@@ -72,6 +73,20 @@ const App = () => {
 
   // 売上関連のstate
   const [showSaleModal, setShowSaleModal] = useState(false);
+  const [showBacklogModal, setShowBacklogModal] = useState(false);
+
+  // 残注数確認の期間フィルター（デフォルト: 直近1ヶ月）
+  const getDefaultDateFrom = () => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - 1);
+    return date.toISOString().split("T")[0];
+  };
+  const getDefaultDateTo = () => {
+    return new Date().toISOString().split("T")[0];
+  };
+  const [backlogDateFrom, setBacklogDateFrom] = useState(getDefaultDateFrom());
+  const [backlogDateTo, setBacklogDateTo] = useState(getDefaultDateTo());
+
   const [editingSale, setEditingSale] = useState<Sale | null>(null);
   const [showSaleDeleteConfirm, setShowSaleDeleteConfirm] = useState(false);
   const [deleteSaleTargetId, setDeleteSaleTargetId] = useState<string>("");
@@ -174,18 +189,20 @@ const App = () => {
     sortKey,
     currentConfig,
     onClick,
+    className = "",
   }: {
     label: string;
     sortKey: string;
     currentConfig: SortConfig;
     onClick: () => void;
+    className?: string;
   }) => {
     const isActive = currentConfig?.key === sortKey;
     const direction = isActive ? currentConfig.direction : null;
 
     return (
       <th
-        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none whitespace-nowrap"
+        className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none whitespace-nowrap ${className}`}
         onClick={onClick}
       >
         <div className="flex items-center gap-1">
@@ -320,6 +337,7 @@ const App = () => {
       inactive: "無効",
       save: "保存",
       cancel: "キャンセル",
+      close: "閉じる",
       delete: "削除",
       edit: "編集",
       confirmDelete: "本当に削除しますか？",
@@ -421,6 +439,13 @@ const App = () => {
       selectMaterials: "材料を選択",
       poNumber: "PO No.",
       orderQuantity: "注数",
+      stockQuantity: "在庫数",
+      shippedQuantity: "出荷数",
+      backlogQuantity: "残注数",
+      checkBacklog: "残注数確認",
+      backlogSummary: "顧客別残注数サマリー",
+      dateFrom: "開始日",
+      dateTo: "終了日",
       requiredMaterialAmount: "必要材料量",
       requiredMaterialUnit: "kg",
       moldingTime: "成形時間",
@@ -546,6 +571,7 @@ const App = () => {
       inactive: "Không hoạt động",
       save: "Lưu",
       cancel: "Hủy",
+      close: "Đóng",
       delete: "Xóa",
       edit: "Sửa",
       confirmDelete: "Bạn có chắc muốn xóa?",
@@ -647,6 +673,13 @@ const App = () => {
       selectMaterials: "Chọn vật liệu",
       poNumber: "Số PO",
       orderQuantity: "Số lượng đơn",
+      stockQuantity: "Tồn kho",
+      shippedQuantity: "Số lượng đã giao",
+      backlogQuantity: "Số lượng chưa giao",
+      checkBacklog: "Kiểm tra đơn hàng chưa giao",
+      backlogSummary: "Tổng hợp đơn hàng chưa giao theo khách hàng",
+      dateFrom: "Từ ngày",
+      dateTo: "Đến ngày",
       requiredMaterialAmount: "Lượng vật liệu cần",
       requiredMaterialUnit: "kg",
       moldingTime: "Thời gian đúc",
@@ -1145,6 +1178,8 @@ const App = () => {
       customerId: "s-006",
       productId: "p-004",
       quantity: 2000,
+      stockQuantity: null,
+      shippedQuantity: 1500,
       unitPrice: 25,
       currency: "JPY",
       deliveryDate: "2025-11-25",
@@ -1167,6 +1202,8 @@ const App = () => {
       customerId: "s-007",
       productId: "p-005",
       quantity: 1500,
+      stockQuantity: null,
+      shippedQuantity: 0,
       unitPrice: 15,
       currency: "USD",
       deliveryDate: "2025-11-28",
@@ -1189,6 +1226,8 @@ const App = () => {
       customerId: "s-008",
       productId: "p-004",
       quantity: 800,
+      stockQuantity: null,
+      shippedQuantity: 800,
       unitPrice: 25,
       currency: "JPY",
       deliveryDate: "2025-11-20",
@@ -1211,6 +1250,8 @@ const App = () => {
     customerId: "",
     productId: "",
     quantity: 0,
+    stockQuantity: null,
+    shippedQuantity: 0,
     unitPrice: 0,
     currency: "JPY",
     deliveryDate: "",
@@ -1374,38 +1415,7 @@ const App = () => {
   //   color: "text-orange-500",
   // }));
 
-  const tasks = [
-    {
-      id: 1,
-      type: "approval",
-      title: "Vietnam Plastics Ltd.からの発注承認",
-      description: "ポリエチレン 500kg - 単価変動あり",
-      priority: "high",
-      dueDate: "本日",
-      icon: AlertCircle,
-      color: "text-red-500",
-    },
-    {
-      id: 2,
-      type: "payment",
-      title: "Nguyen Trading Co.への支払",
-      description: "$25,000 - 支払期限: 11/22",
-      priority: "medium",
-      dueDate: "明日",
-      icon: DollarSign,
-      color: "text-orange-500",
-    },
-    {
-      id: 3,
-      type: "order",
-      title: "パナソニック向け出荷準備",
-      description: "品番: PVC-A123 - 数量: 1,000個",
-      priority: "medium",
-      dueDate: "11/25",
-      icon: Package,
-      color: "text-blue-500",
-    },
-  ];
+  // タスクはワークフローから動的に生成される（workflowTasks変数を使用）
 
   const alerts = [
     { id: 1, type: "abnormalPrice", message: "Vietnam Plastics Ltd. - ポリエチレンの単価が前回比13%上昇", severity: "high" as const },
@@ -1892,6 +1902,8 @@ const App = () => {
     customerId: string;
     productId: string;
     quantity: number; // 注数（旧：数量）
+    stockQuantity: number | null; // 在庫数
+    shippedQuantity: number; // 出荷数
     unitPrice: number;
     currency: "USD" | "JPY" | "VND";
     deliveryDate: string;
@@ -1916,6 +1928,8 @@ const App = () => {
     customerId: string;
     productId: string;
     quantity: number; // 注数
+    stockQuantity: number | null; // 在庫数
+    shippedQuantity: number; // 出荷数
     unitPrice: number;
     currency: "USD" | "JPY" | "VND";
     deliveryDate: string;
@@ -2145,6 +2159,8 @@ const App = () => {
         deliveryDate: sale.deliveryDate,
         remarks: sale.remarks,
         materialIds: sale.materialIds,
+        stockQuantity: sale.stockQuantity,
+        shippedQuantity: sale.shippedQuantity,
         requiredMaterialAmount: sale.requiredMaterialAmount,
         moldingTime: sale.moldingTime,
         shipped: sale.shipped,
@@ -2168,6 +2184,8 @@ const App = () => {
         deliveryDate: "",
         remarks: "",
         materialIds: [],
+        stockQuantity: null,
+        shippedQuantity: 0,
         requiredMaterialAmount: 0,
         moldingTime: 0,
         shipped: false,
@@ -2229,6 +2247,8 @@ const App = () => {
       deliveryDate: saleFormData.deliveryDate,
       remarks: saleFormData.remarks,
       materialIds: materialIds,
+      stockQuantity: saleFormData.stockQuantity,
+      shippedQuantity: Number(saleFormData.shippedQuantity),
       requiredMaterialAmount: requiredMaterialAmount,
       moldingTime: moldingTime,
       shipped: saleFormData.shipped,
@@ -2658,6 +2678,115 @@ const App = () => {
 
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
+  // ワークフロータスクの生成
+  interface WorkflowTask {
+    id: string;
+    saleId: string;
+    poNumber: string;
+    customerName: string;
+    stepName: string;
+    stepNumber: number;
+    totalSteps: number;
+    priority: "high" | "medium" | "low";
+  }
+
+  const generateWorkflowTasks = (): WorkflowTask[] => {
+    const tasks: WorkflowTask[] = [];
+
+    // 受注のワークフロー定義（順番に実行される）
+    const workflowSteps = [
+      { field: "purchaseOrderReceived", name: "発注書受領" },
+      { field: "shipped", name: "出荷" },
+      { field: "deliveryNoteSent", name: "納品書送付" },
+      { field: "delivered", name: "納品確認" },
+      { field: "invoiceSent", name: "請求書送付" },
+      { field: "paid", name: "入金確認" },
+    ];
+
+    sales.forEach((sale) => {
+      // 完了していない最初のステップを見つける
+      for (let i = 0; i < workflowSteps.length; i++) {
+        const step = workflowSteps[i];
+        const fieldValue = sale[step.field as keyof Sale] as boolean;
+
+        if (!fieldValue) {
+          const customer = suppliers.find((s) => s.id === sale.customerId);
+
+          // 優先度の判定
+          let priority: "high" | "medium" | "low" = "medium";
+          const deliveryDate = new Date(sale.deliveryDate);
+          const today = new Date();
+          const daysUntilDelivery = Math.ceil((deliveryDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
+
+          // 納期が3日以内なら高優先度
+          if (daysUntilDelivery <= 3 && daysUntilDelivery >= 0) {
+            priority = "high";
+          }
+          // 納期を過ぎていたら高優先度
+          else if (daysUntilDelivery < 0) {
+            priority = "high";
+          }
+
+          tasks.push({
+            id: `task-${sale.id}-${step.field}`,
+            saleId: sale.id,
+            poNumber: sale.poNumber,
+            customerName: customer?.name || "不明",
+            stepName: step.name,
+            stepNumber: i + 1,
+            totalSteps: workflowSteps.length,
+            priority,
+          });
+
+          // 最初の未完了ステップのみをタスクとして追加
+          break;
+        }
+      }
+    });
+
+    // 優先度でソート（高→中→低）
+    return tasks.sort((a, b) => {
+      const priorityOrder = { high: 0, medium: 1, low: 2 };
+      return priorityOrder[a.priority] - priorityOrder[b.priority];
+    });
+  };
+
+  const workflowTasks = generateWorkflowTasks();
+
+  // 顧客別残注数サマリーを計算（期間フィルター対応）
+  const backlogSummary = useMemo(() => {
+    const customerMap = new Map<string, { totalOrdered: number; totalShipped: number }>();
+
+    // 期間内の受注のみをフィルター
+    const filteredSales = sales.filter((sale) => {
+      const saleDate = new Date(sale.saleDate);
+      const fromDate = new Date(backlogDateFrom);
+      const toDate = new Date(backlogDateTo);
+      return saleDate >= fromDate && saleDate <= toDate;
+    });
+
+    filteredSales.forEach((sale) => {
+      const existing = customerMap.get(sale.customerId) || { totalOrdered: 0, totalShipped: 0 };
+      customerMap.set(sale.customerId, {
+        totalOrdered: existing.totalOrdered + sale.quantity,
+        totalShipped: existing.totalShipped + sale.shippedQuantity,
+      });
+    });
+
+    const backlogData = Array.from(customerMap.entries()).map(([customerId, data]) => {
+      const customer = suppliers.find((s) => s.id === customerId);
+      return {
+        customerId,
+        customerName: customer?.name || "不明",
+        totalOrdered: data.totalOrdered,
+        totalShipped: data.totalShipped,
+        backlog: data.totalOrdered - data.totalShipped,
+      };
+    });
+
+    return backlogData.filter((item) => item.backlog !== 0); // 残注数が0でないもののみ表示
+  }, [sales, suppliers, backlogDateFrom, backlogDateTo]);
+
   // ダッシュボード用の計算（ordersが変更されるたびに再計算）
   const calculateMonthlyPurchase = () => {
     // 現在の年月を取得
@@ -2938,7 +3067,7 @@ const App = () => {
     <div className="space-y-6">
       <div>
         <h3 className="text-xl font-semibold text-gray-800 mb-2">{t.welcome}, Huong! 👋</h3>
-        <p className="text-gray-600">本日は{tasks.length}件のタスクがあります</p>
+        <p className="text-gray-600">本日は{workflowTasks.length}件のタスクがあります</p>
       </div>
 
       <DashboardSummary
@@ -2963,7 +3092,17 @@ const App = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-          <TodayTasks tasks={tasks} title={t.todayTasks} approveText={t.approve} />
+          <TodayTasks
+            tasks={workflowTasks}
+            title={t.todayTasks}
+            onTaskClick={(task) => {
+              // タスクをクリックしたら該当の受注詳細モーダルを開く
+              const sale = sales.find(s => s.id === task.saleId);
+              if (sale) {
+                handleOpenSaleModal(sale);
+              }
+            }}
+          />
         </div>
 
         <div>
@@ -3942,6 +4081,13 @@ const App = () => {
               <span className="hidden sm:inline">{t.export}</span>
             </button>
             <button
+              onClick={() => setShowBacklogModal(true)}
+              className="px-3 md:px-4 py-2 text-orange-700 hover:bg-orange-50 border border-orange-300 rounded-lg flex items-center gap-2 text-sm md:text-base"
+            >
+              <Package size={18} />
+              <span className="hidden sm:inline">{t.checkBacklog}</span>
+            </button>
+            <button
               onClick={() => handleOpenSaleModal(null)}
               className="px-4 md:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium text-sm md:text-base"
             >
@@ -3963,34 +4109,53 @@ const App = () => {
                   sortKey="poNumber"
                   currentConfig={saleSortConfig}
                   onClick={() => handleSort("poNumber", saleSortConfig, setSaleSortConfig)}
+                  className="sticky left-0 z-10 bg-gray-50 w-[160px] min-w-[160px] max-w-[160px]"
                 />
                 <SortableHeader
                   label={t.saleDate}
                   sortKey="saleDate"
                   currentConfig={saleSortConfig}
                   onClick={() => handleSort("saleDate", saleSortConfig, setSaleSortConfig)}
+                  className="sticky left-[160px] z-10 bg-gray-50 w-[140px] min-w-[140px] max-w-[140px]"
                 />
                 <SortableHeader
                   label={t.customerName}
                   sortKey="customerId"
                   currentConfig={saleSortConfig}
                   onClick={() => handleSort("customerId", saleSortConfig, setSaleSortConfig)}
+                  className="sticky left-[300px] z-10 bg-gray-50 w-[200px] min-w-[200px] max-w-[200px]"
                 />
                 <SortableHeader
                   label={t.product}
                   sortKey="product"
                   currentConfig={saleSortConfig}
                   onClick={() => handleSort("product", saleSortConfig, setSaleSortConfig)}
+                  className="sticky left-[500px] z-10 bg-gray-50 w-[180px] min-w-[180px] max-w-[180px]"
                 />
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap sticky left-[680px] z-10 bg-gray-50 w-[200px] min-w-[200px] max-w-[200px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                   {t.materials}
                 </th>
+                <SortableHeader
+                  label={t.stockQuantity}
+                  sortKey="stockQuantity"
+                  currentConfig={saleSortConfig}
+                  onClick={() => handleSort("stockQuantity", saleSortConfig, setSaleSortConfig)}
+                />
                 <SortableHeader
                   label={t.orderQuantity}
                   sortKey="quantity"
                   currentConfig={saleSortConfig}
                   onClick={() => handleSort("quantity", saleSortConfig, setSaleSortConfig)}
                 />
+                <SortableHeader
+                  label={t.shippedQuantity}
+                  sortKey="shippedQuantity"
+                  currentConfig={saleSortConfig}
+                  onClick={() => handleSort("shippedQuantity", saleSortConfig, setSaleSortConfig)}
+                />
+                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                  {t.backlogQuantity}
+                </th>
                 <SortableHeader
                   label={t.unitPrice}
                   sortKey="unitPrice"
@@ -4031,16 +4196,16 @@ const App = () => {
                 const customer = suppliers.find((s) => s.id === sale.customerId);
                 const totalAmount = sale.quantity * sale.unitPrice;
                 return (
-                  <tr key={sale.id} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => handleOpenSaleModal(sale)}>
-                    <td className="px-6 py-4 text-sm font-medium text-blue-600">{sale.poNumber}</td>
-                    <td className="px-6 py-4 text-sm text-gray-700">{sale.saleDate}</td>
-                    <td className="px-6 py-4">
+                  <tr key={sale.id} className="group hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => handleOpenSaleModal(sale)}>
+                    <td className="px-6 py-4 text-sm font-medium text-blue-600 sticky left-0 z-10 bg-white group-hover:bg-gray-50 transition-colors w-[160px] min-w-[160px] max-w-[160px]">{sale.poNumber}</td>
+                    <td className="px-6 py-4 text-sm text-gray-700 sticky left-[160px] z-10 bg-white group-hover:bg-gray-50 transition-colors w-[140px] min-w-[140px] max-w-[140px]">{sale.saleDate}</td>
+                    <td className="px-6 py-4 sticky left-[300px] z-10 bg-white group-hover:bg-gray-50 transition-colors w-[200px] min-w-[200px] max-w-[200px]">
                       <div className="text-sm font-medium text-gray-800">{customer?.name || "-"}</div>
                       <div className="text-xs text-gray-500">
                         {customer?.region ? (t[customer.region as keyof typeof t] as string) : "-"}
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 sticky left-[500px] z-10 bg-white group-hover:bg-gray-50 transition-colors w-[180px] min-w-[180px] max-w-[180px]">
                       {(() => {
                         const product = products.find((p) => p.id === sale.productId);
                         return product ? (
@@ -4053,7 +4218,7 @@ const App = () => {
                         );
                       })()}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 sticky left-[680px] z-10 bg-white group-hover:bg-gray-50 transition-colors w-[200px] min-w-[200px] max-w-[200px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                       {sale.materialIds && sale.materialIds.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
                           {sale.materialIds.map((materialId) => {
@@ -4072,7 +4237,14 @@ const App = () => {
                         <p className="text-sm text-gray-500">-</p>
                       )}
                     </td>
+                    <td className="px-6 py-4 text-right text-sm text-gray-700">
+                      {sale.stockQuantity !== null ? sale.stockQuantity.toLocaleString() : "-"}
+                    </td>
                     <td className="px-6 py-4 text-right text-sm text-gray-700">{sale.quantity.toLocaleString()}</td>
+                    <td className="px-6 py-4 text-right text-sm text-gray-700">{sale.shippedQuantity.toLocaleString()}</td>
+                    <td className="px-6 py-4 text-right text-sm font-medium text-gray-700">
+                      {(sale.quantity - sale.shippedQuantity).toLocaleString()}
+                    </td>
                     <td className="px-6 py-4 text-right text-sm font-medium text-gray-800">
                       {sale.currency === "VND"
                         ? `${sale.unitPrice.toLocaleString()} VND`
@@ -5792,7 +5964,7 @@ const App = () => {
                 </select>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t.orderQuantity} <span className="text-red-500">*</span>
@@ -5808,6 +5980,54 @@ const App = () => {
                   />
                 </div>
 
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t.stockQuantity}
+                  </label>
+                  <input
+                    type="number"
+                    value={saleFormData.stockQuantity ?? ""}
+                    onChange={(e) =>
+                      setSaleFormData({
+                        ...saleFormData,
+                        stockQuantity: e.target.value === "" ? null : Number(e.target.value),
+                      })
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder={lang === "ja" ? "在庫数を入力" : "Nhập số tồn kho"}
+                    min="0"
+                    step="1"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t.shippedQuantity}
+                  </label>
+                  <input
+                    type="number"
+                    value={saleFormData.shippedQuantity}
+                    onChange={(e) =>
+                      setSaleFormData({
+                        ...saleFormData,
+                        shippedQuantity: Number(e.target.value),
+                      })
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder={lang === "ja" ? "出荷数を入力" : "Nhập số lượng đã giao"}
+                    min="0"
+                    max={saleFormData.quantity}
+                    step="1"
+                  />
+                  {saleFormData.quantity > 0 && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      {lang === "ja" ? "残注数" : "Chưa giao"}: {(saleFormData.quantity - saleFormData.shippedQuantity).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t.unitPrice} <span className="text-red-500">*</span>
@@ -6871,6 +7091,28 @@ const App = () => {
           </div>
         </div>
       )}
+
+      {/* 残注数確認モーダル */}
+      <BacklogModal
+        isOpen={showBacklogModal}
+        onClose={() => setShowBacklogModal(false)}
+        backlogData={backlogSummary}
+        title={t.backlogSummary}
+        translations={{
+          customerName: t.customerName,
+          totalOrdered: lang === "ja" ? "合計注文数" : "Tổng số đơn hàng",
+          totalShipped: lang === "ja" ? "合計出荷数" : "Tổng số đã giao",
+          backlog: t.backlogQuantity,
+          close: t.close,
+          noBacklog: lang === "ja" ? "残注数がある顧客はいません" : "Không có khách hàng nào có đơn hàng chưa giao",
+          dateFrom: t.dateFrom,
+          dateTo: t.dateTo,
+        }}
+        dateFrom={backlogDateFrom}
+        dateTo={backlogDateTo}
+        onDateFromChange={setBacklogDateFrom}
+        onDateToChange={setBacklogDateTo}
+      />
     </div>
   );
 };
