@@ -4109,30 +4109,26 @@ const App = () => {
                   sortKey="poNumber"
                   currentConfig={saleSortConfig}
                   onClick={() => handleSort("poNumber", saleSortConfig, setSaleSortConfig)}
-                  className="sticky left-0 z-10 bg-gray-50 w-[160px] min-w-[160px] max-w-[160px]"
                 />
                 <SortableHeader
                   label={t.saleDate}
                   sortKey="saleDate"
                   currentConfig={saleSortConfig}
                   onClick={() => handleSort("saleDate", saleSortConfig, setSaleSortConfig)}
-                  className="sticky left-[160px] z-10 bg-gray-50 w-[140px] min-w-[140px] max-w-[140px]"
                 />
                 <SortableHeader
                   label={t.customerName}
                   sortKey="customerId"
                   currentConfig={saleSortConfig}
                   onClick={() => handleSort("customerId", saleSortConfig, setSaleSortConfig)}
-                  className="sticky left-[300px] z-10 bg-gray-50 w-[200px] min-w-[200px] max-w-[200px]"
                 />
                 <SortableHeader
                   label={t.product}
                   sortKey="product"
                   currentConfig={saleSortConfig}
                   onClick={() => handleSort("product", saleSortConfig, setSaleSortConfig)}
-                  className="sticky left-[500px] z-10 bg-gray-50 w-[180px] min-w-[180px] max-w-[180px]"
                 />
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap sticky left-[680px] z-10 bg-gray-50 w-[200px] min-w-[200px] max-w-[200px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
                   {t.materials}
                 </th>
                 <SortableHeader
@@ -4196,16 +4192,16 @@ const App = () => {
                 const customer = suppliers.find((s) => s.id === sale.customerId);
                 const totalAmount = sale.quantity * sale.unitPrice;
                 return (
-                  <tr key={sale.id} className="group hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => handleOpenSaleModal(sale)}>
-                    <td className="px-6 py-4 text-sm font-medium text-blue-600 sticky left-0 z-10 bg-white group-hover:bg-gray-50 transition-colors w-[160px] min-w-[160px] max-w-[160px]">{sale.poNumber}</td>
-                    <td className="px-6 py-4 text-sm text-gray-700 sticky left-[160px] z-10 bg-white group-hover:bg-gray-50 transition-colors w-[140px] min-w-[140px] max-w-[140px]">{sale.saleDate}</td>
-                    <td className="px-6 py-4 sticky left-[300px] z-10 bg-white group-hover:bg-gray-50 transition-colors w-[200px] min-w-[200px] max-w-[200px]">
+                  <tr key={sale.id} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => handleOpenSaleModal(sale)}>
+                    <td className="px-6 py-4 text-sm font-medium text-blue-600">{sale.poNumber}</td>
+                    <td className="px-6 py-4 text-sm text-gray-700">{sale.saleDate}</td>
+                    <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-800">{customer?.name || "-"}</div>
                       <div className="text-xs text-gray-500">
                         {customer?.region ? (t[customer.region as keyof typeof t] as string) : "-"}
                       </div>
                     </td>
-                    <td className="px-6 py-4 sticky left-[500px] z-10 bg-white group-hover:bg-gray-50 transition-colors w-[180px] min-w-[180px] max-w-[180px]">
+                    <td className="px-6 py-4">
                       {(() => {
                         const product = products.find((p) => p.id === sale.productId);
                         return product ? (
@@ -4218,7 +4214,7 @@ const App = () => {
                         );
                       })()}
                     </td>
-                    <td className="px-6 py-4 sticky left-[680px] z-10 bg-white group-hover:bg-gray-50 transition-colors w-[200px] min-w-[200px] max-w-[200px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                    <td className="px-6 py-4">
                       {sale.materialIds && sale.materialIds.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
                           {sale.materialIds.map((materialId) => {
