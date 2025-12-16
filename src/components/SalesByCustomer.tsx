@@ -1,4 +1,4 @@
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 interface SalesData {
   name: string;
@@ -15,24 +15,15 @@ interface SalesByCustomerProps {
 
 export const SalesByCustomer = ({ data, title, colors }: SalesByCustomerProps) => {
   // カスタムラベルレンダリング関数
-  const renderCustomLabel = ({
-    cx,
-    cy,
-    midAngle,
-    innerRadius,
-    outerRadius,
-    percent,
-    name,
-  }: {
-    cx?: number;
-    cy?: number;
-    midAngle?: number;
-    innerRadius?: number;
-    outerRadius?: number;
-    percent?: number;
-    name?: string;
-  }) => {
-    if (!cx || !cy || midAngle === undefined || !innerRadius || !outerRadius || !percent || !name) {
+  const renderCustomLabel = (props: any) => {
+    const { cx, cy, midAngle, innerRadius, outerRadius, percent, name } = props;
+
+    if (!cx || !cy || midAngle === undefined || !innerRadius || !outerRadius || percent === undefined) {
+      return null;
+    }
+
+    // 5%未満のセグメントにはラベルを表示しない
+    if (percent < 0.05) {
       return null;
     }
 
@@ -62,15 +53,15 @@ export const SalesByCustomer = ({ data, title, colors }: SalesByCustomerProps) =
   return (
     <div className="bg-white p-4 md:p-6 rounded-lg shadow">
       <h3 className="text-base md:text-lg font-bold mb-2 md:mb-4">{title}</h3>
-      <ResponsiveContainer width="100%" height={250}>
+      <ResponsiveContainer width="100%" height={350}>
         <PieChart>
           <Pie
             data={data}
             cx="50%"
-            cy="50%"
+            cy="45%"
             labelLine={false}
             label={renderCustomLabel}
-            outerRadius={80}
+            outerRadius={90}
             fill="#8884d8"
             dataKey="value"
           >
@@ -79,6 +70,14 @@ export const SalesByCustomer = ({ data, title, colors }: SalesByCustomerProps) =
             ))}
           </Pie>
           <Tooltip formatter={(value: number) => `$${value.toLocaleString()}`} />
+          <Legend
+            verticalAlign="bottom"
+            height={80}
+            formatter={(value: string) => {
+              const item = data.find(d => d.name === value);
+              return `${value}: $${item?.value.toLocaleString() || 0}`;
+            }}
+          />
         </PieChart>
       </ResponsiveContainer>
     </div>

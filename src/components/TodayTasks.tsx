@@ -45,24 +45,11 @@ export const TodayTasks = ({ tasks, title, onTaskClick }: TodayTasksProps) => {
                   )}
                 </div>
                 <div className="flex-1">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <h4 className="font-medium text-gray-800">{task.stepName}</h4>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        進捗: ステップ {task.stepNumber}/{task.totalSteps}
-                      </p>
-                    </div>
-                    <span
-                      className={`px-2 py-1 rounded text-xs font-medium ${
-                        task.priority === "high"
-                          ? "bg-red-100 text-red-700"
-                          : task.priority === "medium"
-                          ? "bg-orange-100 text-orange-700"
-                          : "bg-blue-100 text-blue-700"
-                      }`}
-                    >
-                      {task.priority === "high" ? "緊急" : task.priority === "medium" ? "通常" : "低"}
-                    </span>
+                  <div className="mb-2">
+                    <h4 className="font-medium text-gray-800">{task.stepName}</h4>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      進捗: ステップ {task.stepNumber}/{task.totalSteps}
+                    </p>
                   </div>
                   <p className="text-sm text-gray-600 mb-2">
                     {task.poNumber} - {task.customerName}

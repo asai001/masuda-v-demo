@@ -12,8 +12,6 @@ import {
   Trash2,
   X,
   Save,
-  Download,
-  Upload,
   AlertCircle,
   CheckCircle,
   Clock,
@@ -231,15 +229,6 @@ const App = () => {
   const [activities, setActivities] = useState<Activity[]>([
     {
       id: 1,
-      action: "発注が承認されました",
-      details: "Saigon Materials - 添加剤 200kg",
-      user: "Huong",
-      time: "10分前",
-      icon: CheckCircle,
-      color: "text-green-500",
-    },
-    {
-      id: 2,
       action: "新規取引先が追加されました",
       details: "Hanoi Plastics Co., Ltd.",
       user: "Thanh",
@@ -248,7 +237,7 @@ const App = () => {
       color: "text-blue-500",
     },
     {
-      id: 3,
+      id: 2,
       action: "売上が計上されました",
       details: "リケン - $32,000",
       user: "Huong",
@@ -257,13 +246,22 @@ const App = () => {
       color: "text-purple-500",
     },
     {
-      id: 4,
+      id: 3,
       action: "支払が完了しました",
       details: "Vietnam Plastics Ltd. - $18,000",
       user: "Thanh",
       time: "3時間前",
       icon: CheckCircle,
       color: "text-green-500",
+    },
+    {
+      id: 4,
+      action: "発注が登録されました",
+      details: "Saigon Materials - 添加剤 200kg",
+      user: "Huong",
+      time: "4時間前",
+      icon: ShoppingCart,
+      color: "text-orange-500",
     },
   ]);
 
@@ -298,7 +296,7 @@ const App = () => {
       vndRate: "VND → USD レート",
       rateDescription: "1 USD あたりの金額を入力してください",
       welcome: "おかえりなさい",
-      todayTasks: "本日のタスク",
+      todayTasks: "未完了のタスク",
       recentActivity: "最近のアクティビティ",
       quickActions: "クイックアクション",
       pendingApproval: "承認待ち",
@@ -532,7 +530,7 @@ const App = () => {
       vndRate: "Tỷ giá VND → USD",
       rateDescription: "Nhập số tiền tương đương với 1 USD",
       welcome: "Chào mừng trở lại",
-      todayTasks: "Nhiệm vụ hôm nay",
+      todayTasks: "Nhiệm vụ chưa hoàn thành",
       recentActivity: "Hoạt động gần đây",
       quickActions: "Hành động nhanh",
       pendingApproval: "Chờ phê duyệt",
@@ -1417,11 +1415,85 @@ const App = () => {
 
   // タスクはワークフローから動的に生成される（workflowTasks変数を使用）
 
-  const alerts = [
-    { id: 1, type: "abnormalPrice", message: "Vietnam Plastics Ltd. - ポリエチレンの単価が前回比13%上昇", severity: "high" as const },
-    { id: 2, type: "newSupplier", message: "新規仕入先: Saigon Materials (承認待ち)", severity: "medium" as const },
-    { id: 3, type: "overduePayment", message: "Nguyen Trading Co.への支払いが2日遅延", severity: "high" as const },
-  ];
+  // アラート生成関数
+  const generateAlerts = () => {
+    const alertList: { id: number; type: string; message: string; severity: "high" | "medium" | "low" }[] = [];
+    let alertId = 1;
+
+    // 1. マイナスの残注数チェック
+    const negativeBacklogCustomers = new Map<string, number>();
+    sales.forEach((sale) => {
+      const backlog = sale.quantity - sale.shippedQuantity;
+      const existing = negativeBacklogCustomers.get(sale.customerId) || 0;
+      negativeBacklogCustomers.set(sale.customerId, existing + backlog);
+    });
+
+    negativeBacklogCustomers.forEach((backlog, customerId) => {
+      if (backlog < 0) {
+        const customer = suppliers.find((s) => s.id === customerId);
+        alertList.push({
+          id: alertId++,
+          type: "negativeBacklog",
+          message: lang === "ja"
+            ? `${customer?.name || "不明"} - 残注数がマイナス${Math.abs(backlog).toLocaleString()}個(過剰出荷)`
+            : `${customer?.name || "Unknown"} - Số lượng chưa giao âm ${Math.abs(backlog).toLocaleString()} (giao quá)`,
+          severity: "high",
+        });
+      }
+    });
+
+    // 2. 支払期日3日以内のチェック (サンプル)
+    const today = new Date();
+    const threeDaysLater = new Date(today);
+    threeDaysLater.setDate(today.getDate() + 3);
+
+    // マジックナンバーでサンプルアラート追加
+    alertList.push({
+      id: alertId++,
+      type: "paymentDueSoon",
+      message: lang === "ja"
+        ? `Vietnam Plastics Ltd. - 支払期日まであと2日 ($15,000)`
+        : `Vietnam Plastics Ltd. - Còn 2 ngày đến hạn thanh toán ($15,000)`,
+      severity: "high",
+    });
+
+    // 3. 入金遅延チェック (サンプル)
+    alertList.push({
+      id: alertId++,
+      type: "paymentOverdue",
+      message: lang === "ja"
+        ? `パナソニック株式会社 - 入金遅延の可能性 (納期+10日経過, PO:PO-2025-001)`
+        : `Panasonic - Có thể chậm thanh toán (10 ngày sau khi giao, PO:PO-2025-001)`,
+      severity: "high",
+    });
+
+    // 4. 出荷予定日が1週間以内の受注 (サンプル)
+    const sevenDaysLater = new Date(today);
+    sevenDaysLater.setDate(today.getDate() + 7);
+
+    alertList.push({
+      id: alertId++,
+      type: "upcomingShipment",
+      message: lang === "ja"
+        ? `出荷予定が1週間以内の受注が3件あります`
+        : `Có 3 đơn hàng cần giao trong vòng 1 tuần`,
+      severity: "medium",
+    });
+
+    // 5. 納期が1週間以内の発注 (サンプル)
+    alertList.push({
+      id: alertId++,
+      type: "upcomingOrder",
+      message: lang === "ja"
+        ? `納期が1週間以内の発注が5件あります`
+        : `Có 5 đơn đặt hàng đến hạn trong vòng 1 tuần`,
+      severity: "medium",
+    });
+
+    return alertList;
+  };
+
+  const alerts = generateAlerts();
 
   const menuItems = [
     { icon: LayoutDashboard, label: t.dashboard, page: "dashboard" },
@@ -3210,10 +3282,6 @@ const App = () => {
             </select>
           </div>
           <div className="flex items-center gap-2 md:gap-3">
-            <button className="px-3 md:px-4 py-2 text-gray-700 hover:bg-gray-50 border border-gray-300 rounded-lg flex items-center gap-2 text-sm md:text-base">
-              <Download size={18} />
-              <span className="hidden sm:inline">{t.export}</span>
-            </button>
             <button
               onClick={() => handleOpenProductModal(null)}
               className="px-4 md:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium text-sm md:text-base"
@@ -3442,10 +3510,6 @@ const App = () => {
             </select>
           </div>
           <div className="flex items-center gap-2 md:gap-3">
-            <button className="px-3 md:px-4 py-2 text-gray-700 hover:bg-gray-50 border border-gray-300 rounded-lg flex items-center gap-2 text-sm md:text-base">
-              <Download size={18} />
-              <span className="hidden sm:inline">{t.export}</span>
-            </button>
             <button
               onClick={() => handleOpenPurchaseItemModal(null)}
               className="px-4 md:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium text-sm md:text-base"
@@ -3638,10 +3702,6 @@ const App = () => {
             </select>
           </div>
           <div className="flex items-center gap-2 md:gap-3">
-            <button className="px-3 md:px-4 py-2 text-gray-700 hover:bg-gray-50 border border-gray-300 rounded-lg flex items-center gap-2 text-sm md:text-base">
-              <Download size={18} />
-              <span className="hidden sm:inline">{t.export}</span>
-            </button>
             <button
               onClick={() => handleOpenOrderModal(null)}
               className="px-4 md:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium text-sm md:text-base"
@@ -3873,14 +3933,6 @@ const App = () => {
             </select>
           </div>
           <div className="flex items-center gap-2 md:gap-3">
-            <button className="px-3 md:px-4 py-2 text-gray-700 hover:bg-gray-50 border border-gray-300 rounded-lg flex items-center gap-2 text-sm md:text-base">
-              <Download size={18} />
-              <span className="hidden sm:inline">{t.export}</span>
-            </button>
-            <button className="px-3 md:px-4 py-2 text-gray-700 hover:bg-gray-50 border border-gray-300 rounded-lg flex items-center gap-2 text-sm md:text-base">
-              <Upload size={18} />
-              <span className="hidden sm:inline">{t.import}</span>
-            </button>
             <button
               onClick={() => handleOpenModal(null)}
               className="px-4 md:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium text-sm md:text-base"
@@ -4076,10 +4128,6 @@ const App = () => {
             </select>
           </div>
           <div className="flex items-center gap-2 md:gap-3">
-            <button className="px-3 md:px-4 py-2 text-gray-700 hover:bg-gray-50 border border-gray-300 rounded-lg flex items-center gap-2 text-sm md:text-base">
-              <Download size={18} />
-              <span className="hidden sm:inline">{t.export}</span>
-            </button>
             <button
               onClick={() => setShowBacklogModal(true)}
               className="px-3 md:px-4 py-2 text-orange-700 hover:bg-orange-50 border border-orange-300 rounded-lg flex items-center gap-2 text-sm md:text-base"
