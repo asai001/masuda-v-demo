@@ -68,6 +68,8 @@ const App = () => {
   const [orderValidationError, setOrderValidationError] = useState("");
   const [orderSearchQuery, setOrderSearchQuery] = useState("");
   const [orderFilterStatus, setOrderFilterStatus] = useState("all");
+  const [orderDateFrom, setOrderDateFrom] = useState("");
+  const [orderDateTo, setOrderDateTo] = useState("");
 
   // 売上関連のstate
   const [showSaleModal, setShowSaleModal] = useState(false);
@@ -92,6 +94,8 @@ const App = () => {
   const [saleSearchQuery, setSaleSearchQuery] = useState("");
   const [saleFilterStatus, setSaleFilterStatus] = useState("all");
   const [saleFilterCustomer, setSaleFilterCustomer] = useState("all");
+  const [saleDateFrom, setSaleDateFrom] = useState("");
+  const [saleDateTo, setSaleDateTo] = useState("");
 
   // 支払いマスタ関連のstate
   const [showPaymentMasterModal, setShowPaymentMasterModal] = useState(false);
@@ -2659,7 +2663,25 @@ const App = () => {
         (orderFilterStatus === "ordered" && order.ordered) ||
         (orderFilterStatus === "delivered" && order.delivered) ||
         (orderFilterStatus === "paid" && order.paid);
-      return matchesSearch && matchesFilter;
+
+      // 日付フィルター
+      let matchesDate = true;
+      if (orderDateFrom || orderDateTo) {
+        const orderDate = new Date(order.orderDate);
+        if (orderDateFrom && orderDateTo) {
+          const fromDate = new Date(orderDateFrom);
+          const toDate = new Date(orderDateTo);
+          matchesDate = orderDate >= fromDate && orderDate <= toDate;
+        } else if (orderDateFrom) {
+          const fromDate = new Date(orderDateFrom);
+          matchesDate = orderDate >= fromDate;
+        } else if (orderDateTo) {
+          const toDate = new Date(orderDateTo);
+          matchesDate = orderDate <= toDate;
+        }
+      }
+
+      return matchesSearch && matchesFilter && matchesDate;
     }),
     orderSortConfig
   );
@@ -2686,7 +2708,25 @@ const App = () => {
         (saleFilterStatus === "delivered" && sale.delivered) ||
         (saleFilterStatus === "paid" && sale.paid);
       const matchesCustomer = saleFilterCustomer === "all" || sale.customerId === saleFilterCustomer;
-      return matchesSearch && matchesFilter && matchesCustomer;
+
+      // 日付フィルター
+      let matchesDate = true;
+      if (saleDateFrom || saleDateTo) {
+        const saleDate = new Date(sale.saleDate);
+        if (saleDateFrom && saleDateTo) {
+          const fromDate = new Date(saleDateFrom);
+          const toDate = new Date(saleDateTo);
+          matchesDate = saleDate >= fromDate && saleDate <= toDate;
+        } else if (saleDateFrom) {
+          const fromDate = new Date(saleDateFrom);
+          matchesDate = saleDate >= fromDate;
+        } else if (saleDateTo) {
+          const toDate = new Date(saleDateTo);
+          matchesDate = saleDate <= toDate;
+        }
+      }
+
+      return matchesSearch && matchesFilter && matchesCustomer && matchesDate;
     }),
     saleSortConfig
   );
@@ -3700,6 +3740,23 @@ const App = () => {
               <option value="delivered">{t.delivered}</option>
               <option value="paid">{lang === "ja" ? "支払い済み" : "Đã thanh toán"}</option>
             </select>
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={orderDateFrom}
+                onChange={(e) => setOrderDateFrom(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                placeholder={lang === "ja" ? "開始日" : "Từ ngày"}
+              />
+              <span className="text-gray-500">〜</span>
+              <input
+                type="date"
+                value={orderDateTo}
+                onChange={(e) => setOrderDateTo(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                placeholder={lang === "ja" ? "終了日" : "Đến ngày"}
+              />
+            </div>
           </div>
           <div className="flex items-center gap-2 md:gap-3">
             <button
@@ -4126,6 +4183,23 @@ const App = () => {
                   </option>
                 ))}
             </select>
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={saleDateFrom}
+                onChange={(e) => setSaleDateFrom(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                placeholder={lang === "ja" ? "開始日" : "Từ ngày"}
+              />
+              <span className="text-gray-500">〜</span>
+              <input
+                type="date"
+                value={saleDateTo}
+                onChange={(e) => setSaleDateTo(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                placeholder={lang === "ja" ? "終了日" : "Đến ngày"}
+              />
+            </div>
           </div>
           <div className="flex items-center gap-2 md:gap-3">
             <button
