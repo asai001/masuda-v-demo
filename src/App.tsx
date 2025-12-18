@@ -20,7 +20,9 @@ import {
   Settings,
   LogOut,
   Menu,
+  Download,
 } from "lucide-react";
+import ExcelJS from "exceljs";
 import { DashboardSummary } from "./components/DashboardSummary";
 import { BacklogModal } from "./components/BacklogModal";
 import { QuickActions } from "./components/QuickActions";
@@ -1178,17 +1180,22 @@ const App = () => {
       poNumber: "PO-2025-001",
       saleDate: "2025-11-15",
       customerId: "s-006",
-      productId: "p-004",
-      quantity: 2000,
-      stockQuantity: null,
-      shippedQuantity: 1500,
-      unitPrice: 25,
+      items: [
+        {
+          id: "sli-001-1",
+          productId: "p-004",
+          quantity: 2000,
+          stockQuantity: null,
+          shippedQuantity: 1500,
+          unitPrice: 25,
+          materialIds: ["pi-003"],
+          requiredMaterialAmount: 160,
+          moldingTime: 8.33,
+        },
+      ],
       currency: "JPY",
       deliveryDate: "2025-11-25",
       remarks: "定期取引",
-      materialIds: ["pi-003"], // p-004の使用材料
-      requiredMaterialAmount: 160, // 2000 * 80g / 1000 = 160kg
-      moldingTime: 8.33, // (2000 * 150mm / 1000) / 0.6m/min / 60 = 8.33時間
       shipped: true,
       delivered: false,
       paid: false,
@@ -1202,17 +1209,22 @@ const App = () => {
       poNumber: "PO-2025-002",
       saleDate: "2025-11-18",
       customerId: "s-007",
-      productId: "p-005",
-      quantity: 1500,
-      stockQuantity: null,
-      shippedQuantity: 0,
-      unitPrice: 15,
+      items: [
+        {
+          id: "sli-002-1",
+          productId: "p-005",
+          quantity: 1500,
+          stockQuantity: null,
+          shippedQuantity: 0,
+          unitPrice: 15,
+          materialIds: ["pi-001"],
+          requiredMaterialAmount: 90,
+          moldingTime: 5.00,
+        },
+      ],
       currency: "USD",
       deliveryDate: "2025-11-28",
       remarks: "急ぎ対応",
-      materialIds: ["pi-001"], // p-005の使用材料
-      requiredMaterialAmount: 90, // 1500 * 60g / 1000 = 90kg
-      moldingTime: 5.00, // (1500 * 120mm / 1000) / 0.6m/min / 60 = 5.00時間
       shipped: false,
       delivered: false,
       paid: false,
@@ -1226,17 +1238,22 @@ const App = () => {
       poNumber: "PO-2025-003",
       saleDate: "2025-11-10",
       customerId: "s-008",
-      productId: "p-004",
-      quantity: 800,
-      stockQuantity: null,
-      shippedQuantity: 800,
-      unitPrice: 25,
+      items: [
+        {
+          id: "sli-003-1",
+          productId: "p-004",
+          quantity: 800,
+          stockQuantity: null,
+          shippedQuantity: 800,
+          unitPrice: 25,
+          materialIds: ["pi-003"],
+          requiredMaterialAmount: 64,
+          moldingTime: 3.33,
+        },
+      ],
       currency: "JPY",
       deliveryDate: "2025-11-20",
       remarks: "納品完了",
-      materialIds: ["pi-003"], // p-004の使用材料
-      requiredMaterialAmount: 64, // 800 * 80g / 1000 = 64kg
-      moldingTime: 3.33, // (800 * 150mm / 1000) / 0.6m/min / 60 = 3.33時間
       shipped: true,
       delivered: true,
       paid: true,
@@ -1250,17 +1267,10 @@ const App = () => {
     poNumber: "",
     saleDate: "",
     customerId: "",
-    productId: "",
-    quantity: 0,
-    stockQuantity: null,
-    shippedQuantity: 0,
-    unitPrice: 0,
+    items: [],
     currency: "JPY",
     deliveryDate: "",
     remarks: "",
-    materialIds: [],
-    requiredMaterialAmount: 0,
-    moldingTime: 0,
     shipped: false,
     delivered: false,
     paid: false,
@@ -1427,9 +1437,11 @@ const App = () => {
     // 1. マイナスの残注数チェック
     const negativeBacklogCustomers = new Map<string, number>();
     sales.forEach((sale) => {
-      const backlog = sale.quantity - sale.shippedQuantity;
-      const existing = negativeBacklogCustomers.get(sale.customerId) || 0;
-      negativeBacklogCustomers.set(sale.customerId, existing + backlog);
+      sale.items.forEach((item) => {
+        const backlog = item.quantity - item.shippedQuantity;
+        const existing = negativeBacklogCustomers.get(sale.customerId) || 0;
+        negativeBacklogCustomers.set(sale.customerId, existing + backlog);
+      });
     });
 
     negativeBacklogCustomers.forEach((backlog, customerId) => {
@@ -1970,24 +1982,30 @@ const App = () => {
     invoiceReceived: boolean;
   }
 
+  // 受注明細（1つの製品情報）
+  interface SaleItem {
+    id: string; // 明細ID
+    productId: string;
+    quantity: number; // 注数
+    stockQuantity: number | null; // 在庫数
+    shippedQuantity: number; // 出荷数
+    unitPrice: number;
+    // 自動計算項目
+    materialIds: string[]; // 使用材料
+    requiredMaterialAmount: number; // 必要材料量
+    moldingTime: number; // 成形時間
+  }
+
   interface Sale {
     id: string;
     incrementalId: number;
     poNumber: string; // PO No. (Purchase Order Number)
     saleDate: string; // 売上日（旧：受注日）
     customerId: string;
-    productId: string;
-    quantity: number; // 注数（旧：数量）
-    stockQuantity: number | null; // 在庫数
-    shippedQuantity: number; // 出荷数
-    unitPrice: number;
+    items: SaleItem[]; // 製品明細の配列
     currency: "USD" | "JPY" | "VND";
     deliveryDate: string;
     remarks: string;
-    // 自動計算項目
-    materialIds: string[]; // 使用材料（製品マスタから自動入力）
-    requiredMaterialAmount: number; // 必要材料量（数量 * 重量）
-    moldingTime: number; // 成形時間（（数量 * 長さ）/ 分速）
     // ステータス（チェックボックス）
     shipped: boolean; // 出荷済み
     delivered: boolean; // 納品済み
@@ -2002,18 +2020,10 @@ const App = () => {
     poNumber: string; // PO No.
     saleDate: string; // 売上日
     customerId: string;
-    productId: string;
-    quantity: number; // 注数
-    stockQuantity: number | null; // 在庫数
-    shippedQuantity: number; // 出荷数
-    unitPrice: number;
+    items: SaleItem[]; // 製品明細の配列
     currency: "USD" | "JPY" | "VND";
     deliveryDate: string;
     remarks: string;
-    // 自動計算項目（表示のみ）
-    materialIds: string[];
-    requiredMaterialAmount: number;
-    moldingTime: number;
     // ステータス（チェックボックス）
     shipped: boolean;
     delivered: boolean;
@@ -2228,17 +2238,10 @@ const App = () => {
         poNumber: sale.poNumber,
         saleDate: sale.saleDate,
         customerId: sale.customerId.toString(),
-        productId: sale.productId,
-        quantity: sale.quantity,
-        unitPrice: sale.unitPrice,
+        items: sale.items, // 製品明細をそのままコピー
         currency: sale.currency,
         deliveryDate: sale.deliveryDate,
         remarks: sale.remarks,
-        materialIds: sale.materialIds,
-        stockQuantity: sale.stockQuantity,
-        shippedQuantity: sale.shippedQuantity,
-        requiredMaterialAmount: sale.requiredMaterialAmount,
-        moldingTime: sale.moldingTime,
         shipped: sale.shipped,
         delivered: sale.delivered,
         paid: sale.paid,
@@ -2253,17 +2256,10 @@ const App = () => {
         poNumber: "",
         saleDate: today,
         customerId: "",
-        productId: "",
-        quantity: 0,
-        unitPrice: 0,
+        items: [], // 空の配列で初期化
         currency: "JPY",
         deliveryDate: "",
         remarks: "",
-        materialIds: [],
-        stockQuantity: null,
-        shippedQuantity: 0,
-        requiredMaterialAmount: 0,
-        moldingTime: 0,
         shipped: false,
         delivered: false,
         paid: false,
@@ -2285,48 +2281,38 @@ const App = () => {
       setSaleValidationError(lang === "ja" ? "顧客を選択してください" : "Vui lòng chọn khách hàng");
       return;
     }
-    if (!saleFormData.productId || !saleFormData.productId.trim()) {
-      setSaleValidationError(lang === "ja" ? "製品を選択してください" : "Vui lòng chọn sản phẩm");
+    if (saleFormData.items.length === 0) {
+      setSaleValidationError(lang === "ja" ? "製品明細を追加してください" : "Vui lòng thêm sản phẩm");
       return;
     }
-    if (!saleFormData.quantity || saleFormData.quantity <= 0) {
-      setSaleValidationError(lang === "ja" ? "数量を正しく入力してください" : "Vui lòng nhập số lượng chính xác");
-      return;
-    }
-    if (!saleFormData.unitPrice || saleFormData.unitPrice <= 0) {
-      setSaleValidationError(lang === "ja" ? "単価を正しく入力してください" : "Vui lòng nhập đơn giá chính xác");
-      return;
+    // 各製品明細の必須項目チェック
+    for (const item of saleFormData.items) {
+      if (!item.productId) {
+        setSaleValidationError(lang === "ja" ? "製品を選択してください" : "Vui lòng chọn sản phẩm");
+        return;
+      }
+      if (!item.quantity || item.quantity <= 0) {
+        setSaleValidationError(lang === "ja" ? "数量を正しく入力してください" : "Vui lòng nhập số lượng chính xác");
+        return;
+      }
+      if (!item.unitPrice || item.unitPrice <= 0) {
+        setSaleValidationError(lang === "ja" ? "単価を正しく入力してください" : "Vui lòng nhập đơn giá chính xác");
+        return;
+      }
     }
     if (!saleFormData.deliveryDate) {
       setSaleValidationError(lang === "ja" ? "納品予定日を入力してください" : "Vui lòng nhập ngày giao hàng");
       return;
     }
 
-    // 選択された製品から自動計算
-    const selectedProduct = products.find((p) => p.id === saleFormData.productId);
-    const quantity = Number(saleFormData.quantity);
-    const materialIds = selectedProduct?.materialIds || [];
-    const requiredMaterialAmount = selectedProduct && selectedProduct.weight > 0 ? (quantity * selectedProduct.weight) / 1000 : 0;
-    const moldingTime =
-      selectedProduct && selectedProduct.length > 0 && selectedProduct.speed > 0
-        ? (quantity * selectedProduct.length) / 1000 / selectedProduct.speed / 60
-        : 0;
-
     const saleData = {
       poNumber: saleFormData.poNumber,
       saleDate: saleFormData.saleDate,
       customerId: saleFormData.customerId,
-      productId: saleFormData.productId,
-      quantity: quantity,
-      unitPrice: Number(saleFormData.unitPrice),
+      items: saleFormData.items, // 製品明細配列をそのまま保存
       currency: saleFormData.currency,
       deliveryDate: saleFormData.deliveryDate,
       remarks: saleFormData.remarks,
-      materialIds: materialIds,
-      stockQuantity: saleFormData.stockQuantity,
-      shippedQuantity: Number(saleFormData.shippedQuantity),
-      requiredMaterialAmount: requiredMaterialAmount,
-      moldingTime: moldingTime,
       shipped: saleFormData.shipped,
       delivered: saleFormData.delivered,
       paid: saleFormData.paid,
@@ -2339,13 +2325,18 @@ const App = () => {
     if (editingSale) {
       setSales(sales.map((s) => (s.id === editingSale.id ? { ...s, ...saleData } : s)));
       const customer = suppliers.find((c) => c.id === saleFormData.customerId);
-      const product = products.find((p) => p.id === saleFormData.productId);
-      const amount = saleFormData.quantity * saleFormData.unitPrice;
+
+      // 合計金額を計算
+      let totalAmount = 0;
+      saleFormData.items.forEach((item) => {
+        totalAmount += item.quantity * item.unitPrice;
+      });
+
       const currencySymbol = saleFormData.currency === "JPY" ? "¥" : saleFormData.currency === "VND" ? "" : "$";
       const currencySuffix = saleFormData.currency === "VND" ? " VND" : "";
       addActivity(
         "売上が更新されました",
-        `${customer?.name || "顧客"} - ${product?.productName || "製品"} - ${currencySymbol}${amount.toLocaleString()}${currencySuffix}`,
+        `${customer?.name || "顧客"} - ${saleFormData.items.length}製品 - ${currencySymbol}${totalAmount.toLocaleString()}${currencySuffix}`,
         Edit,
         "text-blue-500"
       );
@@ -2357,13 +2348,18 @@ const App = () => {
       };
       setSales([...sales, newSale]);
       const customer = suppliers.find((c) => c.id === saleFormData.customerId);
-      const product = products.find((p) => p.id === saleFormData.productId);
-      const amount = saleFormData.quantity * saleFormData.unitPrice;
+
+      // 合計金額を計算
+      let totalAmount = 0;
+      saleFormData.items.forEach((item) => {
+        totalAmount += item.quantity * item.unitPrice;
+      });
+
       const currencySymbol = saleFormData.currency === "JPY" ? "¥" : saleFormData.currency === "VND" ? "" : "$";
       const currencySuffix = saleFormData.currency === "VND" ? " VND" : "";
       addActivity(
         "売上が計上されました",
-        `${customer?.name || "顧客"} - ${product?.productName || "製品"} - ${currencySymbol}${amount.toLocaleString()}${currencySuffix}`,
+        `${customer?.name || "顧客"} - ${saleFormData.items.length}製品 - ${currencySymbol}${totalAmount.toLocaleString()}${currencySuffix}`,
         TrendingUp,
         "text-purple-500"
       );
@@ -2383,8 +2379,8 @@ const App = () => {
       setSales(sales.filter((s) => s.id !== deleteSaleTargetId));
       if (deletedSale) {
         const customer = suppliers.find((c) => c.id === deletedSale.customerId);
-        const product = products.find((p) => p.id === deletedSale.productId);
-        addActivity("売上が削除されました", `${customer?.name || "顧客"} - ${product?.productName || "製品"}`, Trash2, "text-red-500");
+        const itemCount = deletedSale.items.length;
+        addActivity("売上が削除されました", `${customer?.name || "顧客"} - ${itemCount}製品`, Trash2, "text-red-500");
       }
       setShowSaleDeleteConfirm(false);
       setDeleteSaleTargetId("");
@@ -2394,6 +2390,127 @@ const App = () => {
   const handleSaleDeleteCancel = () => {
     setShowSaleDeleteConfirm(false);
     setDeleteSaleTargetId("");
+  };
+
+  // 請求書発行関数
+  const handleGenerateInvoice = async (sale: Sale) => {
+    try {
+      // テンプレートファイルを読み込み
+      // 開発環境と本番環境で異なるベースパスに対応
+      const baseUrl = import.meta.env.BASE_URL || "/";
+      const templatePath = `${baseUrl}invoice-template.xlsx`.replace("//", "/");
+      console.log("ベースURL:", baseUrl);
+      console.log("テンプレートパス:", templatePath);
+      const response = await fetch(templatePath);
+      console.log("レスポンスステータス:", response.status, response.statusText);
+
+      if (!response.ok) {
+        throw new Error(`テンプレートファイルの読み込みに失敗しました: ${response.status} ${response.statusText}`);
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      console.log("ファイルサイズ:", arrayBuffer.byteLength, "バイト");
+
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(arrayBuffer);
+
+      const worksheet = workbook.getWorksheet(1); // 最初のシートを取得
+
+      if (!worksheet) {
+        throw new Error("ワークシートが見つかりません");
+      }
+
+      // 顧客情報を取得
+      const customer = suppliers.find((s) => s.id === sale.customerId);
+
+      // インボイス作成日 (Date): G5 - テキスト形式で設定
+      const saleDate = new Date(sale.saleDate);
+      const formattedDate = `インボイス作成日（Date): ${saleDate.getMonth() + 1}/${saleDate.getDate()}/${saleDate.getFullYear()}`;
+      worksheet.getCell("G5").value = formattedDate;
+
+      // Invoice No: I10 - 空欄のまま（PO No.ではないため）
+      // worksheet.getCell("I10").value = "";
+
+      // 荷受人（Consignee）: A19から始まる
+      worksheet.getCell("A19").value = customer?.name || "";
+
+      // 製品明細を記入（33行目から開始）
+      const startRow = 33;
+      const maxRow = 45; // テンプレートの最大行（46行目が合計行）
+      let totalAmount = 0;
+
+      // まず既存のサンプルデータをクリア（33行目～45行目）
+      // I列（金額）は数式が含まれている可能性があるため、クリア対象から除外
+      for (let row = startRow; row <= maxRow; row++) {
+        ["A", "C", "D", "E", "F", "G"].forEach((col) => {
+          const cell = worksheet.getCell(`${col}${row}`);
+          cell.value = null;
+        });
+      }
+
+      // 製品明細を記入
+      sale.items.forEach((item, index) => {
+        const product = products.find((p) => p.id === item.productId);
+        const rowNum = startRow + index;
+
+        // A列: ラベル番号（Marks & Nos.）
+        worksheet.getCell(`A${rowNum}`).value = `${index + 1}/${sale.items.length}`;
+
+        // C列: 内容品の記載（Description）
+        worksheet.getCell(`C${rowNum}`).value = product?.productName || "";
+
+        // D列: 注文書No（PO No）
+        worksheet.getCell(`D${rowNum}`).value = sale.poNumber;
+
+        // E列: 単位（Unit）
+        worksheet.getCell(`E${rowNum}`).value = "pcs";
+
+        // F列: 数量（Quantity）- 数値として設定
+        worksheet.getCell(`F${rowNum}`).value = Number(item.quantity);
+
+        // G列: 単価（Unit Price）- 数値として設定
+        worksheet.getCell(`G${rowNum}`).value = Number(item.unitPrice);
+
+        // I列: 合計（Total Amount）- 数式がある場合は保持、ない場合のみ値を設定
+        const iCell = worksheet.getCell(`I${rowNum}`);
+        if (!iCell.formula) {
+          const amount = item.quantity * item.unitPrice;
+          iCell.value = Number(amount);
+          totalAmount += amount;
+        } else {
+          // 数式がある場合は計算結果を合計に加算
+          totalAmount += item.quantity * item.unitPrice;
+        }
+      });
+
+      // 合計金額: 46行目のI列 - 数式がある場合は保持、ない場合のみ値を設定
+      const totalCell = worksheet.getCell("I46");
+      if (!totalCell.formula) {
+        totalCell.value = Number(totalAmount);
+      }
+      // 数式がある場合（例: =SUM(I33:I45)）は自動計算されるため、値を設定しない
+
+      // Excelファイルをダウンロード
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Invoice_${sale.poNumber}_${new Date().toISOString().split("T")[0]}.xlsx`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+
+      addActivity(
+        "請求書が発行されました",
+        `${customer?.name || "顧客"} - ${sale.poNumber}`,
+        FileText,
+        "text-green-500"
+      );
+    } catch (error) {
+      console.error("請求書の生成に失敗しました:", error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      alert(`請求書の生成に失敗しました。\n\nエラー詳細: ${errorMessage}\n\nブラウザのコンソール（F12キー）で詳細を確認してください。`);
+    }
   };
 
   // 支払い関連の関数
@@ -2697,10 +2814,16 @@ const App = () => {
     sales.filter((sale) => {
       const customer = suppliers.find((s) => s.id === sale.customerId);
       const customerName = customer ? customer.name : "";
-      const product = products.find((p) => p.id === sale.productId);
-      const productName = product ? `${product.productCode} ${product.productName}` : "";
+
+      // 複数の製品明細から製品名を検索
+      const matchesProductSearch = sale.items.some((item) => {
+        const product = products.find((p) => p.id === item.productId);
+        const productName = product ? `${product.productCode} ${product.productName}` : "";
+        return productName.toLowerCase().includes(saleSearchQuery.toLowerCase());
+      });
+
       const matchesSearch =
-        productName.toLowerCase().includes(saleSearchQuery.toLowerCase()) ||
+        matchesProductSearch ||
         customerName.toLowerCase().includes(saleSearchQuery.toLowerCase());
       const matchesFilter =
         saleFilterStatus === "all" ||
@@ -2879,9 +3002,18 @@ const App = () => {
 
     filteredSales.forEach((sale) => {
       const existing = customerMap.get(sale.customerId) || { totalOrdered: 0, totalShipped: 0 };
+
+      // 各明細の注数と出荷数を合算
+      let saleTotal = 0;
+      let shippedTotal = 0;
+      sale.items.forEach((item) => {
+        saleTotal += item.quantity;
+        shippedTotal += item.shippedQuantity;
+      });
+
       customerMap.set(sale.customerId, {
-        totalOrdered: existing.totalOrdered + sale.quantity,
-        totalShipped: existing.totalShipped + sale.shippedQuantity,
+        totalOrdered: existing.totalOrdered + saleTotal,
+        totalShipped: existing.totalShipped + shippedTotal,
       });
     });
 
@@ -3005,16 +3137,20 @@ const App = () => {
     let totalVND = 0;
 
     currentMonthSales.forEach((sale) => {
-      const quantity = Number(sale.quantity) || 0;
-      const unitPrice = Number(sale.unitPrice) || 0;
-      const amount = quantity * unitPrice;
+      // 各明細の金額を合算
+      let saleAmount = 0;
+      sale.items.forEach((item) => {
+        const quantity = Number(item.quantity) || 0;
+        const unitPrice = Number(item.unitPrice) || 0;
+        saleAmount += quantity * unitPrice;
+      });
 
       if (sale.currency === "USD") {
-        totalUSD += amount;
+        totalUSD += saleAmount;
       } else if (sale.currency === "JPY") {
-        totalJPY += amount;
+        totalJPY += saleAmount;
       } else if (sale.currency === "VND") {
-        totalVND += amount;
+        totalVND += saleAmount;
       }
     });
 
@@ -3090,21 +3226,25 @@ const App = () => {
       const supplier = suppliers.find((s) => s.id === sale.customerId);
       const customerName = supplier?.name || "不明";
 
-      const quantity = Number(sale.quantity) || 0;
-      const unitPrice = Number(sale.unitPrice) || 0;
-      let amount = quantity * unitPrice;
+      // 各明細の金額を合算
+      let saleAmount = 0;
+      sale.items.forEach((item) => {
+        const quantity = Number(item.quantity) || 0;
+        const unitPrice = Number(item.unitPrice) || 0;
+        saleAmount += quantity * unitPrice;
+      });
 
       // USD換算
       if (sale.currency === "JPY") {
-        amount = amount / exchangeRates.jpy;
+        saleAmount = saleAmount / exchangeRates.jpy;
       } else if (sale.currency === "VND") {
-        amount = amount / exchangeRates.vnd;
+        saleAmount = saleAmount / exchangeRates.vnd;
       }
 
       if (!customerSales[sale.customerId]) {
         customerSales[sale.customerId] = { name: customerName, total: 0 };
       }
-      customerSales[sale.customerId].total += amount;
+      customerSales[sale.customerId].total += saleAmount;
     });
 
     return Object.values(customerSales)
@@ -3150,24 +3290,27 @@ const App = () => {
     const productSales: { [key: string]: { name: string; total: number } } = {};
 
     sales.forEach((sale) => {
-      const product = products.find((p) => p.id === sale.productId);
-      const productName = product?.productName || "不明";
+      // 各明細の製品別に集計
+      sale.items.forEach((item) => {
+        const product = products.find((p) => p.id === item.productId);
+        const productName = product?.productName || "不明";
 
-      const quantity = Number(sale.quantity) || 0;
-      const unitPrice = Number(sale.unitPrice) || 0;
-      let amount = quantity * unitPrice;
+        const quantity = Number(item.quantity) || 0;
+        const unitPrice = Number(item.unitPrice) || 0;
+        let amount = quantity * unitPrice;
 
-      // USD換算
-      if (sale.currency === "JPY") {
-        amount = amount / exchangeRates.jpy;
-      } else if (sale.currency === "VND") {
-        amount = amount / exchangeRates.vnd;
-      }
+        // USD換算
+        if (sale.currency === "JPY") {
+          amount = amount / exchangeRates.jpy;
+        } else if (sale.currency === "VND") {
+          amount = amount / exchangeRates.vnd;
+        }
 
-      if (!productSales[sale.productId]) {
-        productSales[sale.productId] = { name: productName, total: 0 };
-      }
-      productSales[sale.productId].total += amount;
+        if (!productSales[item.productId]) {
+          productSales[item.productId] = { name: productName, total: 0 };
+        }
+        productSales[item.productId].total += amount;
+      });
     });
 
     return Object.values(productSales)
@@ -4312,7 +4455,26 @@ const App = () => {
             <tbody className="divide-y divide-gray-200 [&_td]:whitespace-nowrap">
               {filteredSales.map((sale) => {
                 const customer = suppliers.find((s) => s.id === sale.customerId);
-                const totalAmount = sale.quantity * sale.unitPrice;
+
+                // 各明細の合計値を計算
+                let totalQuantity = 0;
+                let totalShipped = 0;
+                let totalAmount = 0;
+                let totalRequiredMaterial = 0;
+                let totalMoldingTime = 0;
+                const allMaterialIds = new Set<string>();
+
+                sale.items.forEach((item) => {
+                  totalQuantity += item.quantity;
+                  totalShipped += item.shippedQuantity;
+                  totalAmount += item.quantity * item.unitPrice;
+                  totalRequiredMaterial += item.requiredMaterialAmount;
+                  totalMoldingTime += item.moldingTime;
+                  item.materialIds.forEach((id) => allMaterialIds.add(id));
+                });
+
+                const backlog = totalQuantity - totalShipped;
+
                 return (
                   <tr key={sale.id} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => handleOpenSaleModal(sale)}>
                     <td className="px-6 py-4 text-sm font-medium text-blue-600">{sale.poNumber}</td>
@@ -4324,22 +4486,30 @@ const App = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      {(() => {
-                        const product = products.find((p) => p.id === sale.productId);
-                        return product ? (
-                          <>
-                            <p className="font-medium text-gray-800 leading-tight">{product.productCode}</p>
-                            <p className="text-sm text-gray-600 leading-tight">{product.productName}</p>
-                          </>
-                        ) : (
-                          <p className="text-sm text-gray-500">-</p>
-                        );
-                      })()}
+                      {sale.items.length > 0 ? (
+                        <>
+                          {(() => {
+                            const firstItem = sale.items[0];
+                            const product = products.find((p) => p.id === firstItem.productId);
+                            return product ? (
+                              <>
+                                <p className="font-medium text-gray-800 leading-tight">{product.productCode}</p>
+                                <p className="text-sm text-gray-600 leading-tight">{product.productName}</p>
+                              </>
+                            ) : null;
+                          })()}
+                          {sale.items.length > 1 && (
+                            <p className="text-xs text-gray-500 mt-1">他{sale.items.length - 1}件</p>
+                          )}
+                        </>
+                      ) : (
+                        <p className="text-sm text-gray-500">-</p>
+                      )}
                     </td>
                     <td className="px-6 py-4">
-                      {sale.materialIds && sale.materialIds.length > 0 ? (
+                      {allMaterialIds.size > 0 ? (
                         <div className="flex flex-wrap gap-1">
-                          {sale.materialIds.map((materialId) => {
+                          {Array.from(allMaterialIds).map((materialId) => {
                             const material = purchaseItems.find((p) => p.id === materialId);
                             return material ? (
                               <span
@@ -4356,19 +4526,23 @@ const App = () => {
                       )}
                     </td>
                     <td className="px-6 py-4 text-right text-sm text-gray-700">
-                      {sale.stockQuantity !== null ? sale.stockQuantity.toLocaleString() : "-"}
+                      {sale.items.length > 0 && sale.items[0].stockQuantity !== null
+                        ? sale.items[0].stockQuantity.toLocaleString()
+                        : "-"}
                     </td>
-                    <td className="px-6 py-4 text-right text-sm text-gray-700">{sale.quantity.toLocaleString()}</td>
-                    <td className="px-6 py-4 text-right text-sm text-gray-700">{sale.shippedQuantity.toLocaleString()}</td>
-                    <td className="px-6 py-4 text-right text-sm font-medium text-gray-700">
-                      {(sale.quantity - sale.shippedQuantity).toLocaleString()}
-                    </td>
+                    <td className="px-6 py-4 text-right text-sm text-gray-700">{totalQuantity.toLocaleString()}</td>
+                    <td className="px-6 py-4 text-right text-sm text-gray-700">{totalShipped.toLocaleString()}</td>
+                    <td className="px-6 py-4 text-right text-sm font-medium text-gray-700">{backlog.toLocaleString()}</td>
                     <td className="px-6 py-4 text-right text-sm font-medium text-gray-800">
-                      {sale.currency === "VND"
-                        ? `${sale.unitPrice.toLocaleString()} VND`
-                        : sale.currency === "JPY"
-                        ? `¥${sale.unitPrice.toLocaleString()}`
-                        : `$${sale.unitPrice.toLocaleString()}`}
+                      {sale.items.length === 1 ? (
+                        sale.currency === "VND"
+                          ? `${sale.items[0].unitPrice.toLocaleString()} VND`
+                          : sale.currency === "JPY"
+                          ? `¥${sale.items[0].unitPrice.toLocaleString()}`
+                          : `$${sale.items[0].unitPrice.toLocaleString()}`
+                      ) : (
+                        <span className="text-xs text-gray-500">複数</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-right text-sm font-bold text-gray-800">
                       {sale.currency === "VND"
@@ -4378,18 +4552,18 @@ const App = () => {
                         : `$${totalAmount.toLocaleString()}`}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">
-                      {sale.requiredMaterialAmount > 0 ? (
+                      {totalRequiredMaterial > 0 ? (
                         <span>
-                          {sale.requiredMaterialAmount.toLocaleString()} {t.requiredMaterialUnit}
+                          {totalRequiredMaterial.toLocaleString()} {t.requiredMaterialUnit}
                         </span>
                       ) : (
                         <span className="text-gray-400">-</span>
                       )}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">
-                      {sale.moldingTime > 0 ? (
+                      {totalMoldingTime > 0 ? (
                         <span>
-                          {sale.moldingTime.toFixed(2)} {t.timeUnit}
+                          {totalMoldingTime.toFixed(2)} {t.timeUnit}
                         </span>
                       ) : (
                         <span className="text-gray-400">-</span>
@@ -4431,8 +4605,16 @@ const App = () => {
                     <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-center gap-2">
                         <button
+                          onClick={() => handleGenerateInvoice(sale)}
+                          className="p-1 text-green-600 hover:bg-green-50 rounded transition-colors"
+                          title={lang === "ja" ? "請求書発行" : "Phát hành hóa đơn"}
+                        >
+                          <Download size={16} />
+                        </button>
+                        <button
                           onClick={() => handleDeleteSale(sale.id)}
                           className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                          title={lang === "ja" ? "削除" : "Xóa"}
                         >
                           <Trash2 size={16} />
                         </button>
@@ -6051,197 +6233,278 @@ const App = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t.product} <span className="text-red-500">*</span>
+                  {t.currency} <span className="text-red-500">*</span>
                 </label>
                 <select
-                  value={saleFormData.productId}
-                  onChange={(e) => {
-                    const selectedProduct = products.find((p) => p.id === e.target.value);
-                    if (selectedProduct) {
-                      setSaleFormData({
-                        ...saleFormData,
-                        productId: e.target.value,
-                        unitPrice: selectedProduct.standardPrice,
-                        currency: selectedProduct.currency,
-                        materialIds: selectedProduct.materialIds || [],
-                      });
-                    } else {
-                      setSaleFormData({ ...saleFormData, productId: e.target.value, materialIds: [] });
-                    }
-                  }}
+                  value={saleFormData.currency}
+                  onChange={(e) => setSaleFormData({ ...saleFormData, currency: e.target.value as "USD" | "JPY" | "VND" })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">{lang === "ja" ? "製品を選択してください" : "Chọn sản phẩm"}</option>
-                  {products
-                    .filter((p) => p.status === "active")
-                    .map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.productCode} - {p.productName}
-                      </option>
-                    ))}
+                  <option value="USD">USD</option>
+                  <option value="JPY">JPY</option>
+                  <option value="VND">VND</option>
                 </select>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t.orderQuantity} <span className="text-red-500">*</span>
+              {/* 製品明細セクション */}
+              <div className="border-t pt-4">
+                <div className="flex items-center justify-between mb-3">
+                  <label className="block text-sm font-medium text-gray-700">
+                    {lang === "ja" ? "製品明細" : "Chi tiết sản phẩm"} <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="number"
-                    value={saleFormData.quantity}
-                    onChange={(e) => setSaleFormData({ ...saleFormData, quantity: Number(e.target.value) })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="2000"
-                    min="0"
-                    step="1"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t.stockQuantity}
-                  </label>
-                  <input
-                    type="number"
-                    value={saleFormData.stockQuantity ?? ""}
-                    onChange={(e) =>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newItem: SaleItem = {
+                        id: `sli-${Date.now()}`,
+                        productId: "",
+                        quantity: 0,
+                        stockQuantity: null,
+                        shippedQuantity: 0,
+                        unitPrice: 0,
+                        materialIds: [],
+                        requiredMaterialAmount: 0,
+                        moldingTime: 0,
+                      };
                       setSaleFormData({
                         ...saleFormData,
-                        stockQuantity: e.target.value === "" ? null : Number(e.target.value),
-                      })
-                    }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder={lang === "ja" ? "在庫数を入力" : "Nhập số tồn kho"}
-                    min="0"
-                    step="1"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t.shippedQuantity}
-                  </label>
-                  <input
-                    type="number"
-                    value={saleFormData.shippedQuantity}
-                    onChange={(e) =>
-                      setSaleFormData({
-                        ...saleFormData,
-                        shippedQuantity: Number(e.target.value),
-                      })
-                    }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder={lang === "ja" ? "出荷数を入力" : "Nhập số lượng đã giao"}
-                    min="0"
-                    max={saleFormData.quantity}
-                    step="1"
-                  />
-                  {saleFormData.quantity > 0 && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      {lang === "ja" ? "残注数" : "Chưa giao"}: {(saleFormData.quantity - saleFormData.shippedQuantity).toLocaleString()}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t.unitPrice} <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    value={saleFormData.unitPrice}
-                    onChange={(e) => setSaleFormData({ ...saleFormData, unitPrice: Number(e.target.value) })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="2200"
-                    min="0"
-                    step="0.01"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t.currency} <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={saleFormData.currency}
-                    onChange={(e) => setSaleFormData({ ...saleFormData, currency: e.target.value as "USD" | "JPY" | "VND" })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        items: [...saleFormData.items, newItem],
+                      });
+                    }}
+                    className="px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium transition-colors"
                   >
-                    <option value="USD">USD</option>
-                    <option value="JPY">JPY</option>
-                    <option value="VND">VND</option>
-                  </select>
+                    + {lang === "ja" ? "製品を追加" : "Thêm sản phẩm"}
+                  </button>
                 </div>
-              </div>
 
-              {saleFormData.quantity > 0 && saleFormData.unitPrice > 0 && (
-                <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-blue-700">{t.totalAmount}:</span>
-                    <span className="text-xl font-bold text-blue-800">
-                      {saleFormData.currency === "VND"
-                        ? `${(Number(saleFormData.quantity) * Number(saleFormData.unitPrice)).toLocaleString()} VND`
-                        : saleFormData.currency === "JPY"
-                        ? `¥${(Number(saleFormData.quantity) * Number(saleFormData.unitPrice)).toLocaleString()}`
-                        : `$${(Number(saleFormData.quantity) * Number(saleFormData.unitPrice)).toLocaleString()}`}
-                    </span>
+                {saleFormData.items.length === 0 && (
+                  <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
+                    <p className="text-sm text-gray-500">{lang === "ja" ? "製品明細を追加してください" : "Thêm sản phẩm"}</p>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* 自動計算項目の表示 */}
-              {saleFormData.productId &&
-                saleFormData.quantity > 0 &&
-                (() => {
-                  const selectedProduct = products.find((p) => p.id === saleFormData.productId);
-                  if (!selectedProduct) return null;
+                <div className="space-y-4">
+                  {saleFormData.items.map((item, index) => {
+                    const selectedProduct = products.find((p) => p.id === item.productId);
+                    const backlog = item.quantity - item.shippedQuantity;
+                    const totalAmount = item.quantity * item.unitPrice;
 
-                  const requiredMaterialAmount = selectedProduct.weight > 0 ? (saleFormData.quantity * selectedProduct.weight) / 1000 : 0;
-                  const moldingTime =
-                    selectedProduct.length > 0 && selectedProduct.speed > 0
-                      ? (saleFormData.quantity * selectedProduct.length) / 1000 / selectedProduct.speed / 60
-                      : 0;
+                    return (
+                      <div key={item.id} className="border border-gray-300 rounded-lg p-4 bg-gray-50">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-sm font-semibold text-gray-700">
+                            {lang === "ja" ? "製品" : "Sản phẩm"} #{index + 1}
+                          </h4>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSaleFormData({
+                                ...saleFormData,
+                                items: saleFormData.items.filter((_, i) => i !== index),
+                              });
+                            }}
+                            className="text-red-600 hover:text-red-800 text-sm"
+                          >
+                            {lang === "ja" ? "削除" : "Xóa"}
+                          </button>
+                        </div>
 
-                  return (
-                    <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg space-y-3">
-                      <h4 className="text-sm font-semibold text-gray-700">自動計算項目</h4>
-
-                      {selectedProduct.materialIds.length > 0 && (
-                        <div>
-                          <p className="text-xs text-gray-600 mb-1">{t.materials}</p>
-                          <div className="flex flex-wrap gap-2">
-                            {selectedProduct.materialIds.map((matId) => {
-                              const material = purchaseItems.find((item) => item.id === matId);
-                              return material ? (
-                                <span key={matId} className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                                  {material.productCode} - {material.productName}
-                                </span>
-                              ) : null;
-                            })}
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                              {t.product} <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                              value={item.productId}
+                              onChange={(e) => {
+                                const selectedProduct = products.find((p) => p.id === e.target.value);
+                                const updatedItems = [...saleFormData.items];
+                                updatedItems[index] = {
+                                  ...item,
+                                  productId: e.target.value,
+                                  unitPrice: selectedProduct?.standardPrice || 0,
+                                  materialIds: selectedProduct?.materialIds || [],
+                                  requiredMaterialAmount:
+                                    selectedProduct && selectedProduct.weight > 0 ? (item.quantity * selectedProduct.weight) / 1000 : 0,
+                                  moldingTime:
+                                    selectedProduct && selectedProduct.length > 0 && selectedProduct.speed > 0
+                                      ? (item.quantity * selectedProduct.length) / 1000 / selectedProduct.speed / 60
+                                      : 0,
+                                };
+                                setSaleFormData({ ...saleFormData, items: updatedItems });
+                              }}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            >
+                              <option value="">{lang === "ja" ? "製品を選択" : "Chọn sản phẩm"}</option>
+                              {products
+                                .filter((p) => p.status === "active")
+                                .map((p) => (
+                                  <option key={p.id} value={p.id}>
+                                    {p.productCode} - {p.productName}
+                                  </option>
+                                ))}
+                            </select>
                           </div>
-                        </div>
-                      )}
 
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-xs text-gray-600">{t.requiredMaterialAmount}</p>
-                          <p className="text-lg font-semibold text-gray-900">
-                            {requiredMaterialAmount.toLocaleString()} {t.requiredMaterialUnit}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-gray-600">{t.moldingTime}</p>
-                          <p className="text-lg font-semibold text-gray-900">
-                            {moldingTime.toFixed(2)} {t.timeUnit}
-                          </p>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                {t.orderQuantity} <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="number"
+                                value={item.quantity}
+                                onChange={(e) => {
+                                  const quantity = Number(e.target.value);
+                                  const updatedItems = [...saleFormData.items];
+                                  updatedItems[index] = {
+                                    ...item,
+                                    quantity,
+                                    requiredMaterialAmount:
+                                      selectedProduct && selectedProduct.weight > 0 ? (quantity * selectedProduct.weight) / 1000 : 0,
+                                    moldingTime:
+                                      selectedProduct && selectedProduct.length > 0 && selectedProduct.speed > 0
+                                        ? (quantity * selectedProduct.length) / 1000 / selectedProduct.speed / 60
+                                        : 0,
+                                  };
+                                  setSaleFormData({ ...saleFormData, items: updatedItems });
+                                }}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                min="0"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                {t.unitPrice} <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="number"
+                                value={item.unitPrice}
+                                onChange={(e) => {
+                                  const updatedItems = [...saleFormData.items];
+                                  updatedItems[index] = { ...item, unitPrice: Number(e.target.value) };
+                                  setSaleFormData({ ...saleFormData, items: updatedItems });
+                                }}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">{t.stockQuantity}</label>
+                              <input
+                                type="number"
+                                value={item.stockQuantity ?? ""}
+                                onChange={(e) => {
+                                  const updatedItems = [...saleFormData.items];
+                                  updatedItems[index] = {
+                                    ...item,
+                                    stockQuantity: e.target.value === "" ? null : Number(e.target.value),
+                                  };
+                                  setSaleFormData({ ...saleFormData, items: updatedItems });
+                                }}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                min="0"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">{t.shippedQuantity}</label>
+                              <input
+                                type="number"
+                                value={item.shippedQuantity}
+                                onChange={(e) => {
+                                  const updatedItems = [...saleFormData.items];
+                                  updatedItems[index] = { ...item, shippedQuantity: Number(e.target.value) };
+                                  setSaleFormData({ ...saleFormData, items: updatedItems });
+                                }}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                min="0"
+                                max={item.quantity}
+                              />
+                            </div>
+                          </div>
+
+                          {item.quantity > 0 && item.unitPrice > 0 && (
+                            <div className="bg-blue-50 border-l-4 border-blue-500 p-3 rounded text-sm">
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="text-blue-700">{lang === "ja" ? "金額" : "Số tiền"}:</span>
+                                <span className="font-bold text-blue-800">
+                                  {saleFormData.currency === "VND"
+                                    ? `${totalAmount.toLocaleString()} VND`
+                                    : saleFormData.currency === "JPY"
+                                    ? `¥${totalAmount.toLocaleString()}`
+                                    : `$${totalAmount.toLocaleString()}`}
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center text-xs text-blue-600">
+                                <span>{lang === "ja" ? "残注数" : "Chưa giao"}:</span>
+                                <span>{backlog.toLocaleString()}</span>
+                              </div>
+                            </div>
+                          )}
+
+                          {selectedProduct && item.quantity > 0 && (
+                            <div className="bg-gray-100 border border-gray-200 p-3 rounded-lg text-xs space-y-2">
+                              <h5 className="font-semibold text-gray-700">{lang === "ja" ? "自動計算" : "Tự động tính"}</h5>
+                              {selectedProduct.materialIds.length > 0 && (
+                                <div>
+                                  <p className="text-gray-600 mb-1">{t.materials}</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {selectedProduct.materialIds.map((matId) => {
+                                      const material = purchaseItems.find((item) => item.id === matId);
+                                      return material ? (
+                                        <span key={matId} className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">
+                                          {material.productCode}
+                                        </span>
+                                      ) : null;
+                                    })}
+                                  </div>
+                                </div>
+                              )}
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <p className="text-gray-600">{t.requiredMaterialAmount}:</p>
+                                  <p className="font-semibold text-gray-900">
+                                    {item.requiredMaterialAmount.toLocaleString()} {t.requiredMaterialUnit}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-gray-600">{t.moldingTime}:</p>
+                                  <p className="font-semibold text-gray-900">
+                                    {item.moldingTime.toFixed(2)} {t.timeUnit}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
+                    );
+                  })}
+                </div>
+
+                {/* 合計表示 */}
+                {saleFormData.items.length > 0 && (
+                  <div className="mt-4 bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-blue-700">{t.totalAmount}:</span>
+                      <span className="text-xl font-bold text-blue-800">
+                        {(() => {
+                          const total = saleFormData.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
+                          return saleFormData.currency === "VND"
+                            ? `${total.toLocaleString()} VND`
+                            : saleFormData.currency === "JPY"
+                            ? `¥${total.toLocaleString()}`
+                            : `$${total.toLocaleString()}`;
+                        })()}
+                      </span>
                     </div>
-                  );
-                })()}
+                  </div>
+                )}
+              </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">{t.remarks}</label>

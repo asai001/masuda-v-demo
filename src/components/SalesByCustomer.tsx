@@ -15,7 +15,15 @@ interface SalesByCustomerProps {
 
 export const SalesByCustomer = ({ data, title, colors }: SalesByCustomerProps) => {
   // カスタムラベルレンダリング関数
-  const renderCustomLabel = (props: any) => {
+  const renderCustomLabel = (props: {
+    cx?: number;
+    cy?: number;
+    midAngle?: number;
+    innerRadius?: number;
+    outerRadius?: number;
+    percent?: number;
+    name?: string;
+  }) => {
     const { cx, cy, midAngle, innerRadius, outerRadius, percent, name } = props;
 
     if (!cx || !cy || midAngle === undefined || !innerRadius || !outerRadius || percent === undefined) {
